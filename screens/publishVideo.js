@@ -1,29 +1,51 @@
 import { renderHeaderHud } from '../components/HeaderHud.js';
 import { gameState } from '../engine/gameState.js';
 
-// Banco de ideas de títulos por nicho
-const videoIdeas = {
+// Banco extenso de títulos por nicho
+const videoTemplates = {
   "Gaming & Fútbol": [
-    { title: "Probando la nueva actualización de FIFA / EA FC", topic: "Gameplay", boost: 1.1 },
-    { title: "Sobrevivo 100 días en Minecraft Hardcore", topic: "Gaming", boost: 1.3 },
-    { title: "Jugando a 'El Ídolo': ¿El mejor juego argentino?", topic: "Gameplay", boost: 1.2 },
-    { title: "Reacción al partido de la fecha en la Liga Argentina", topic: "Reacción", boost: 1.15 },
-    { title: "Debate Futbolístico: Top 10 mejores promesas", topic: "Charla", boost: 1.05 },
-    { title: "Probando juegos insólitos de la Play Store", topic: "Gaming", boost: 1.0 }
+    "Probando el nuevo juego viral del momento",
+    "Reacción en vivo al clásico futbolístico de la fecha",
+    "Sobreviviendo 100 días en modo hardcore",
+    "Jugando a 'El Ídolo': ¿El simulador definitivo?",
+    "Debate picante: ¿Quién es la verdadera promesa del fútbol?",
+    "Desafío extremo de gaming sin perder la paciencia",
+    "Creé el equipo más caro de la liga y pasó esto",
+    "Probando juegos basura de la Play Store",
+    "Análisis táctico del partido de la fecha",
+    "El bug más insólito que me pasó en directo",
+    "Torneo relámpago contra otros streamers",
+    "Reaccionando a los mejores goles del año"
   ],
   "Tecnología & Gadgets": [
-    { title: "Unboxing y prueba del celular más caro del mercado", topic: "Unboxing", boost: 1.25 },
-    { title: "Armé la PC Gamer de mis sueños y pasó esto...", topic: "Tech", boost: 1.3 },
-    { title: "5 Gadgets insólitos que compré por internet", topic: "Review", boost: 1.1 },
-    { title: "¿Vale la pena comprar esta consola en 2026?", topic: "Análisis", boost: 1.15 }
+    "Unboxing del nuevo celular insignia",
+    "Armé una PC Gamer con presupuesto mínimo",
+    "5 Gadgets ridículos que compré por internet",
+    "¿Vale la pena comprar esta consola en 2026?",
+    "Probando tecnología futurista que no conocías",
+    "Mi setup definitivo de streaming explicado",
+    "Puse a prueba los auriculares más caros del mercado",
+    "Analizando el peor software del año"
   ],
   "Vlogs, IRL & Charla": [
-    { title: "24 Horas siendo streamer en Argentina", topic: "Vlog", boost: 1.2 },
-    { title: "Charlando con la comunidad sobre el estado del streaming", topic: "Charla", boost: 1.0 },
-    { title: "Reaccionando a las mejores polémicas de la semana", topic: "Reacción", boost: 1.35 },
-    { title: "Me metí en el evento de streamers sin entrada", topic: "IRL", boost: 1.4 }
+    "24 Horas haciendo stream sin parar",
+    "Charlando sobre la cultura del streaming en Argentina",
+    "Reaccionando a las polémicas más virales de la semana",
+    "Infiltrado en un evento masivo sin entrada",
+    "Debate con el chat sobre las redes sociales",
+    "Contando historias insólitas que me pasaron en la calle",
+    "Mi rutina diaria como creador de contenido",
+    "Respondiendo las preguntas más incómodas del chat"
   ]
 };
+
+const attributesList = [
+  { key: 'edicion', label: 'Edición' },
+  { key: 'carisma', label: 'Carisma' },
+  { key: 'algoritmo', label: 'Algoritmo' },
+  { key: 'marketing', label: 'Marketing' },
+  { key: 'constancia', label: 'Constancia' }
+];
 
 export function renderPublishVideo() {
   const container = document.createElement('div');
@@ -33,13 +55,24 @@ export function renderPublishVideo() {
     padding: 0 15px;
   `;
 
-  // Obtener ideas según el nicho o usar Gaming por defecto
   const playerNiche = gameState.player.niche || "Gaming & Fútbol";
-  const nichePool = videoIdeas[playerNiche] || videoIdeas["Gaming & Fútbol"];
-  
-  // Mezclar y elegir 4 opciones aleatorias
-  const shuffled = [...nichePool].sort(() => 0.5 - Math.random());
-  const selectedOptions = shuffled.slice(0, 4);
+  const pool = videoTemplates[playerNiche] || videoTemplates["Gaming & Fútbol"];
+
+  // Seleccionar 3 títulos aleatorios sin repetir
+  const shuffled = [...pool].sort(() => 0.5 - Math.random());
+  const selectedTitles = shuffled.slice(0, 3);
+
+  // Generar 3 opciones con mejoras de atributos aleatorias
+  const selectedOptions = selectedTitles.map(title => {
+    const attr = attributesList[Math.floor(Math.random() * attributesList.length)];
+    const pts = Math.floor(Math.random() * 3) + 1; // +1 a +3 puntos
+    return {
+      title,
+      attrKey: attr.key,
+      attrLabel: attr.label,
+      attrPoints: pts
+    };
+  });
 
   let selectedIndex = 0;
 
@@ -54,14 +87,14 @@ export function renderPublishVideo() {
       margin-top: 20px;
     ">
       <h2 style="font-family: var(--font-heading); font-size: 1.8rem; margin-top: 0; color: var(--accent-red); text-transform: uppercase;">
-        🎬 Seleccioná la Idea de tu Próximo Video
+        🎬 Seleccioná una Idea
       </h2>
       <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
-        Elegí una de las 4 tendencias sugeridas para tu nicho (<strong>${playerNiche}</strong>):
+        Elegí 1 de las 3 opciones generadas para tu nicho. Cada opción mejorará un atributo específico de tu creador:
       </p>
 
-      <!-- Grilla con las 4 Opciones -->
-      <div id="ideas-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
+      <!-- Grilla de 3 Opciones -->
+      <div id="ideas-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px;">
         ${selectedOptions.map((opt, index) => `
           <div class="title-card interactive-card" data-index="${index}" style="
             background: rgba(0,0,0,0.5);
@@ -69,27 +102,32 @@ export function renderPublishVideo() {
             border-radius: 12px;
             padding: 18px;
             cursor: pointer;
-            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
           ">
-            <span style="
-              font-size: 0.7rem;
-              background: rgba(255,0,0,0.2);
-              color: var(--accent-red);
-              padding: 3px 8px;
-              border-radius: 4px;
+            <div>
+              <h3 style="font-size: 1rem; margin: 0 0 15px 0; color: #fff; line-height: 1.4;">
+                "${opt.title}"
+              </h3>
+            </div>
+            <div style="
+              background: rgba(0, 255, 102, 0.1);
+              border: 1px solid var(--accent-green);
+              color: var(--accent-green);
+              padding: 6px 10px;
+              border-radius: 6px;
+              font-size: 0.8rem;
               font-weight: bold;
+              text-align: center;
               text-transform: uppercase;
             ">
-              ${opt.topic}
-            </span>
-            <h3 style="font-size: 1.1rem; margin: 12px 0 0 0; color: #fff;">
-              ${opt.title}
-            </h3>
+              +${opt.attrPoints} ${opt.attrLabel} ▲
+            </div>
           </div>
         `).join('')}
       </div>
 
-      <!-- Selector de Clickbait -->
       <div style="margin-bottom: 25px; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; border: var(--border-subtle);">
         <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">
           Estrategia de Miniatura y Clickbait
@@ -127,7 +165,6 @@ export function renderPublishVideo() {
     </div>
   `;
 
-  // Listener para la selección visual de tarjetas
   setTimeout(() => {
     const cards = container.querySelectorAll('.title-card');
     cards.forEach(card => {
@@ -140,15 +177,15 @@ export function renderPublishVideo() {
 
     const publishBtn = container.querySelector('#btn-publish');
     publishBtn.addEventListener('click', () => {
-      const chosenIdea = selectedOptions[selectedIndex];
+      const chosenOption = selectedOptions[selectedIndex];
       const clickbait = container.querySelector('#video-clickbait').value;
 
-      // Guardamos la elección completa en el estado global
       gameState.ultimoVideoDraft = {
-        title: chosenIdea.title,
-        topic: chosenIdea.topic,
-        boost: chosenIdea.boost,
-        clickbait: clickbait
+        title: chosenOption.title,
+        clickbait: clickbait,
+        attrKey: chosenOption.attrKey,
+        attrLabel: chosenOption.attrLabel,
+        attrPoints: chosenOption.attrPoints
       };
 
       window.location.hash = '#videoResult';
