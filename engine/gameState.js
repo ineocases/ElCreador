@@ -69,11 +69,21 @@ export const gameState = {
   },
 
   // Pasa de trimestre y avanza el año al llegar a 4
-  avanzarTrimestre() {
-    this.player.trimestre += 1;
-    if (this.player.trimestre > 3) {
-      this.player.trimestre = 1;
-      this.player.año += 1;
+  // Dentro de engine/gameState.js
+
+avanzarTrimestre() {
+    this.player.trimestre++;
+
+    // Configurado a 2 trimestres por año
+    if (this.player.trimestre > 2) {
+        this.player.trimestre = 1;
+        this.player.año++;
+    }
+
+    if (typeof saveManager !== 'undefined' && saveManager.saveLocal) {
+        saveManager.saveLocal();
+    }
+}
     }
   }
 };
