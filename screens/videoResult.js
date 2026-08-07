@@ -9,9 +9,20 @@ export function renderVideoResult() {
     padding: 0 15px;
   `;
 
-  const draft = gameState.ultimoVideoDraft || { title: "Video Sin Título", topic: "Vlog", clickbait: "Medio" };
+  const draft = gameState.ultimoVideoDraft || { 
+    title: "Video Sin Título", 
+    clickbait: "Medio",
+    attrKey: "carisma",
+    attrLabel: "Carisma",
+    attrPoints: 1
+  };
 
-  // Algoritmo de cálculo según atributos
+  // Aplicar mejora de atributo
+  if (draft.attrKey && draft.attrPoints) {
+    gameState.mejorarAtributo(draft.attrKey, draft.attrPoints);
+  }
+
+  // Algoritmo de cálculo según atributos actuales
   const boostCarisma = gameState.player.atributos.carisma * 3;
   const boostEdicion = gameState.player.atributos.edicion * 2;
   const azar = Math.floor(Math.random() * 80) + 20;
@@ -20,17 +31,17 @@ export function renderVideoResult() {
   const nuevosSubs = Math.floor(vistasObtenidas * 0.08);
   const dineroGanado = Math.floor(vistasObtenidas * 0.02);
 
-  // Actualizar jugador
+  // Actualizar métricas del jugador
   gameState.player.vistasTotales += vistasObtenidas;
   gameState.sumarSuscriptores(nuevosSubs);
   gameState.sumarDinero(dineroGanado);
   gameState.player.videosSubidos += 1;
 
-  // Avance del Rival (simulado)
-  const rivalSubsGanados = Math.floor(Math.random() * 40) + 10;
+  // Avance simulado del rival
+  const rivalSubsGanados = Math.floor(Math.random() * 30) + 5;
   gameState.rival.suscriptores += rivalSubsGanados;
 
-  // Evento estocástico: ¿Un creador vio tu video?
+  // Evento aleatorio de streamer
   let eventoCreador = null;
   if (vistasObtenidas > 150) {
     eventoCreador = `👀 <strong>Coscu</strong> vio tu video en stream y comentó: <em>"Tiene potencial este pibe"</em> (+5 Fama)`;
@@ -56,14 +67,21 @@ export function renderVideoResult() {
         </h2>
       </div>
 
-      <!-- Cuadros de Impacto -->
+      <!-- Mejora de Atributo Obtenida -->
+      <div style="background: rgba(0, 255, 102, 0.1); border: 1px solid var(--accent-green); padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+        <span style="color: var(--accent-green); font-weight: bold; font-size: 0.95rem;">
+          ▲ ¡MEJORA DE ATRIBUTO! +${draft.attrPoints} en ${draft.attrLabel}
+        </span>
+      </div>
+
+      <!-- Cuadros de Rendimiento -->
       <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px;">
         <div style="background: rgba(0,0,0,0.5); padding: 15px; border-radius: 10px; border: var(--border-subtle); text-align: center;">
           <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">VISTAS</span>
           <strong style="font-size: 1.8rem; color: var(--accent-red); font-family: var(--font-heading);">+${vistasObtenidas.toLocaleString()}</strong>
         </div>
         <div style="background: rgba(0,0,0,0.5); padding: 15px; border-radius: 10px; border: var(--border-subtle); text-align: center;">
-          <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">NUEVO SEGUIDORES</span>
+          <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">NUEVOS SUBS</span>
           <strong style="font-size: 1.8rem; color: var(--accent-green); font-family: var(--font-heading);">+${nuevosSubs}</strong>
         </div>
         <div style="background: rgba(0,0,0,0.5); padding: 15px; border-radius: 10px; border: var(--border-subtle); text-align: center;">
@@ -72,7 +90,6 @@ export function renderVideoResult() {
         </div>
       </div>
 
-      <!-- Resumen Estilo "Pasaron Cosas" (El Ídolo) -->
       ${eventoCreador ? `
         <div style="background: rgba(255, 0, 0, 0.1); border: 1px solid var(--accent-red); padding: 15px; border-radius: 10px; margin-bottom: 20px;">
           ${eventoCreador}
@@ -82,7 +99,7 @@ export function renderVideoResult() {
       <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; border: var(--border-subtle); margin-bottom: 25px;">
         <span style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Duelo de Rivales</span>
         <p style="margin: 5px 0 0 0; font-size: 0.95rem;">
-          Tu rival <strong>${gameState.rival.nombre}</strong> subió un video este trimestre y consiguió <strong>+${rivalSubsGanados} subs</strong> (Total: ${gameState.rival.suscriptores}).
+          Tu rival <strong>${gameState.rival.nombre}</strong> subió contenido este trimestre y acumuló <strong>+${rivalSubsGanados} subs</strong> (Total: ${gameState.rival.suscriptores}).
         </p>
       </div>
 
