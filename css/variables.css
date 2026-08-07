@@ -1,25 +1,30 @@
-:root{
+:root {
+  /* Paleta Base - Estilo El Ídolo */
+  --bg-main: #060608;
+  --bg-card: #0f0f13;
+  --bg-header-hud: linear-gradient(180deg, #2a0b10 0%, #120709 100%);
+  --bg-slot: rgba(255, 255, 255, 0.04);
+  
+  /* Bordes y Líneas */
+  --border-subtle: 1px solid rgba(255, 255, 255, 0.08);
+  --border-card: 1px solid rgba(255, 255, 255, 0.12);
+  
+  /* Colores de Acento (Neón y Notificaciones) */
+  --accent-green: #00ff66;
+  --accent-yellow: #f5c518;
+  --accent-red: #ff3355;
+  --text-main: #ffffff;
+  --text-muted: #8a8a9e;
 
-    --background:#0f1117;
+  /* Tipografías Esport/Deportivas */
+  --font-heading: 'Oswald', 'Arial Black', sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+}
 
-    --panel:#181b24;
-
-    --panel2:#222734;
-
-    --primary:#ff003c;
-
-    --primaryHover:#ff2458;
-
-    --text:#ffffff;
-
-    --text2:#b6bcc9;
-
-    --success:#2ecc71;
-
-    --danger:#ff4d4d;
-
-    --radius:18px;
-
-    --shadow:0 10px 35px rgba(0,0,0,.35);
-
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  margin: 0;
+  padding: 0;
 }
