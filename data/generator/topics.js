@@ -1,49 +1,55 @@
 export default {
 
-    Gaming:[
+Gaming:[
+"Roblox",
+"Minecraft",
+"Fortnite",
+"Valorant",
+"Counter Strike",
+"GTA VI",
+"EA Sports FC",
+"Among Us",
+"Fall Guys",
+"Only Up"
+],
 
-        "Minecraft",
-        "Roblox",
-        "Fortnite",
-        "EA FC",
-        "GTA",
-        "Valorant",
-        "CS2",
-        "Among Us"
+Fútbol:[
+"Boca",
+"River",
+"Champions",
+"Libertadores",
+"Messi",
+"Cristiano Ronaldo",
+"Mercado de Pases",
+"Selección Argentina",
+"Mundial",
+"Balón de Oro"
+],
 
-    ],
+Streaming:[
+"Twitch",
+"Kick",
+"Coscu",
+"Spreen",
+"Davoo",
+"La Cobra",
+"Ibai",
+"Reacts",
+"Charlando",
+"IRL"
+],
 
-    "Fútbol":[
-
-        "Boca",
-        "River",
-        "Champions",
-        "Libertadores",
-        "Mercado de Pases",
-        "Selección Argentina",
-        "Mundial"
-
-    ],
-
-    Tecnología:[
-
-        "iPhone",
-        "Samsung",
-        "Apple",
-        "Android",
-        "PC Gamer",
-        "Inteligencia Artificial"
-
-    ],
-
-    Streaming:[
-
-        "Kick",
-        "Twitch",
-        "YouTube",
-        "IRL",
-        "Charlando"
-
-    ]
+Tecnología:[
+"iPhone",
+"Samsung",
+"Apple",
+"PC Gamer",
+"Setup",
+"IA",
+"ChatGPT",
+"RTX",
+"PlayStation",
+"Nintendo"
+]
 
 };
