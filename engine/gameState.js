@@ -4,7 +4,7 @@ export const gameState = {
     nombre: "",
     canal: "",
     niche: "",
-    edad: "",
+    edad: 17,
     año: 2026,
     trimestre: 1, // 1 al 4
     
@@ -25,15 +25,15 @@ export const gameState = {
     },
     
     // Capital inicial mínimo
-    dinero: 100, // US$
+    dinero: 200, // US$
     ingresosTrimestre: 0
   },
 
-  // Rival asignado al arrancar
+  // Rival asignado: Un streamer nuevo compitiendo al mismo nivel
   rival: {
-    nombre: "Davo Xeneize",
-    suscriptores: 25000,
-    fama: 30,
+    nombre: "Nico TV",
+    suscriptores: 15,
+    fama: 1,
     dueloGanado: false
   },
 
