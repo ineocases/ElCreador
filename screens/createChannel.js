@@ -61,9 +61,12 @@ export function renderCreateChannel() {
           font-size: 1rem;
           box-sizing: border-box;
         ">
-          <option value="Gaming & Fútbol">🎮 Gaming & Fútbol</option>
-          <option value="Tecnología & Gadgets">📱 Tecnología & Gadgets</option>
-          <option value="Vlogs, IRL & Charla">🎙️ Vlogs, IRL & Charla</option>
+          <option value="Gaming">🎮 Gaming</option>
+          <option value="Fútbol">⚽ Fútbol</option>
+          <option value="Vlog">📹 Vlog & IRL</option>
+          <option value="Tecnología">📱 Tecnología</option>
+          <option value="Cocina">🍳 Cocina</option>
+          <option value="Periodismo">📰 Periodismo</option>
         </select>
       </div>
 
