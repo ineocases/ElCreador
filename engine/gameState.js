@@ -83,9 +83,6 @@ avanzarTrimestre() {
     if (typeof saveManager !== 'undefined' && saveManager.saveLocal) {
         saveManager.saveLocal();
     }
-}
-    }
-  }
 };
 
 // Exportación por defecto para solucionar SyntaxError en importaciones
