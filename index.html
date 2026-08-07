@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El Creador</title>
+
+    <!-- Tus estilos originales -->
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- Fuentes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div id="app">
+        <!-- ==========================================
+             PANTALLA 0: CREAR CANAL (Jugador Nuevo)
+        =========================================== -->
+        <div id="createChannelScreen" class="screen" style="display:none;">
+            <h2>Bienvenido a "El Creador"</h2>
+            <p>Ingresá tus datos para empezar tu carrera.</p>
+            
+            <div class="form-group">
+                <label>Tu Nombre Real:</label>
+                <input type="text" id="inputName" placeholder="Ej: Juan Pérez">
+            </div>
+            
+            <div class="form-group">
+                <label>Nombre del Canal:</label>
+                <input type="text" id="inputChannel" placeholder="Ej: JuanPlay">
+            </div>
+
+            <div class="form-group">
+                <label>País:</label>
+                <select id="inputCountry">
+                    <option value="Argentina">Argentina</option>
+                    <option value="México">México</option>
+                    <option value="España">España</option>
+                    <option value="Colombia">Colombia</option>
+                    <option value="Chile">Chile</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Nicho Principal:</label>
+                <select id="inputNiche">
+                    <option value="Gaming">Gaming</option>
+                    <option value="Vlogs">Vlogs & Estilo de vida</option>
+                    <option value="Reacciones">Reacciones</option>
+                    <option value="Tecnología">Tecnología</option>
+                </select>
+            </div>
+
+            <!-- Botón temporal. Para que funcione rápido, inyectamos un script pequeñito acá -->
+            <button onclick="startGame()">Crear Canal y Empezar</button>
+        </div>
+
+        <!-- ==========================================
+             PANTALLA 1: DASHBOARD (Panel Principal)
+        =========================================== -->
+        <div id="dashboardScreen" class="screen" style="display:none;">
+            <h2>Canal: <span id="playerName"></span></h2>
+            
+            <div class="stats-container">
+                <p>👥 Subs: <strong id="subsCount">0</strong></p>
+                <p>💵 Saldo: <strong id="moneyCount">$0</strong></p>
+                <p>⭐ Fama: <strong id="fameCount">0/100</strong></p>
+            </div>
+
+            <div class="time-container">
+                <h3 id="quarterInfo"></h3>
+                <p id="videosLeft"></p>
+            </div>
+
+            <div class="actions-container">
+                <button id="btnPublish">Publicar Nuevo Video</button>
+                <button onclick="window.location.hash = '#store'">Ir a la Tienda de Mejoras</button>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             PANTALLA 2: PUBLICAR VIDEO (Selección)
+        =========================================== -->
+        <div id="publishScreen" class="screen" style="display:none;">
+            <h2>Seleccioná una idea</h2>
+            <p>Elegí el próximo video para tu canal. (Gastará 1 acción de video).</p>
+            
+            <!-- Acá js/publishVideo.js inyectará los botones -->
+            <div id="ideasContainer" class="ideas-grid"></div>
+            
+            <button onclick="window.location.hash = '#dashboard'" style="margin-top: 20px;">Volver Atrás</button>
+        </div>
+
+        <!-- ==========================================
+             PANTALLA 3: RESULTADOS Y EVENTOS
+        =========================================== -->
+        <div id="resultScreen" class="screen" style="display:none;">
+            <h2>Resultados del Video</h2>
+            <h3 id="resultTitle"></h3>
+            
+            <div class="video-stats">
+                <p id="resultViews"></p>
+                <p id="resultSubs"></p>
+                <p id="resultMoney"></p>
+                <p id="resultFame"></p>
+            </div>
+
+            <!-- Acá se mostrarán los eventos si el trimestre termina -->
+            <div id="eventContainer"></div>
+
+            <button id="btnNextAction"></button>
+        </div>
+
+        <!-- ==========================================
+             PANTALLA 4: TIENDA
+        =========================================== -->
+        <div id="storeScreen" class="screen" style="display:none;">
+            <h2>Tienda de Equipamiento</h2>
+            <p>Mejorá tu setup para conseguir multiplicadores de vistas.</p>
+            
+            <h3 id="storeMoney"></h3>
+            
+            <!-- Acá js/store.js inyectará los artículos -->
+            <div id="storeContainer" class="store-grid"></div>
+        </div>
+		<!-- ==========================================
+             PANTALLA 5: PREMIOS DE FIN DE AÑO
+        =========================================== -->
+        <div id="awardsScreen" class="screen" style="display:none; text-align: center;">
+            <h2 id="awardsTitle">🏆 Coscu Army Awards</h2>
+            <div id="awardsSummary" style="margin: 20px 0;"></div>
+            <button id="btnNextYear" style="background-color: gold; color: black; font-weight: bold;">
+                Empezar Siguiente Año
+            </button>
+        </div>
+		<!-- ==========================================
+             PANTALLA 6: PANEL ADMINISTRADOR
+        =========================================== -->
+        <div id="adminScreen" class="screen" style="display:none; text-align: center;">
+            <div id="adminContainer"></div>
+        </div>
+
+    </div>
+
+    <!-- Script principal de tu app -->
+    <script type="module" src="js/app.js"></script>
+    
+    <!-- Script temporal inline para que funcione la creación del canal hoy mismo -->
+    <script type="module">
+        import gameState from './engine/gameState.js';
+        import saveManager from './engine/saveManager.js';
+
+        window.startGame = function() {
+            const name = document.getElementById('inputName').value || "Creador";
+            const channel = document.getElementById('inputChannel').value || "Mi Canal";
+            const country = document.getElementById('inputCountry').value;
+            const niche = document.getElementById('inputNiche').value;
+
+            // Inicializamos el estado central
+            gameState.initGame(name, channel, country, niche);
+            
+            // Guardamos localmente para que js/app.js detecte la partida
+            saveManager.saveLocal();
+            
+            // Redirigimos al panel
+            window.location.hash = '#dashboard';
+        };
+    </script>
+</body>
+</html>
