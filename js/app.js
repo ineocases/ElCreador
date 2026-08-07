@@ -1,69 +1,88 @@
 // js/app.js
 import saveManager from '../engine/saveManager.js';
+import gameState from '../engine/gameState.js';
 import { dashboardScreen } from '../screens/dashboard.js';
 import { publishVideoScreen } from '../screens/publishVideo.js';
 import { videoResultScreen } from '../screens/videoResult.js';
+import { storeScreen } from '../screens/store.js';
 import { awardsScreen } from '../screens/awards.js';
 import { adminDashboardScreen } from '../screens/admin/AdminDashboard.js';
-import saveManager from '../engine/saveManager.js';
-import { storeScreen } from '../screens/store.js'; // Lo activás después de crear el archivo de abajo
 
 function initApp() {
     console.log("🚀 Iniciando 'El Creador'...");
 
-    // 1. Intentamos cargar la partida desde la memoria del navegador
+    // 1. Intentamos cargar la partida local
     const hasSave = saveManager.loadLocal();
 
-    // 2. Si es la primera vez que entra, lo mandamos a crear su canal
-    if (!hasSave && window.location.hash !== '#createChannel') {
-        window.location.hash = '#createChannel';
-    } else if (hasSave && !window.location.hash) {
-        // Si ya tiene partida y entra a la web sin ruta, lo mandamos al panel
-        window.location.hash = '#dashboard';
+    // 2. Definimos pantalla inicial si no hay hash
+    if (!window.location.hash) {
+        window.location.hash = hasSave ? '#dashboard' : '#createChannel';
     }
 
-    // 3. Escuchamos cada vez que cambia la URL (el #hash) para cambiar la pantalla
+    // 3. Escuchamos cambios de ruta
     window.addEventListener('hashchange', handleRoute);
     
-    // 4. Forzamos la carga de la pantalla actual
+    // 4. Forzamos carga de la ruta actual
     handleRoute();
 }
 
-// Nuestro Router Simple
+// Router centralizado y a prueba de errores
 function handleRoute() {
-    const hash = window.location.hash;
+    const hash = window.location.hash || '#createChannel';
     
-    // Ocultar todas las pantallas del HTML (Asegurate de que tus divs tengan la clase 'screen')
-    document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+    // Ocultar todas las pantallas
+    document.querySelectorAll('.screen').forEach(s => {
+        s.style.display = 'none';
+    });
     
-    // Mostramos la pantalla correcta y ejecutamos su lógica
+    // Mostrar la pantalla correspondiente
     if (hash === '#createChannel') {
-        document.getElementById('createChannelScreen').style.display = 'block';
-    } else if (hash === '#dashboard') {
-    // ... acá sigue lo que ya tenías ...
-	if (hash === '#dashboard') {
-        document.getElementById('dashboardScreen').style.display = 'block';
-        dashboardScreen.render();
-    } else if (hash === '#publish') {
-        document.getElementById('publishScreen').style.display = 'block';
-        publishVideoScreen.render();
-    } else if (hash === '#videoResult') {
-        document.getElementById('resultScreen').style.display = 'block';
-        videoResultScreen.render();
+        const screen = document.getElementById('createChannelScreen');
+        if (screen) screen.style.display = 'block';
     } 
-	} else if (hash === '#awards') {
-        document.getElementById('awardsScreen').style.display = 'block';
-        awardsScreen.render();
-    }
-	} else if (hash === '#admin') {
-        document.getElementById('adminScreen').style.display = 'block';
-        adminDashboardScreen.render();
-	}
-    } else if (hash === '#store') {
-    document.getElementById('storeScreen').style.display = 'block';
-    storeScreen.render();
+    else if (hash === '#dashboard') {
+        const screen = document.getElementById('dashboardScreen');
+        if (screen) {
+            screen.style.display = 'block';
+            dashboardScreen.render();
+        }
+    } 
+    else if (hash === '#publish') {
+        const screen = document.getElementById('publishScreen');
+        if (screen) {
+            screen.style.display = 'block';
+            publishVideoScreen.render();
+        }
+    } 
+    else if (hash === '#videoResult') {
+        const screen = document.getElementById('resultScreen');
+        if (screen) {
+            screen.style.display = 'block';
+            videoResultScreen.render();
+        }
+    } 
+    else if (hash === '#store') {
+        const screen = document.getElementById('storeScreen');
+        if (screen) {
+            screen.style.display = 'block';
+            storeScreen.render();
+        }
+    } 
+    else if (hash === '#awards') {
+        const screen = document.getElementById('awardsScreen');
+        if (screen) {
+            screen.style.display = 'block';
+            awardsScreen.render();
+        }
+    } 
+    else if (hash === '#admin') {
+        const screen = document.getElementById('adminScreen');
+        if (screen) {
+            screen.style.display = 'block';
+            adminDashboardScreen.render();
+        }
     }
 }
 
-// Cuando la ventana termine de cargar, disparamos la aplicación
+// Arrancar al cargar la página
 window.onload = initApp;
