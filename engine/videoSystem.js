@@ -1,84 +1,62 @@
 // engine/videoSystem.js
-import gameState from './gameState.js';
-import { utils } from './utils.js';
+import { gameState } from './gameState.js';
 
-/* 
-  NOTA: Por ahora dejo unas listas de ejemplo aquí mismo para que funcione de una. 
-  Más adelante, cuando conectemos la carpeta /data, reemplazaremos esto 
-  importando tus propios formatos y temas.
-*/
-const formatos = ["Hago un reto extremo:", "Reacciono a", "Juego un nuevo videojuego:", "Vlog:", "Tierlist de"];
-const temas = ["Minecraft", "la polémica de la semana", "mi setup", "comida picante", "juegos retro"];
+export function procesarPublicacionVideo(titulo, enfoquePrincipal, enfoqueSecundario) {
+  const player = gameState.player;
+  const atri = player.atributos || { edicion: 10, carisma: 10, algoritmo: 10, marketing: 10, constancia: 10 };
 
-const videoSystem = {
-    
-    // 1. Genera 5 ideas aleatorias para mostrar en pantalla
-    generateIdeas() {
-        const ideas = [];
-        for (let i = 0; i < 5; i++) {
-            const formato = utils.pickRandom(formatos);
-            const tema = utils.pickRandom(temas);
-            
-            ideas.push({
-                id: i,
-                title: `${formato} ${tema}`,
-                // 'potencial' define si la idea es buena o mala (de 50% a 150%)
-                basePotential: utils.randomInt(50, 150) 
-            });
-        }
-        return ideas;
-    },
+  // 1. Calidad del Video calculada según el enfoque elegido
+  const valPrincipal = atri[enfoquePrincipal] || 10;
+  const valSecundario = atri[enfoqueSecundario] || 10;
+  const calidadTotal = (valPrincipal * 1.5) + valSecundario + (atri.edicion * 0.5);
 
-    // 2. Recibe la idea que eligió el jugador y calcula la magia
-    processVideo(idea) {
-        console.log(`🎬 Procesando video: "${idea.title}"...`);
+  // 2. Factor de Algoritmo / Viralidad Aleatorio (Entre 0.6x y 1.8x)
+  const factorAlgoritmo = 0.6 + (Math.random() * 1.2);
 
-        // --- CÁLCULO DE VISTAS ---
-        // Base: 500 vistas + 10% de tus subs actuales
-        const baseViews = 500 + (gameState.player.subs * 0.1); 
-        const qualityMultiplier = gameState.player.quality; // Mejoras de tienda
-        const randomFactor = utils.randomInt(80, 120) / 100; // Factor suerte (0.8 a 1.2)
-        
-        // Fórmula final de vistas
-        let views = Math.floor(baseViews * (idea.basePotential / 100) * qualityMultiplier * randomFactor);
-        
-        // Un youtuber pequeño siempre tiene un mínimo garantizado para no frustrarse
-        if (views < 50) views = utils.randomInt(50, 150); 
+  // 3. Vistas Ganadas (Vistas base según subs + fama + calidad)
+  const vistasBase = (player.suscriptores * 0.25) + (player.fama * 150) + (calidadTotal * 20) + (Math.random() * 100);
+  const vistasGanadas = Math.floor(vistasBase * factorAlgoritmo);
 
-        // --- CÁLCULO DE SUBS ---
-        // Convierte entre el 1% y el 4% de las vistas en suscriptores
-        const conversionRate = utils.randomInt(1, 4) / 100;
-        const newSubs = Math.floor(views * conversionRate);
+  // 4. Suscriptores Ganados (Tasa de conversión entre 0.8% y 4% de las vistas)
+  const tasaConversion = 0.008 + ((atri.carisma + atri.marketing) / 1500);
+  let subsGanados = Math.floor(vistasGanadas * tasaConversion);
 
-        // --- CÁLCULO DE DINERO (Dólares) ---
-        // CPM (Costo por mil vistas): te pagan entre US$2 y US$5 cada 1000 vistas
-        const cpm = utils.randomInt(2, 5);
-        const moneyEarned = parseFloat(((views / 1000) * cpm).toFixed(2));
+  // REGLA OBLIGATORIA: Nunca puede ganar más subs que vistas
+  if (subsGanados > vistasGanadas) {
+    subsGanados = Math.floor(vistasGanadas * 0.5);
+  }
 
-        // --- CÁLCULO DE FAMA ---
-        // Ganas fama SOLO si el video tiene éxito (ej. más vistas que el doble de tus subs y más de 1000 vistas)
-        let fameGained = 0;
-        if (views > (gameState.player.subs * 2) && views > 1000) {
-            fameGained = utils.randomInt(1, 3);
-        }
+  // 5. RPM Realista por Nicho ($ Ganados por cada 1,000 vistas)
+  const rpmsNicho = {
+    'Tecnología': 3.50,
+    'Cocina': 2.80,
+    'Periodismo': 2.20,
+    'Fútbol': 1.80,
+    'Vlog': 1.50,
+    'Gaming': 1.20
+  };
 
-        // --- APLICAR RESULTADOS AL ESTADO ---
-        gameState.player.subs += newSubs;
-        gameState.player.money += moneyEarned;
-        gameState.player.fama += fameGained;
-        
-        // Tope máximo de fama (100)
-        if (gameState.player.fama > 100) gameState.player.fama = 100;
+  const rpmBase = rpmsNicho[player.niche] || 1.50;
+  // El atributo algoritmo aumenta ligeramente el RPM (mejor monetización)
+  const rpmFinal = rpmBase + (atri.algoritmo * 0.03);
+  const dineroGanado = Number(((vistasGanadas / 1000) * rpmFinal).toFixed(2));
 
-        // Devuelve el resumen para que la pantalla (UI) lo dibuje
-        return {
-            title: idea.title,
-            views: views,
-            subs: newSubs,
-            money: moneyEarned,
-            fameGained: fameGained
-        };
-    }
-};
+  // Actualizar el Estado del Jugador
+  player.vistasTotales += vistasGanadas;
+  player.suscriptores += subsGanados;
+  player.dinero += dineroGanado;
+  player.videosSubidos += 1;
 
-export default videoSystem;
+  // Retornar objeto para la pantalla de resultados
+  const resultado = {
+    titulo,
+    vistasGanadas,
+    subsGanados,
+    dineroGanado,
+    rpmFinal: rpmFinal.toFixed(2),
+    esViral: factorAlgoritmo > 1.4
+  };
+
+  player.ultimoVideoResultado = resultado;
+  return resultado;
+}
