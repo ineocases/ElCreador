@@ -1,22 +1,23 @@
 :root {
-  /* Paleta Base - Estilo El Ídolo */
-  --bg-main: #060608;
-  --bg-card: #0f0f13;
-  --bg-header-hud: linear-gradient(180deg, #2a0b10 0%, #120709 100%);
-  --bg-slot: rgba(255, 255, 255, 0.04);
+  /* Paleta YouTube Dark - Rojo y Negro Premium */
+  --bg-main: #0f0f0f;
+  --bg-card: #181818;
+  --bg-header-hud: linear-gradient(180deg, #2b0808 0%, #121212 100%);
+  --bg-slot: rgba(255, 255, 255, 0.05);
   
   /* Bordes y Líneas */
-  --border-subtle: 1px solid rgba(255, 255, 255, 0.08);
-  --border-card: 1px solid rgba(255, 255, 255, 0.12);
+  --border-subtle: 1px solid rgba(255, 255, 255, 0.1);
+  --border-card: 1px solid rgba(255, 0, 0, 0.25);
   
-  /* Colores de Acento (Neón y Notificaciones) */
-  --accent-green: #00ff66;
+  /* Colores de Acento YouTube */
+  --accent-red: #ff0000;
+  --accent-red-hover: #cc0000;
+  --accent-green: #2ba640;
   --accent-yellow: #f5c518;
-  --accent-red: #ff3355;
-  --text-main: #ffffff;
-  --text-muted: #8a8a9e;
+  --text-main: #f1f1f1;
+  --text-muted: #aaa;
 
-  /* Tipografías Esport/Deportivas */
+  /* Tipografías */
   --font-heading: 'Oswald', 'Arial Black', sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
 }
