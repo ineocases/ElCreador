@@ -1,14 +1,14 @@
 // js/router.js
 import saveManager from '../engine/saveManager.js';
-import { createChannelScreen } from '../screens/createChannel.js';
-import { dashboardScreen } from '../screens/dashboard.js';
-import { publishVideoScreen } from '../screens/publishVideo.js';
-import { videoResultScreen } from '../screens/videoResult.js';
-import { storeScreen } from '../screens/store.js';
-import { awardsScreen } from '../screens/awards.js';
-import { adminDashboardScreen } from '../screens/admin/AdminDashboard.js';
-import { collabsScreen } from '../screens/collabs.js';
-import { sponsorsScreen } from '../screens/sponsors.js';
+import * as createChannelScreen from '../screens/createChannel.js';
+import * as dashboardScreen from '../screens/dashboard.js';
+import * as publishVideoScreen from '../screens/publishVideo.js';
+import * as videoResultScreen from '../screens/videoResult.js';
+import * as storeScreen from '../screens/store.js';
+import * as awardsScreen from '../screens/awards.js';
+import * as adminDashboardScreen from '../screens/admin/AdminDashboard.js';
+import * as collabsScreen from '../screens/collabs.js';
+import * as sponsorsScreen from '../screens/sponsors.js';
 
 export function initRouter() {
     console.log("🚀 Router de 'El Creador' inicializado");
@@ -66,10 +66,41 @@ function handleRoute() {
 
 function renderScreen(elementId, screenModule) {
     const el = document.getElementById(elementId);
-    if (el) {
-        el.style.display = 'block';
-        if (screenModule && typeof screenModule.render === 'function') {
-            screenModule.render();
+    if (!el || !screenModule) return;
+
+    el.style.display = 'block';
+
+    // 1. Si exporta por defecto (export default)
+    if (screenModule.default) {
+        if (typeof screenModule.default === 'function') {
+            const result = screenModule.default(el);
+            if (result instanceof HTMLElement) {
+                el.innerHTML = '';
+                el.appendChild(result);
+            }
+            return;
+        } else if (typeof screenModule.default.render === 'function') {
+            screenModule.default.render(el);
+            return;
+        }
+    }
+
+    // 2. Si el módulo exporta una propiedad u objeto .render()
+    if (typeof screenModule.render === 'function') {
+        screenModule.render(el);
+        return;
+    }
+
+    // 3. Busca cualquier función exportada que comience con "render" (ej: renderDashboard, renderCreateChannel)
+    const renderFnKey = Object.keys(screenModule).find(
+        key => key.startsWith('render') && typeof screenModule[key] === 'function'
+    );
+
+    if (renderFnKey) {
+        const result = screenModule[renderFnKey](el);
+        if (result instanceof HTMLElement) {
+            el.innerHTML = '';
+            el.appendChild(result);
         }
     }
 }
