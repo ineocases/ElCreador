@@ -1,21 +1,18 @@
-// Estado global de la partida
 export const gameState = {
   player: {
     nombre: "",
     canal: "",
     niche: "",
-    edad: 17,
+    edad: 18,
     año: 2026,
-    trimestre: 1, // 1 al 4
+    trimestre: 1, // 1 a 3 trimestres por año
     
-    // Métricas Principales iniciales
-    suscriptores: 0,
+    suscriptores: 15,
     vistasTotales: 0,
     videosSubidos: 0,
-    fama: 0, // 0 a 100
-    comunidad: 0, // Idolatría (0 a 100)
+    fama: 0,
+    comunidad: 0,
     
-    // Atributos bajos para empezar desde cero
     atributos: {
       edicion: 10,
       carisma: 15,
@@ -24,27 +21,23 @@ export const gameState = {
       constancia: 15
     },
     
-    // Capital inicial mínimo
-    dinero: 200, // US$
+    dinero: 200,
     ingresosTrimestre: 0
   },
 
-  // Rival asignado: Un streamer nuevo compitiendo al mismo nivel
   rival: {
     nombre: "Nico TV",
     suscriptores: 15,
     fama: 1,
-    dueloGanado: false
+    videosSubidos: 0
   },
 
-  // Guarda los datos ingresados en la pantalla de inicio
   iniciarPartida({ nombre, canal, niche }) {
     this.player.nombre = nombre || "Creador";
     this.player.canal = canal || "MiCanal";
     this.player.niche = niche || "Gaming & Fútbol";
   },
 
-  // Función para subir atributos en minijuegos o pretemporadas
   mejorarAtributo(key, cantidad) {
     if (this.player.atributos[key] !== undefined) {
       this.player.atributos[key] += cantidad;
@@ -57,5 +50,14 @@ export const gameState = {
 
   sumarDinero(cantidad) {
     this.player.dinero += cantidad;
+  },
+
+  // Pasa de trimestre y avanza el año al llegar a 4
+  avanzarTrimestre() {
+    this.player.trimestre += 1;
+    if (this.player.trimestre > 3) {
+      this.player.trimestre = 1;
+      this.player.año += 1;
+    }
   }
 };
