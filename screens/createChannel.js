@@ -1,55 +1,109 @@
-// screens/createChannel.js
-import gameState from '../engine/gameState.js';
-import saveManager from '../engine/saveManager.js';
+import { gameState } from '../engine/gameState.js';
 
-export const createChannelScreen = {
-    render() {
-        const container = document.getElementById('createChannelScreen');
-        if (!container) return;
+export function renderCreateChannel() {
+  const container = document.createElement('div');
+  container.style.cssText = `
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 30px;
+    background: var(--bg-card);
+    border: var(--border-card);
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+  `;
 
-        container.innerHTML = `
-            <div class="auth-box" style="max-width: 500px; margin: 50px auto; text-align: left; padding: 20px; background: #121214; border-radius: 12px; color: white;">
-                <h2 style="text-align: center; color: #00ff88;">🇦🇷 Configura tu Creador</h2>
-                
-                <div style="margin-bottom: 15px;">
-                    <label>Nombre del Canal / Streamer:</label><br>
-                    <input type="text" id="inputChannelName" placeholder="Ej: ElRanaStream" style="width: 100%; padding: 8px; margin-top: 5px; background: #202024; border: 1px solid #323238; color: white;">
-                </div>
+  container.innerHTML = `
+    <h1 style="font-family: var(--font-heading); font-size: 2.5rem; text-align: center; margin-top: 0; color: var(--accent-green); text-transform: uppercase;">
+      Creá tu Creador
+    </h1>
+    <p style="text-align: center; color: var(--text-muted); margin-bottom: 30px;">
+      Configurá la identidad de tu personaje antes de arrancar tu carrera en el streaming.
+    </p>
 
-                <div style="margin-bottom: 15px;">
-                    <label>Nicho Principal:</label><br>
-                    <select id="selectNiche" style="width: 100%; padding: 8px; margin-top: 5px; background: #202024; border: 1px solid #323238; color: white;">
-                        <option value="gaming_futbol">⚽ Gaming & Fútbol (Estilo Davo / Momo)</option>
-                        <option value="tech">📱 Tecnología & Gadgets (Estilo SupraPixel)</option>
-                        <option value="irl_vlog">🎙️ Vlogs, IRL & Charla (Estilo Mernuel)</option>
-                    </select>
-                </div>
+    <form id="create-channel-form" style="display: flex; flex-direction: column; gap: 20px;">
+      <div>
+        <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">Tu Nombre o Alias</label>
+        <input type="text" id="player-name" required placeholder="Ej: Eros, Spreen, Momo..." style="
+          width: 100%;
+          padding: 12px 16px;
+          background: rgba(0,0,0,0.5);
+          border: var(--border-subtle);
+          border-radius: 8px;
+          color: #fff;
+          font-size: 1rem;
+          box-sizing: border-box;
+        " />
+      </div>
 
-                <button id="btnStartGame" style="width: 100%; padding: 12px; background: #00ff88; color: black; font-weight: bold; border: none; cursor: pointer; border-radius: 6px; margin-top: 10px;">
-                    ¡Empezar la Carrera! 🚀
-                </button>
-            </div>
-        `;
+      <div>
+        <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">Nombre de tu Canal</label>
+        <input type="text" id="channel-name" required placeholder="Ej: ErosPlay, SpreenDMC..." style="
+          width: 100%;
+          padding: 12px 16px;
+          background: rgba(0,0,0,0.5);
+          border: var(--border-subtle);
+          border-radius: 8px;
+          color: #fff;
+          font-size: 1rem;
+          box-sizing: border-box;
+        " />
+      </div>
 
-        document.getElementById('btnStartGame').onclick = () => {
-            const name = document.getElementById('inputChannelName').value.trim();
-            const niche = document.getElementById('selectNiche').value;
+      <div>
+        <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">Elegí tu Nicho Principal</label>
+        <select id="channel-niche" style="
+          width: 100%;
+          padding: 12px 16px;
+          background: rgba(0,0,0,0.8);
+          border: var(--border-subtle);
+          border-radius: 8px;
+          color: #fff;
+          font-size: 1rem;
+          box-sizing: border-box;
+        ">
+          <option value="Gaming & Fútbol">🎮 Gaming & Fútbol</option>
+          <option value="Tecnología & Gadgets">📱 Tecnología & Gadgets</option>
+          <option value="Vlogs, IRL & Charla">🎙️ Vlogs, IRL & Charla</option>
+        </select>
+      </div>
 
-            if (!name) {
-                alert("Por favor ingresa un nombre para tu canal.");
-                return;
-            }
+      <button type="submit" style="
+        margin-top: 15px;
+        padding: 16px;
+        background: var(--accent-green);
+        color: #000;
+        font-family: var(--font-heading);
+        font-size: 1.2rem;
+        font-weight: bold;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: transform 0.2s, background 0.2s;
+      ">
+        🚀 Iniciar Carrera
+      </button>
+    </form>
+  `;
 
-            // Guardamos en el estado global
-            gameState.player.channelName = name;
-            gameState.player.niche = niche;
-            gameState.player.subs = 1000;
-            gameState.player.fama = 5;
+  // Evento de envio del formulario
+  setTimeout(() => {
+    const form = container.querySelector('#create-channel-form');
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const nombre = container.querySelector('#player-name').value;
+      const canal = container.querySelector('#channel-name').value;
+      const niche = container.querySelector('#channel-niche').value;
 
-            saveManager.saveLocal();
-            saveManager.saveToFirebase();
+      // Guardar en gameState
+      gameState.iniciarPartida({ nombre, canal, niche });
 
-            window.location.hash = '#dashboard';
-        };
-    }
-};
+      // Cambiar a la pantalla del dashboard
+      window.location.hash = '#dashboard';
+    });
+  }, 0);
+
+  return container;
+}
