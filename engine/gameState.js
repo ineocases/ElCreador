@@ -1,3 +1,5 @@
+// engine/gameState.js
+
 export const gameState = {
   player: {
     nombre: "",
@@ -8,6 +10,10 @@ export const gameState = {
     trimestre: 1, // 1 a 3 trimestres por año
     
     suscriptores: 15,
+    // Getters/Setters de compatibilidad (para screens que leen .subs)
+    get subs() { return this.suscriptores; },
+    set subs(val) { this.suscriptores = val; },
+
     vistasTotales: 0,
     videosSubidos: 0,
     fama: 0,
@@ -22,7 +28,17 @@ export const gameState = {
     },
     
     dinero: 200,
+    // Getters/Setters de compatibilidad (para screens que leen .money)
+    get money() { return this.dinero; },
+    set money(val) { this.dinero = val; },
+
     ingresosTrimestre: 0
+  },
+
+  // Inventario para guardar patrocinadores y mejoras compradas
+  inventory: {
+    sponsors: [],
+    upgrades: []
   },
 
   rival: {
@@ -61,3 +77,6 @@ export const gameState = {
     }
   }
 };
+
+// Exportación por defecto para solucionar SyntaxError en importaciones
+export default gameState;
