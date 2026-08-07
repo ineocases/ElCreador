@@ -17,36 +17,51 @@ export function renderVideoResult() {
     attrPoints: 1
   };
 
-  // Aplicar mejora de atributo
+  // 1. Aplicar mejora de atributo
   if (draft.attrKey && draft.attrPoints) {
     gameState.mejorarAtributo(draft.attrKey, draft.attrPoints);
   }
 
-  // Algoritmo de cálculo según atributos actuales
-  const boostCarisma = gameState.player.atributos.carisma * 3;
-  const boostEdicion = gameState.player.atributos.edicion * 2;
-  const azar = Math.floor(Math.random() * 80) + 20;
+  // 2. Simulación del Trimestre (10 a 40 videos producidos)
+  const baseVideos = Math.floor(Math.random() * 20) + 10;
+  const bonoConstancia = Math.floor(gameState.player.atributos.constancia / 2);
+  const totalVideosTrimestre = baseVideos + bonoConstancia;
+
+  // Rendimiento del Video Destacado
+  const boostCarisma = gameState.player.atributos.carisma * 4;
+  const boostEdicion = gameState.player.atributos.edicion * 3;
+  const azarDestacado = Math.floor(Math.random() * 100) + 50;
+  const vistasDestacado = Math.floor((boostCarisma + boostEdicion + azarDestacado) * (draft.clickbait === 'Alto' ? 1.4 : 1.0));
+
+  // Rendimiento del resto de los videos del trimestre (Simulados)
+  const promedioVistasPorVideo = Math.floor((boostCarisma + boostEdicion) * 0.4) + 15;
+  const vistasSecundarias = (totalVideosTrimestre - 1) * promedioVistasPorVideo;
+
+  // Totales Trimestrales
+  const vistasTotalesTrimestre = vistasDestacado + vistasSecundarias;
+  const conversionSubs = 0.05 + (gameState.player.atributos.algoritmo * 0.002);
+  const subsGanadosTrimestre = Math.floor(vistasTotalesTrimestre * conversionSubs);
   
-  const vistasObtenidas = Math.floor((boostCarisma + boostEdicion + azar) * (draft.clickbait === 'Alto' ? 1.5 : 1.0));
-  const nuevosSubs = Math.floor(vistasObtenidas * 0.08);
-  const dineroGanado = Math.floor(vistasObtenidas * 0.02);
+  const cpm = 0.015 + (gameState.player.atributos.marketing * 0.001);
+  const dineroGanadoTrimestre = Math.floor(vistasTotalesTrimestre * cpm);
 
-  // Actualizar métricas del jugador
-  gameState.player.vistasTotales += vistasObtenidas;
-  gameState.sumarSuscriptores(nuevosSubs);
-  gameState.sumarDinero(dineroGanado);
-  gameState.player.videosSubidos += 1;
+  // Actualizar estado global del jugador
+  const trimestreActual = gameState.player.trimestre;
+  const añoActual = gameState.player.año;
 
-  // Avance simulado del rival
-  const rivalSubsGanados = Math.floor(Math.random() * 30) + 5;
+  gameState.player.vistasTotales += vistasTotalesTrimestre;
+  gameState.sumarSuscriptores(subsGanadosTrimestre);
+  gameState.sumarDinero(dineroGanadoTrimestre);
+  gameState.player.videosSubidos += totalVideosTrimestre;
+
+  // Simulación del Rival en el Trimestre
+  const rivalVideos = Math.floor(Math.random() * 15) + 10;
+  const rivalSubsGanados = Math.floor(Math.random() * 40) + 15;
   gameState.rival.suscriptores += rivalSubsGanados;
+  gameState.rival.videosSubidos += rivalVideos;
 
-  // Evento aleatorio de streamer
-  let eventoCreador = null;
-  if (vistasObtenidas > 150) {
-    eventoCreador = `👀 <strong>Coscu</strong> vio tu video en stream y comentó: <em>"Tiene potencial este pibe"</em> (+5 Fama)`;
-    gameState.player.fama += 5;
-  }
+  // Avanzar reloj del juego
+  gameState.avanzarTrimestre();
 
   container.innerHTML = `
     ${renderHeaderHud()}
@@ -58,64 +73,72 @@ export function renderVideoResult() {
       padding: 25px;
       margin-top: 20px;
     ">
-      <div style="border-bottom: var(--border-subtle); padding-bottom: 15px; margin-bottom: 20px;">
-        <span style="color: var(--accent-red); font-size: 0.85rem; font-weight: bold; text-transform: uppercase;">
-          Rendimiento del Video
+      <!-- Encabezado Estilo Reporte de Temporada -->
+      <div style="border-bottom: var(--border-subtle); padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end;">
+        <div>
+          <span style="color: var(--accent-red); font-size: 0.85rem; font-weight: bold; text-transform: uppercase;">
+            📊 REPORTE DE TEMPORADA (AÑO ${añoActual} - T${trimestreActual})
+          </span>
+          <h2 style="font-family: var(--font-heading); font-size: 2rem; margin: 5px 0 0 0;">
+            Resultados del Trimestre
+          </h2>
+        </div>
+        <span style="background: rgba(255,255,255,0.08); padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; color: var(--text-muted);">
+          🎥 Total videos subidos: <strong>${totalVideosTrimestre}</strong>
         </span>
-        <h2 style="font-family: var(--font-heading); font-size: 2rem; margin: 5px 0 0 0;">
+      </div>
+
+      <!-- Tarjeta del Video Destacado -->
+      <div style="background: rgba(0,0,0,0.4); border: var(--border-subtle); padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+        <span style="font-size: 0.75rem; color: var(--accent-yellow); font-weight: bold; text-transform: uppercase;">
+          ⭐ Video Principal del Trimestre
+        </span>
+        <h3 style="margin: 5px 0 8px 0; font-size: 1.1rem; color: #fff;">
           "${draft.title}"
-        </h2>
+        </h3>
+        <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">
+          Consiguió <strong>${vistasDestacado.toLocaleString()} vistas</strong> y sumó <strong style="color: var(--accent-green);">+${draft.attrPoints} en ${draft.attrLabel}</strong>.
+        </p>
       </div>
 
-      <!-- Mejora de Atributo Obtenida -->
-      <div style="background: rgba(0, 255, 102, 0.1); border: 1px solid var(--accent-green); padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
-        <span style="color: var(--accent-green); font-weight: bold; font-size: 0.95rem;">
-          ▲ ¡MEJORA DE ATRIBUTO! +${draft.attrPoints} en ${draft.attrLabel}
-        </span>
-      </div>
-
-      <!-- Cuadros de Rendimiento -->
+      <!-- Métricas Totales del Trimestre -->
       <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px;">
-        <div style="background: rgba(0,0,0,0.5); padding: 15px; border-radius: 10px; border: var(--border-subtle); text-align: center;">
-          <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">VISTAS</span>
-          <strong style="font-size: 1.8rem; color: var(--accent-red); font-family: var(--font-heading);">+${vistasObtenidas.toLocaleString()}</strong>
+        <div style="background: rgba(0,0,0,0.6); padding: 18px; border-radius: 10px; border: var(--border-subtle); text-align: center;">
+          <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">VISTAS TOTALES</span>
+          <strong style="font-size: 1.8rem; color: var(--accent-red); font-family: var(--font-heading);">+${vistasTotalesTrimestre.toLocaleString()}</strong>
         </div>
-        <div style="background: rgba(0,0,0,0.5); padding: 15px; border-radius: 10px; border: var(--border-subtle); text-align: center;">
+        <div style="background: rgba(0,0,0,0.6); padding: 18px; border-radius: 10px; border: var(--border-subtle); text-align: center;">
           <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">NUEVOS SUBS</span>
-          <strong style="font-size: 1.8rem; color: var(--accent-green); font-family: var(--font-heading);">+${nuevosSubs}</strong>
+          <strong style="font-size: 1.8rem; color: var(--accent-green); font-family: var(--font-heading);">+${subsGanadosTrimestre.toLocaleString()}</strong>
         </div>
-        <div style="background: rgba(0,0,0,0.5); padding: 15px; border-radius: 10px; border: var(--border-subtle); text-align: center;">
-          <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">GANANCIAS</span>
-          <strong style="font-size: 1.8rem; color: var(--accent-yellow); font-family: var(--font-heading);">US$ +${dineroGanado}</strong>
+        <div style="background: rgba(0,0,0,0.6); padding: 18px; border-radius: 10px; border: var(--border-subtle); text-align: center;">
+          <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">INGRESOS EN T${trimestreActual}</span>
+          <strong style="font-size: 1.8rem; color: var(--accent-yellow); font-family: var(--font-heading);">US$ +${dineroGanadoTrimestre}</strong>
         </div>
       </div>
 
-      ${eventoCreador ? `
-        <div style="background: rgba(255, 0, 0, 0.1); border: 1px solid var(--accent-red); padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-          ${eventoCreador}
-        </div>
-      ` : ''}
-
-      <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; border: var(--border-subtle); margin-bottom: 25px;">
-        <span style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Duelo de Rivales</span>
-        <p style="margin: 5px 0 0 0; font-size: 0.95rem;">
-          Tu rival <strong>${gameState.rival.nombre}</strong> subió contenido este trimestre y acumuló <strong>+${rivalSubsGanados} subs</strong> (Total: ${gameState.rival.suscriptores}).
+      <!-- Comparativa con el Rival -->
+      <div style="background: rgba(255, 0, 0, 0.05); border: 1px solid rgba(255, 0, 0, 0.2); padding: 15px; border-radius: 10px; margin-bottom: 25px;">
+        <span style="font-size: 0.8rem; color: var(--accent-red); font-weight: bold; text-transform: uppercase;">🥊 Rendimiento del Rival (${gameState.rival.nombre})</span>
+        <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: var(--text-main);">
+          Subió <strong>${rivalVideos} videos</strong> este trimestre acumulando <strong>+${rivalSubsGanados} subs</strong>. Total del rival: <strong>${gameState.rival.suscriptores} subs</strong>.
         </p>
       </div>
 
       <button onclick="window.location.hash = '#dashboard'" style="
         width: 100%;
         padding: 16px;
-        background: #222;
+        background: var(--accent-red);
         color: #fff;
         font-family: var(--font-heading);
         font-size: 1.1rem;
-        border: var(--border-subtle);
+        border: none;
         border-radius: 8px;
         cursor: pointer;
         text-transform: uppercase;
+        letter-spacing: 1px;
       ">
-        Volver al Panel Principal
+        Avanzar al Trimestre ${gameState.player.trimestre} (Año ${gameState.player.año}) ▶
       </button>
     </div>
   `;
