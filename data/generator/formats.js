@@ -1,33 +1,39 @@
 export default [
 
 {
-    name:"Gameplay",
-    viral:6,
-    cost:0
+name:"Gameplay",
+cost:0,
+risk:15
 },
 
 {
-    name:"Challenge",
-    viral:18,
-    cost:150
+name:"Reaccionando a",
+cost:0,
+risk:20
 },
 
 {
-    name:"Tutorial",
-    viral:10,
-    cost:20
+name:"Challenge de",
+cost:5000,
+risk:45
 },
 
 {
-    name:"Reacción",
-    viral:15,
-    cost:50
+name:"24 Horas con",
+cost:7000,
+risk:55
 },
 
 {
-    name:"Experimento",
-    viral:25,
-    cost:300
+name:"Viajando a",
+cost:18000,
+risk:75
+},
+
+{
+name:"Documental sobre",
+cost:25000,
+risk:85
 }
 
 ];
