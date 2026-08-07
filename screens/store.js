@@ -1,77 +1,75 @@
 // screens/store.js
-import gameState from '../engine/gameState.js';
-import saveManager from '../engine/saveManager.js';
+import { gameState } from '../engine/gameState.js';
 
-// Lista estática de mejoras (Podés agregar más luego)
-const storeItems = [
-    { id: 'luces', name: 'Aro de Luz RGB', cost: 100, qualityBoost: 0.1 },        // +10% vistas
-    { id: 'microfono', name: 'Micrófono Condenser', cost: 300, qualityBoost: 0.2 }, // +20% vistas
-    { id: 'camara', name: 'Cámara 4K', cost: 600, qualityBoost: 0.3 },            // +30% vistas
-    { id: 'pc', name: 'PC Master Race', cost: 1500, qualityBoost: 0.5 }           // +50% vistas
-];
+export function renderStore(el) {
+  const container = el || document.getElementById('storeScreen');
+  if (!container) return;
 
-export const storeScreen = {
-    render() {
-        const container = document.getElementById('storeContainer');
-        const moneyDisplay = document.getElementById('storeMoney');
-        
-        if (!container) return;
-        
-        // 1. Mostrar saldo actual
-        if (moneyDisplay) {
-            moneyDisplay.innerText = `Saldo disponible: US$${gameState.player.money}`;
-        }
-        
-        container.innerHTML = ''; // Limpiamos la tienda
+  const player = gameState.player;
+  if (!player.comprasRealizadas) player.comprasRealizadas = [];
 
-        // 2. Generamos los botones de compra
-        storeItems.forEach(item => {
-            // Si el jugador ya tiene el objeto en su inventario, no lo mostramos (o pasamos de largo)
-            if (gameState.inventory[item.id]) return; 
+  const items = [
+    { id: 'mic_usb', nombre: '🎙️ Micrófono Profesional', precio: 300, desc: '+10 Carisma', aplicar: () => player.atributos.carisma += 10 },
+    { id: 'camara_hd', nombre: '📷 Cámara 4K', precio: 750, desc: '+15 Edición', aplicar: () => player.atributos.edicion += 15 },
+    { id: 'curso_seo', nombre: '📚 Curso de Algoritmo YouTube', precio: 500, desc: '+12 Algoritmo', aplicar: () => player.atributos.algoritmo += 12 },
+    { id: 'campana_ads', nombre: '📢 Campaña en Google Ads', precio: 1200, desc: '+20 Marketing y +5 Fama', aplicar: () => { player.atributos.marketing += 20; player.fama += 5; } },
+    { id: 'silla_gamer', nombre: '⚡ Silla Ergonómica Pro', precio: 800, desc: '+15 Constancia', aplicar: () => player.atributos.constancia += 15 },
+    { id: 'editor_privado', nombre: '✂️ Contratar Editor Freelance', precio: 2500, desc: '+30 Edición y +10 Fama', aplicar: () => { player.atributos.edicion += 30; player.fama += 10; } }
+  ];
 
-            // Creamos la tarjeta del producto
-            const itemDiv = document.createElement('div');
-            itemDiv.className = 'store-item'; // Dale estilo con CSS a esta clase
-            itemDiv.innerHTML = `
-                <h4>${item.name}</h4>
-                <p>Costo: US$${item.cost}</p>
-                <p>Mejora tus vistas en: +${item.qualityBoost * 100}%</p>
-            `;
+  container.innerHTML = `
+    <div style="max-width: 900px; margin: 30px auto; padding: 25px; background: var(--bg-card); border: var(--border-card); border-radius: 12px; color: #fff;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1 style="font-family: var(--font-heading); color: #fbc531; margin: 0; text-transform: uppercase;">🛒 Tienda de Creadores</h1>
+        <div>
+          <span style="font-size: 1.2rem; font-weight: bold; color: #4cd137; margin-right: 15px;">💰 $${player.dinero.toLocaleString()}</span>
+          <a href="#dashboard" style="color: var(--text-muted); text-decoration: none;">← Volver al Dashboard</a>
+        </div>
+      </div>
 
-            const btnBuy = document.createElement('button');
-            
-            // Verificamos si tiene saldo suficiente
-            if (gameState.player.money >= item.cost) {
-                btnBuy.innerText = 'Comprar equipo';
-                btnBuy.onclick = () => {
-                    // Descontar plata
-                    gameState.player.money -= item.cost;
-                    
-                    // Guardar en el inventario del estado
-                    gameState.inventory[item.id] = true;
-                    
-                    // Aplicar la mejora permanente al canal
-                    gameState.player.quality += item.qualityBoost;
-                    
-                    // Guardar partida instantáneamente y recargar la tienda
-                    saveManager.saveLocal();
-                    this.render();
-                };
-            } else {
-                btnBuy.innerText = 'No alcanza';
-                btnBuy.disabled = true; // Botón apagado
-            }
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px;" id="store-grid">
+        ${items.map(item => {
+          const yaComprado = player.comprasRealizadas.includes(item.id);
+          const puedeComprar = player.dinero >= item.precio && !yaComprado;
 
-            itemDiv.appendChild(btnBuy);
-            container.appendChild(itemDiv);
-        });
-        
-        // 3. Botón para salir de la tienda
-        const btnBack = document.createElement('button');
-        btnBack.innerText = "Volver al Panel";
-        btnBack.style.marginTop = "20px";
-        btnBack.onclick = () => window.location.hash = '#dashboard';
-        
-        container.appendChild(btnBack);
-    }
-};
+          return `
+            <div style="background: rgba(0,0,0,0.4); padding: 20px; border-radius: 10px; border: var(--border-subtle); display: flex; flex-direction: column; justify-content: space-between;">
+              <div>
+                <h3 style="margin: 0 0 8px; font-size: 1.1rem; color: #fff;">${item.nombre}</h3>
+                <p style="color: #4cd137; font-weight: bold; margin: 0 0 10px;">${item.desc}</p>
+                <div style="font-size: 1.2rem; font-weight: bold; color: #fbc531; margin-bottom: 15px;">$${item.precio.toLocaleString()}</div>
+              </div>
+
+              <button class="buy-btn" data-id="${item.id}" ${!puedeComprar ? 'disabled' : ''} style="
+                padding: 10px;
+                background: ${yaComprado ? '#718093' : (puedeComprar ? '#4cd137' : '#718093')};
+                color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: ${puedeComprar ? 'pointer' : 'not-allowed'};
+              ">
+                ${yaComprado ? '✅ Comprado' : (puedeComprar ? 'Comprar' : 'Dinero Insuficiente')}
+              </button>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+
+  container.querySelectorAll('.buy-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const itemId = e.target.dataset.id;
+      const item = items.find(i => i.id === itemId);
+
+      if (item && player.dinero >= item.precio && !player.comprasRealizadas.includes(itemId)) {
+        player.dinero -= item.precio;
+        item.aplicar();
+        player.comprasRealizadas.push(itemId);
+        renderStore(container); // Re-renderizar la vista
+      }
+    });
+  });
+
+  return container;
+}
+
+export const storeScreen = { render: renderStore };
+export default storeScreen;
