@@ -1,4 +1,4 @@
-const items = [
+export default [
 
 {
 id:"government_pc",
@@ -6,27 +6,11 @@ name:"PC del Gobierno",
 slot:"pc",
 price:0,
 tier:0,
-owned:true,
-stats:{
-editing:2,
-render:1,
-quality:0
-},
-unlock:[
-"Videos Cortos"
-],
-description:"La computadora con la que todos empezamos."
-},
-
-{
-id:"office_keyboard",
-name:"Teclado Genérico",
-slot:"keyboard",
-price:0,
-tier:0,
-owned:true,
-stats:{},
-unlock:[]
+quality:0,
+editing:1,
+audio:0,
+unlock:["video"],
+icon:"🖥️"
 },
 
 {
@@ -35,159 +19,115 @@ name:"Celular Viejo",
 slot:"camera",
 price:0,
 tier:0,
-owned:true,
-stats:{
-quality:3
-},
-unlock:[
-"Grabar Videos"
-]
+quality:3,
+editing:0,
+audio:0,
+unlock:["video"],
+icon:"📱"
 },
 
 {
-id:"headphones_mic",
+id:"earphones",
 name:"Auriculares con Micrófono",
 slot:"microphone",
 price:0,
 tier:0,
-owned:true,
-stats:{
-audio:2
-},
-unlock:[]
-},
-
-{
-id:"plastic_chair",
-name:"Silla Plástica",
-slot:"chair",
-price:0,
-tier:0,
-owned:true,
-stats:{}
+quality:0,
+editing:0,
+audio:2,
+unlock:["video"],
+icon:"🎧"
 },
 
 {
-id:"cheap_webcam",
+id:"webcam",
 name:"Webcam HD",
 slot:"camera",
+price:2500,
+tier:1,
+quality:8,
+editing:0,
+audio:0,
+unlock:["facecam"],
+icon:"📷"
+},
+
+{
+id:"ringlight",
+name:"Aro de Luz",
+slot:"light",
 price:1800,
 tier:1,
-stats:{
-quality:6
-},
-unlock:[
-"Facecam"
-]
+quality:5,
+editing:0,
+audio:0,
+unlock:[],
+icon:"💡"
 },
 
 {
 id:"fifine",
 name:"FIFINE A6",
 slot:"microphone",
-price:2600,
+price:3800,
 tier:1,
-stats:{
-audio:8
-}
-},
-
-{
-id:"ring_light",
-name:"Aro de Luz",
-slot:"light",
-price:1500,
-tier:1,
-stats:{
-quality:4
-}
+quality:0,
+editing:0,
+audio:9,
+unlock:["podcast"],
+icon:"🎤"
 },
 
 {
 id:"basic_pc",
 name:"PC Gamer Básica",
 slot:"pc",
-price:9000,
+price:12000,
 tier:1,
-stats:{
-editing:12,
-render:10
-},
-unlock:[
-"Videos Largos"
-]
+quality:0,
+editing:10,
+audio:0,
+unlock:["stream"],
+icon:"🖥️"
 },
 
 {
-id:"blue_yeti",
+id:"blueyeti",
 name:"Blue Yeti",
 slot:"microphone",
 price:9000,
 tier:2,
-stats:{
-audio:16
-}
+quality:0,
+editing:0,
+audio:18,
+unlock:["podcast"],
+icon:"🎙️"
 },
 
 {
-id:"sony_zve10",
+id:"sonyzv",
 name:"Sony ZV-E10",
 slot:"camera",
-price:22000,
+price:24000,
 tier:2,
-stats:{
-quality:18
-},
-unlock:[
-"Vlogs",
-"IRL"
-]
+quality:20,
+editing:0,
+audio:0,
+unlock:["irl","vlog"],
+icon:"📸"
 },
 
 {
-id:"gaming_pc",
+id:"gamingpc",
 name:"PC Gamer Avanzada",
 slot:"pc",
-price:45000,
+price:52000,
 tier:2,
-stats:{
-editing:24,
-render:25
-},
-unlock:[
-"Streaming",
-"4K"
-]
-},
-
-{
-id:"shure",
-name:"Shure SM7B",
-slot:"microphone",
-price:40000,
-tier:3,
-stats:{
-audio:30
-},
-unlock:[
-"Podcast"
-]
-},
-
-{
-id:"sony_a7iv",
-name:"Sony A7 IV",
-slot:"camera",
-price:98000,
-tier:3,
-stats:{
-quality:35
-},
-unlock:[
-"Cinemático"
-]
+quality:0,
+editing:25,
+audio:0,
+unlock:["4k","stream"],
+icon:"🖥️"
 }
 
 ];
-
-export default items;
