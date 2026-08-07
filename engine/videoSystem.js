@@ -1,62 +1,183 @@
 // engine/videoSystem.js
-import { gameState } from './gameState.js';
 
-export function procesarPublicacionVideo(titulo, enfoquePrincipal, enfoqueSecundario) {
-  const player = gameState.player;
-  const atri = player.atributos || { edicion: 10, carisma: 10, algoritmo: 10, marketing: 10, constancia: 10 };
+import gameState from "./gameState.js";
 
-  // 1. Calidad del Video calculada según el enfoque elegido
-  const valPrincipal = atri[enfoquePrincipal] || 10;
-  const valSecundario = atri[enfoqueSecundario] || 10;
-  const calidadTotal = (valPrincipal * 1.5) + valSecundario + (atri.edicion * 0.5);
+function random(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
-  // 2. Factor de Algoritmo / Viralidad Aleatorio (Entre 0.6x y 1.8x)
-  const factorAlgoritmo = 0.6 + (Math.random() * 1.2);
+function chance(percent) {
+    return Math.random() * 100 <= percent;
+}
 
-  // 3. Vistas Ganadas (Vistas base según subs + fama + calidad)
-  const vistasBase = (player.suscriptores * 0.25) + (player.fama * 150) + (calidadTotal * 20) + (Math.random() * 100);
-  const vistasGanadas = Math.floor(vistasBase * factorAlgoritmo);
+export function publicarVideo(video) {
 
-  // 4. Suscriptores Ganados (Tasa de conversión entre 0.8% y 4% de las vistas)
-  const tasaConversion = 0.008 + ((atri.carisma + atri.marketing) / 1500);
-  let subsGanados = Math.floor(vistasGanadas * tasaConversion);
+    const player = gameState.player;
 
-  // REGLA OBLIGATORIA: Nunca puede ganar más subs que vistas
-  if (subsGanados > vistasGanadas) {
-    subsGanados = Math.floor(vistasGanadas * 0.5);
-  }
+    const skill =
+        player.atributos.edicion +
+        player.atributos.carisma +
+        player.atributos.algoritmo +
+        player.atributos.marketing +
+        player.atributos.constancia +
+        player.atributos.humor +
+        player.atributos.creatividad;
 
-  // 5. RPM Realista por Nicho ($ Ganados por cada 1,000 vistas)
-  const rpmsNicho = {
-    'Tecnología': 3.50,
-    'Cocina': 2.80,
-    'Periodismo': 2.20,
-    'Fútbol': 1.80,
-    'Vlog': 1.50,
-    'Gaming': 1.20
-  };
+    let score = skill;
 
-  const rpmBase = rpmsNicho[player.niche] || 1.50;
-  // El atributo algoritmo aumenta ligeramente el RPM (mejor monetización)
-  const rpmFinal = rpmBase + (atri.algoritmo * 0.03);
-  const dineroGanado = Number(((vistasGanadas / 1000) * rpmFinal).toFixed(2));
+    score += random(-10,15);
 
-  // Actualizar el Estado del Jugador
-  player.vistasTotales += vistasGanadas;
-  player.suscriptores += subsGanados;
-  player.dinero += dineroGanado;
-  player.videosSubidos += 1;
+    // Tendencia
 
-  // Retornar objeto para la pantalla de resultados
-  const resultado = {
-    titulo,
-    vistasGanadas,
-    subsGanados,
-    dineroGanado,
-    rpmFinal: rpmFinal.toFixed(2),
-    esViral: factorAlgoritmo > 1.4
-  };
+    if(gameState.world.trend){
 
-  player.ultimoVideoResultado = resultado;
-  return resultado;
+        if(video.tema===gameState.world.trend){
+
+            score+=18;
+
+        }
+
+    }
+
+    // Calidad del equipo
+
+    if(player.equipment.camera!=="old_phone"){
+
+        score+=8;
+
+    }
+
+    if(player.equipment.microphone!=="earphones"){
+
+        score+=6;
+
+    }
+
+    if(player.equipment.pc!=="government_pc"){
+
+        score+=10;
+
+    }
+
+    // Formato
+
+    switch(video.formato){
+
+        case "Short":
+
+            score+=4;
+            break;
+
+        case "Gameplay":
+
+            score+=2;
+            break;
+
+        case "Reacción":
+
+            score+=6;
+            break;
+
+        case "Challenge":
+
+            score+=8;
+            break;
+
+        case "IRL":
+
+            score+=10;
+            break;
+
+    }
+
+    let views = random(80,220);
+
+    if(score>70){
+
+        views=random(300,900);
+
+    }
+
+    if(score>95){
+
+        views=random(800,2500);
+
+    }
+
+    if(score>120){
+
+        views=random(2500,9000);
+
+    }
+
+    if(score>150){
+
+        views=random(9000,30000);
+
+    }
+
+    // Viralidad
+
+    let viral=false;
+
+    let viralChance=0.25;
+
+    viralChance+=player.atributos.creatividad*0.02;
+
+    viralChance+=player.atributos.algoritmo*0.015;
+
+    if(chance(viralChance)){
+
+        viral=true;
+
+        views*=random(30,120);
+
+    }
+
+    const subs=Math.floor(
+
+        views/random(18,35)
+
+    );
+
+    const money=Math.floor(
+
+        views*0.018
+
+    );
+
+    player.suscriptores+=subs;
+
+    player.vistasTotales+=views;
+
+    player.dinero+=money;
+
+    player.videosSubidos++;
+
+    player.ingresosTrimestre+=money;
+
+    if(views>player.stats.mejorVideo){
+
+        player.stats.mejorVideo=views;
+
+    }
+
+    if(viral){
+
+        player.stats.videosVirales++;
+
+    }
+
+    return{
+
+        views,
+
+        subs,
+
+        money,
+
+        viral
+
+    };
+
 }
