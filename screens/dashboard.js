@@ -80,7 +80,9 @@ export function renderDashboard(el) {
           <a href="#store" style="padding: 14px 28px; background: #2f3640; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 1px; transition: 0.2s;">🛒 Tienda</a>
           <a href="#collabs" style="padding: 14px 28px; background: #2f3640; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 1px; transition: 0.2s;">🤝 Colab</a>
           <a href="#sponsors" style="padding: 14px 28px; background: #2f3640; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 1px; transition: 0.2s;">💼 Sponsors</a>
-        </nav>
+        <!-- BOTÓN DE ADMIN -->
+          <a href="#admin" style="padding: 14px 28px; background: #8c7ae6; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 1px; transition: 0.2s;">⚙️ Admin</a>
+       </nav>
       </div>
     `;
     
