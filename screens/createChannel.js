@@ -1,52 +1,55 @@
-export default function CreateChannel() {
-    return `
-    <section class="screen fade">
+// screens/createChannel.js
+import gameState from '../engine/gameState.js';
+import saveManager from '../engine/saveManager.js';
 
-        <div class="card">
+export const createChannelScreen = {
+    render() {
+        const container = document.getElementById('createChannelScreen');
+        if (!container) return;
 
-            <h1 class="logo">
-                Crear Canal
-            </h1>
+        container.innerHTML = `
+            <div class="auth-box" style="max-width: 500px; margin: 50px auto; text-align: left; padding: 20px; background: #121214; border-radius: 12px; color: white;">
+                <h2 style="text-align: center; color: #00ff88;">🇦🇷 Configura tu Creador</h2>
+                
+                <div style="margin-bottom: 15px;">
+                    <label>Nombre del Canal / Streamer:</label><br>
+                    <input type="text" id="inputChannelName" placeholder="Ej: ElRanaStream" style="width: 100%; padding: 8px; margin-top: 5px; background: #202024; border: 1px solid #323238; color: white;">
+                </div>
 
-            <p class="subtitle">
-                Comienza tu carrera como creador.
-            </p>
+                <div style="margin-bottom: 15px;">
+                    <label>Nicho Principal:</label><br>
+                    <select id="selectNiche" style="width: 100%; padding: 8px; margin-top: 5px; background: #202024; border: 1px solid #323238; color: white;">
+                        <option value="gaming_futbol">⚽ Gaming & Fútbol (Estilo Davo / Momo)</option>
+                        <option value="tech">📱 Tecnología & Gadgets (Estilo SupraPixel)</option>
+                        <option value="irl_vlog">🎙️ Vlogs, IRL & Charla (Estilo Mernuel)</option>
+                    </select>
+                </div>
 
-            <div class="form">
-
-                <label>Nombre del canal</label>
-                <input id="channelName" placeholder="Ej: ErosPlay">
-
-                <label>Edad</label>
-                <input id="age" type="number" min="13" max="18" value="16">
-
-                <label>País</label>
-                <select id="country">
-                    <option>Argentina</option>
-                    <option>España</option>
-                    <option>México</option>
-                    <option>Chile</option>
-                    <option>Uruguay</option>
-                </select>
-
-                <label>Nicho</label>
-                <select id="niche">
-                    <option>Gaming</option>
-                    <option>Fútbol</option>
-                    <option>Tecnología</option>
-                    <option>Humor</option>
-                    <option>Música</option>
-                    <option>Vlogs</option>
-                </select>
-
+                <button id="btnStartGame" style="width: 100%; padding: 12px; background: #00ff88; color: black; font-weight: bold; border: none; cursor: pointer; border-radius: 6px; margin-top: 10px;">
+                    ¡Empezar la Carrera! 🚀
+                </button>
             </div>
+        `;
 
-            <button id="startCareer">
-                Comenzar Carrera
-            </button>
+        document.getElementById('btnStartGame').onclick = () => {
+            const name = document.getElementById('inputChannelName').value.trim();
+            const niche = document.getElementById('selectNiche').value;
 
-        </div>
+            if (!name) {
+                alert("Por favor ingresa un nombre para tu canal.");
+                return;
+            }
 
-    </section>
-    `;
-}
+            // Guardamos en el estado global
+            gameState.player.channelName = name;
+            gameState.player.niche = niche;
+            gameState.player.subs = 1000;
+            gameState.player.fama = 5;
+
+            saveManager.saveLocal();
+            saveManager.saveToFirebase();
+
+            window.location.hash = '#dashboard';
+        };
+    }
+};
