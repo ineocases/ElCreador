@@ -7,6 +7,7 @@ import { videoResultScreen } from '../screens/videoResult.js';
 import { storeScreen } from '../screens/store.js';
 import { awardsScreen } from '../screens/awards.js';
 import { adminDashboardScreen } from '../screens/admin/AdminDashboard.js';
+import { collabsScreen } from '../screens/collabs.js';
 
 function initApp() {
     console.log("🚀 Iniciando 'El Creador'...");
@@ -81,6 +82,11 @@ function handleRoute() {
             screen.style.display = 'block';
             adminDashboardScreen.render();
         }
+    else if (hash === '#collabs') {
+    const screen = document.getElementById('collabsScreen');
+    if (screen) {
+        screen.style.display = 'block';
+        collabsScreen.render();
     }
 }
 
