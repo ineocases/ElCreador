@@ -16,8 +16,47 @@
 </head>
 <body>
 
-  <!-- Contenedor dinámico donde se renderiza cada pantalla -->
-  <div id="app"></div>
+  <!-- Contenedor dinámico de pantallas -->
+  <div id="app">
+    <!-- PANTALLA 1: CREAR CANAL -->
+    <div id="createChannelScreen" class="screen" style="display:none;"></div>
+
+    <!-- PANTALLA 2: DASHBOARD PRINCIPAL -->
+    <div id="dashboardScreen" class="screen" style="display:none;"></div>
+
+    <!-- PANTALLA 3: PUBLICAR VIDEO -->
+    <div id="publishScreen" class="screen" style="display:none;"></div>
+
+    <!-- PANTALLA 4: RESULTADO DEL VIDEO -->
+    <div id="resultScreen" class="screen" style="display:none;"></div>
+
+    <!-- PANTALLA 5: TIENDA DE MEJORAS -->
+    <div id="storeScreen" class="screen" style="display:none;"></div>
+
+    <!-- PANTALLA 6: PREMIOS DE FIN DE AÑO -->
+    <div id="awardsScreen" class="screen" style="display:none; text-align: center;">
+        <h2 id="awardsTitle">🏆 Coscu Army Awards</h2>
+        <div id="awardsSummary" style="margin: 20px 0;"></div>
+        <button id="btnNextYear" style="background-color: gold; color: black; font-weight: bold; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer;">
+            Empezar Siguiente Año
+        </button>
+    </div>
+
+    <!-- PANTALLA 7: PANEL ADMINISTRADOR -->
+    <div id="adminScreen" class="screen" style="display:none;">
+        <div id="adminContainer"></div>
+    </div>
+
+    <!-- PANTALLA 8: COLABORACIONES -->
+    <div id="collabsScreen" class="screen" style="display:none;">
+        <div id="collabsContainer"></div>
+    </div>
+
+    <!-- PANTALLA 9: SPONSORS -->
+    <div id="sponsorsScreen" class="screen" style="display:none;">
+        <div id="sponsorsContainer"></div>
+    </div>
+  </div>
 
   <!-- Arranque JavaScript Modular -->
   <script type="module" src="js/app.js"></script>
