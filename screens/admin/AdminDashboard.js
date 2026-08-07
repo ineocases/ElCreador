@@ -1,195 +1,99 @@
 // screens/admin/AdminDashboard.js
-import { db } from '../../firebase/firebase.js';
-import { collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { db } from '../../firebase/firebase.js'; 
+// Ajusta la ruta de firebase si tu archivo está en otra ubicación
+
+export function renderAdminDashboard(el) {
+  const container = el || document.getElementById('adminScreen');
+  if (!container) return;
+
+  container.innerHTML = `
+    <div style="padding: 20px; max-width: 800px; margin: 0 auto; color: #fff;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1 style="font-family: var(--font-heading); color: #8c7ae6; margin: 0;">⚙️ Panel de Administración</h1>
+        <a href="#dashboard" style="color: var(--text-muted); text-decoration: none;">← Volver al Juego</a>
+      </div>
+
+      <div style="background: var(--bg-card); padding: 25px; border-radius: 12px; border: var(--border-card);">
+        <h2 style="margin-top: 0; font-size: 1.3rem;">➕ Agregar Nuevo Creador (Rival/NPC)</h2>
+        
+        <form id="add-creator-form" style="display: flex; flex-direction: column; gap: 15px;">
+          <div>
+            <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;">Nombre del Creador</label>
+            <input type="text" id="admin-creator-name" required placeholder="Ej: Spreen" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.5); border: var(--border-subtle); border-radius: 6px; color: #fff; box-sizing: border-box;" />
+          </div>
+
+          <div>
+            <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;">Nicho</label>
+            <select id="admin-creator-niche" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.8); border: var(--border-subtle); border-radius: 6px; color: #fff; box-sizing: border-box;">
+              <option value="Gaming">Gaming</option>
+              <option value="Fútbol">Fútbol</option>
+              <option value="Vlog">Vlog</option>
+              <option value="Tecnología">Tecnología</option>
+            </select>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div>
+              <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;">Suscriptores Iniciales</label>
+              <input type="number" id="admin-creator-subs" value="1000" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.5); border: var(--border-subtle); border-radius: 6px; color: #fff; box-sizing: border-box;" />
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;">Fama Inicial</label>
+              <input type="number" id="admin-creator-fame" value="5" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.5); border: var(--border-subtle); border-radius: 6px; color: #fff; box-sizing: border-box;" />
+            </div>
+          </div>
+
+          <button type="submit" style="padding: 12px; background: #8c7ae6; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px;">
+            💾 Guardar Personaje en Firestore
+          </button>
+        </form>
+        <div id="admin-msg" style="margin-top: 15px; font-weight: bold;"></div>
+      </div>
+    </div>
+  `;
+
+  // Event listener para guardar
+  const form = container.querySelector('#add-creator-form');
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msgDiv = container.querySelector('#admin-msg');
+      msgDiv.style.color = '#fbc531';
+      msgDiv.textContent = 'Guardando en Firebase...';
+
+      const newCreator = {
+        nombre: container.querySelector('#admin-creator-name').value,
+        niche: container.querySelector('#admin-creator-niche').value,
+        suscriptores: Number(container.querySelector('#admin-creator-subs').value),
+        fama: Number(container.querySelector('#admin-creator-fame').value),
+        creadoEn: new Date()
+      };
+
+      try {
+        // Guarda directamente en la colección 'creators' de Firestore
+        if (db) {
+          const { collection, addDoc } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+          await addDoc(collection(db, 'creators'), newCreator);
+          msgDiv.style.color = '#4cd137';
+          msgDiv.textContent = '✅ Creador guardado con éxito en Firestore.';
+          form.reset();
+        } else {
+          msgDiv.style.color = '#e84118';
+          msgDiv.textContent = '❌ Firebase no está inicializado.';
+        }
+      } catch (err) {
+        console.error(err);
+        msgDiv.style.color = '#e84118';
+        msgDiv.textContent = '❌ Error al guardar: ' + err.message;
+      }
+    });
+  }
+
+  return container;
+}
 
 export const adminDashboardScreen = {
-    activeTab: 'streamers',
-
-    async render() {
-        const container = document.getElementById('adminContainer');
-        if (!container) return;
-
-        container.innerHTML = `
-            <div style="max-width: 650px; margin: 20px auto; color: white; text-align: left; background: #121214; padding: 25px; border-radius: 12px; border: 1px solid #27272a;">
-                <h2 style="color: #00ff88; margin-top:0;">🎛️ Panel de Control General</h2>
-                <p style="color: #a1a1aa; font-size: 14px;">Administrá los elementos globales del juego guardados en Firestore.</p>
-                
-                <!-- Pestañas de Navegación Admin -->
-                <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #27272a; padding-bottom: 10px;">
-                    <button id="tabBtnStreamers" style="padding: 8px 16px; background: #00ff88; color: black; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;">Streamers</button>
-                    <button id="tabBtnSponsors" style="padding: 8px 16px; background: #27272a; color: white; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;">Sponsors / Marcas</button>
-                </div>
-
-                <!-- FORMULARIO STREAMERS -->
-                <div id="sectionStreamers">
-                    <h3 style="color: #38bdf8;">Agregar Creador / Streamer</h3>
-                    <div style="margin-bottom: 10px;">
-                        <label>Nombre:</label><br>
-                        <input type="text" id="streamerName" placeholder="Ej: Coscu" style="width: 100%; padding: 8px; background: #18181b; border: 1px solid #3f3f46; color: white; border-radius: 4px; margin-top: 4px;">
-                    </div>
-                    <div style="margin-bottom: 10px;">
-                        <label>Nicho:</label><br>
-                        <select id="streamerNiche" style="width: 100%; padding: 8px; background: #18181b; border: 1px solid #3f3f46; color: white; border-radius: 4px; margin-top: 4px;">
-                            <option value="gaming_futbol">Gaming & Fútbol</option>
-                            <option value="tech">Tecnología</option>
-                            <option value="irl_vlog">Vlogs, IRL & Charla</option>
-                        </select>
-                    </div>
-                    <div style="margin-bottom: 15px;">
-                        <label>Suscriptores:</label><br>
-                        <input type="number" id="streamerSubs" value="100000" style="width: 100%; padding: 8px; background: #18181b; border: 1px solid #3f3f46; color: white; border-radius: 4px; margin-top: 4px;">
-                    </div>
-                    <button id="btnAddStreamer" style="padding: 8px 16px; background: #38bdf8; color: black; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;">Guardar Streamer</button>
-                    <button id="btnSeedStreamers" style="padding: 8px 16px; background: #27272a; color: white; border: none; border-radius: 6px; cursor: pointer; margin-left: 10px;">Precargar Famosos</button>
-                </div>
-
-                <!-- FORMULARIO SPONSORS -->
-                <div id="sectionSponsors" style="display: none;">
-                    <h3 style="color: #facc15;">Agregar Sponsor / Marca</h3>
-                    <div style="margin-bottom: 10px;">
-                        <label>Nombre de la Marca:</label><br>
-                        <input type="text" id="sponsorName" placeholder="Ej: Mercado Pago" style="width: 100%; padding: 8px; background: #18181b; border: 1px solid #3f3f46; color: white; border-radius: 4px; margin-top: 4px;">
-                    </div>
-                    <div style="margin-bottom: 10px;">
-                        <label>Pago Trimestral (USD):</label><br>
-                        <input type="number" id="sponsorPay" value="1500" style="width: 100%; padding: 8px; background: #18181b; border: 1px solid #3f3f46; color: white; border-radius: 4px; margin-top: 4px;">
-                    </div>
-                    <div style="margin-bottom: 15px;">
-                        <label>Suscriptores Mínimos Requeridos:</label><br>
-                        <input type="number" id="sponsorMinSubs" value="50000" style="width: 100%; padding: 8px; background: #18181b; border: 1px solid #3f3f46; color: white; border-radius: 4px; margin-top: 4px;">
-                    </div>
-                    <button id="btnAddSponsor" style="padding: 8px 16px; background: #facc15; color: black; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;">Guardar Sponsor</button>
-                    <button id="btnSeedSponsors" style="padding: 8px 16px; background: #27272a; color: white; border: none; border-radius: 6px; cursor: pointer; margin-left: 10px;">Precargar Marcas Arg</button>
-                </div>
-
-                <hr style="margin: 20px 0; border-color: #27272a;">
-
-                <!-- LISTADO REGISTRADO -->
-                <h4 id="listTitle" style="color: #a1a1aa;">Elementos Guardados:</h4>
-                <ul id="adminItemsList" style="padding-left: 20px; color: #e4e4e7; font-size: 14px;">Cargando...</ul>
-
-                <button onclick="window.location.hash = '#dashboard'" style="margin-top: 15px; padding: 8px 16px; background: #27272a; color: white; border: none; border-radius: 6px; cursor: pointer;">Volver al Juego</button>
-            </div>
-        `;
-
-        this.bindEvents();
-        this.loadList();
-    },
-
-    bindEvents() {
-        const tabStreamers = document.getElementById('tabBtnStreamers');
-        const tabSponsors = document.getElementById('tabBtnSponsors');
-        const secStreamers = document.getElementById('sectionStreamers');
-        const secSponsors = document.getElementById('sectionSponsors');
-
-        tabStreamers.onclick = () => {
-            this.activeTab = 'streamers';
-            tabStreamers.style.background = '#00ff88';
-            tabStreamers.style.color = 'black';
-            tabSponsors.style.background = '#27272a';
-            tabSponsors.style.color = 'white';
-            secStreamers.style.display = 'block';
-            secSponsors.style.display = 'none';
-            this.loadList();
-        };
-
-        tabSponsors.onclick = () => {
-            this.activeTab = 'sponsors';
-            tabSponsors.style.background = '#facc15';
-            tabSponsors.style.color = 'black';
-            tabStreamers.style.background = '#27272a';
-            tabStreamers.style.color = 'white';
-            secSponsors.style.display = 'block';
-            secStreamers.style.display = 'none';
-            this.loadList();
-        };
-
-        // Guardar Streamer
-        document.getElementById('btnAddStreamer').onclick = async () => {
-            const name = document.getElementById('streamerName').value;
-            const niche = document.getElementById('streamerNiche').value;
-            const followers = parseInt(document.getElementById('streamerSubs').value) || 0;
-            if (!name) return alert("Ingresá un nombre.");
-
-            try {
-                await addDoc(collection(db, "creators_admin"), { name, niche, followers, country: "Argentina", createdAt: new Date() });
-                alert("Streamer guardado.");
-                document.getElementById('streamerName').value = '';
-                this.loadList();
-            } catch (e) { console.error(e); }
-        };
-
-        // Guardar Sponsor
-        document.getElementById('btnAddSponsor').onclick = async () => {
-            const name = document.getElementById('sponsorName').value;
-            const pay = parseInt(document.getElementById('sponsorPay').value) || 0;
-            const minSubs = parseInt(document.getElementById('sponsorMinSubs').value) || 0;
-            if (!name) return alert("Ingresá el nombre de la marca.");
-
-            try {
-                await addDoc(collection(db, "sponsors_admin"), { name, pay, minSubs, createdAt: new Date() });
-                alert("Sponsor guardado.");
-                document.getElementById('sponsorName').value = '';
-                this.loadList();
-            } catch (e) { console.error(e); }
-        };
-
-        // Precarga de Streamers
-        document.getElementById('btnSeedStreamers').onclick = async () => {
-            const defaults = [
-                { name: "Davo Xeneize", niche: "gaming_futbol", followers: 1500000, country: "Argentina" },
-                { name: "Momo", niche: "gaming_futbol", followers: 2000000, country: "Argentina" },
-                { name: "SupraPixel", niche: "tech", followers: 1200000, country: "Argentina" },
-                { name: "Mernuel", niche: "irl_vlog", followers: 800000, country: "Argentina" }
-            ];
-            for (let item of defaults) await addDoc(collection(db, "creators_admin"), { ...item, createdAt: new Date() });
-            alert("Streamers cargados.");
-            this.loadList();
-        };
-
-        // Precarga de Sponsors
-        document.getElementById('btnSeedSponsors').onclick = async () => {
-            const defaults = [
-                { name: "Speed Unlimited", pay: 800, minSubs: 5000 },
-                { name: "Mercado Pago", pay: 2500, minSubs: 50000 },
-                { name: "Globant", pay: 5000, minSubs: 150000 },
-                { name: "Manaos", pay: 400, minSubs: 1000 }
-            ];
-            for (let item of defaults) await addDoc(collection(db, "sponsors_admin"), { ...item, createdAt: new Date() });
-            alert("Sponsors cargados.");
-            this.loadList();
-        };
-    },
-
-    async loadList() {
-        const listEl = document.getElementById('adminItemsList');
-        const titleEl = document.getElementById('listTitle');
-        if (!listEl) return;
-
-        listEl.innerHTML = 'Cargando...';
-        const colName = this.activeTab === 'streamers' ? "creators_admin" : "sponsors_admin";
-        titleEl.innerText = this.activeTab === 'streamers' ? "Streamers en Firestore:" : "Sponsors en Firestore:";
-
-        try {
-            const querySnapshot = await getDocs(collection(db, colName));
-            listEl.innerHTML = '';
-            if (querySnapshot.empty) {
-                listEl.innerHTML = '<li>No hay registros.</li>';
-                return;
-            }
-            querySnapshot.forEach((docSnap) => {
-                const data = docSnap.data();
-                const li = document.createElement('li');
-                if (this.activeTab === 'streamers') {
-                    li.innerText = `${data.name} (${data.niche}) - Subs: ${data.followers.toLocaleString()}`;
-                } else {
-                    li.innerText = `${data.name} - Pago: US$${data.pay}/trimestre (Req: ${data.minSubs.toLocaleString()} subs)`;
-                }
-                listEl.appendChild(li);
-            });
-        } catch (e) {
-            listEl.innerText = "Error al cargar datos de Firestore.";
-            console.error(e);
-        }
-    }
+  render: renderAdminDashboard
 };
+
+export default adminDashboardScreen;
