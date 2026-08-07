@@ -1,3 +1,4 @@
+// screens/pasanCosas.js
 import { renderHeaderHud } from '../components/HeaderHud.js';
 import { gameState } from '../engine/gameState.js';
 
@@ -24,12 +25,12 @@ const creadoresTopPorNicho = {
     { creador: "MKBHD", desc: "reposteó tu video de setups en sus historias alabando tu nivel de producción." }
   ],
   Cocina: [
-    { creador: "Paulina Cocina", desc: "reaccionó a tu receta en Instagram y recomendó tu canal a toda su comunidad." },
+    { creador: "Paulina Cocina", desc: "reaccionó a tu receta en Instagram y recommended tu canal a toda su comunidad." },
     { creador: "Marcos Di Cesare", desc: "alabó la técnica de tu plato en vivo y dijo que da gusto ver contenido bien hecho." }
   ],
   Periodismo: [
     { creador: "Tomas Rebord", desc: "citó tu informe de investigación en su programa y dijo que sos el futuro del periodismo digital." },
-    { creador: "Julio Leiva", desc: "te recomendó en sus redes como un canal imperdible de contenido documental." }
+    { creador: "Julio Leiva", desc: "te recommended en sus redes como un canal imperdible de contenido documental." }
   ]
 };
 
@@ -134,14 +135,17 @@ const bancoEventos = [
   }
 ];
 
-export function renderPasanCosas() {
-  const container = document.createElement('div');
+export function renderPasanCosas(el) {
+  const container = el || document.createElement('div');
+  if (!el) {
+    container.id = 'pasanCosasScreen';
+  }
   container.style.cssText = `max-width: 900px; margin: 20px auto; padding: 0 15px;`;
 
   const p = gameState.player;
 
   // -----------------------------------------------------------------------
-  // 1. CONTROL DEL EVENTO LEYENDA (Raro: 5% probabilidad + >1.000 subs)
+  // 1. EVENTO LEYENDA (Raro: 5% probabilidad + >1.000 subs)
   // -----------------------------------------------------------------------
   const esEventoRaro = p.suscriptores >= 1000 && Math.random() < 0.05;
 
@@ -150,17 +154,17 @@ export function renderPasanCosas() {
     const creadorElegido = listaTop[Math.floor(Math.random() * listaTop.length)];
 
     container.innerHTML = `
-      ${renderHeaderHud()}
+      ${typeof renderHeaderHud === 'function' ? renderHeaderHud() : ''}
       <div style="
         background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 69, 0, 0.25) 100%);
-        border: 2px solid var(--accent-yellow);
+        border: 2px solid var(--accent-yellow, #ffd700);
         border-radius: 16px;
         padding: 30px;
         margin-top: 20px;
         text-align: center;
         box-shadow: 0 0 25px rgba(255, 215, 0, 0.25);
       ">
-        <span style="background: var(--accent-yellow); color: #000; font-weight: bold; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; text-transform: uppercase;">
+        <span style="background: #ffd700; color: #000; font-weight: bold; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; text-transform: uppercase;">
           🔥 MOMENTO ÉPICO EN REDES
         </span>
 
@@ -173,17 +177,17 @@ export function renderPasanCosas() {
         </p>
 
         <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; flex-wrap: wrap;">
-          <div style="background: rgba(0,0,0,0.6); border: 1px solid var(--accent-yellow); padding: 12px 20px; border-radius: 10px;">
+          <div style="background: rgba(0,0,0,0.6); border: 1px solid #ffd700; padding: 12px 20px; border-radius: 10px;">
             <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; display: block;">Vistas Explosivas</span>
             <strong style="font-size: 1.2rem; color: #fff;">+100.000</strong>
           </div>
-          <div style="background: rgba(0,0,0,0.6); border: 1px solid var(--accent-green); padding: 12px 20px; border-radius: 10px;">
+          <div style="background: rgba(0,0,0,0.6); border: 1px solid #4cd137; padding: 12px 20px; border-radius: 10px;">
             <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; display: block;">Nuevos Subs</span>
-            <strong style="font-size: 1.2rem; color: var(--accent-green);">+25.000</strong>
+            <strong style="font-size: 1.2rem; color: #4cd137;">+25.000</strong>
           </div>
-          <div style="background: rgba(0,0,0,0.6); border: 1px solid var(--accent-yellow); padding: 12px 20px; border-radius: 10px;">
+          <div style="background: rgba(0,0,0,0.6); border: 1px solid #ffd700; padding: 12px 20px; border-radius: 10px;">
             <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; display: block;">Fama Global</span>
-            <strong style="font-size: 1.2rem; color: var(--accent-yellow);">+20 Fama</strong>
+            <strong style="font-size: 1.2rem; color: #ffd700;">+20 Fama</strong>
           </div>
         </div>
 
@@ -208,6 +212,7 @@ export function renderPasanCosas() {
       container.querySelector('#btn-reclamar-epico').addEventListener('click', () => {
         p.suscriptores += 25000;
         p.fama += 20;
+        p.vistasTotales += 100000;
         gameState.ultimoEventoResultado = `🔥 ¡El impulso de ${creadorElegido.creador} hizo explotar tus métricas! Sumaste +100.000 vistas, +25.000 subs y +20 Fama.`;
         window.location.hash = '#videoResult';
       });
@@ -217,7 +222,85 @@ export function renderPasanCosas() {
   }
 
   // -----------------------------------------------------------------------
-  // 2. SELECCIÓN DE EVENTO ESTÁNDAR
+  // 2. EVENTO CASINO ONLINE (20% probabilidad)
+  // -----------------------------------------------------------------------
+  const esEventoCasino = Math.random() < 0.20;
+
+  if (esEventoCasino) {
+    const ofertaDinero = Math.floor((p.suscriptores * 0.25) + (p.fama * 300) + 1000);
+    const subsPerdidos = Math.floor((p.suscriptores * 0.12) + 50);
+
+    container.innerHTML = `
+      ${typeof renderHeaderHud === 'function' ? renderHeaderHud() : ''}
+      <div style="
+        background: linear-gradient(135deg, rgba(140, 122, 230, 0.25) 0%, rgba(30, 27, 46, 0.95) 100%);
+        border: 2px solid #8c7ae6;
+        border-radius: 16px;
+        padding: 30px;
+        margin-top: 20px;
+        text-align: center;
+        box-shadow: 0 0 25px rgba(140, 122, 230, 0.3);
+      ">
+        <span style="background: #8c7ae6; color: #fff; font-weight: bold; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; text-transform: uppercase;">
+          🎰 OFERTA DE SPONSOR DUDOSO
+        </span>
+
+        <h2 style="font-family: var(--font-heading); font-size: 2.2rem; color: #fbc531; margin: 15px 0 10px 0;">
+          ¿PROMOVER UN CASINO ONLINE?
+        </h2>
+
+        <p style="color: #dcdde1; font-size: 1.05rem; line-height: 1.6; max-width: 650px; margin: 0 auto 25px auto;">
+          Un casino de sospechosa procedencia quiere sponsorear tu canal. Te ofrecen efectivo inmediato, pero a tu comunidad no le va a gustar nada y vas a perder seguidores indignados.
+        </p>
+
+        <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 25px; flex-wrap: wrap;">
+          <div style="background: rgba(0,0,0,0.6); border: 1px solid #4cd137; padding: 12px 25px; border-radius: 10px;">
+            <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; display: block;">Pago En Efectivo</span>
+            <strong style="font-size: 1.4rem; color: #4cd137;">+$${ofertaDinero.toLocaleString()}</strong>
+          </div>
+          <div style="background: rgba(0,0,0,0.6); border: 1px solid #e84118; padding: 12px 25px; border-radius: 10px;">
+            <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; display: block;">Consecuencia</span>
+            <strong style="font-size: 1.4rem; color: #e84118;">-${subsPerdidos.toLocaleString()} Subs</strong>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <button id="opt-casino-accept" class="interactive-card" style="background: rgba(76, 209, 55, 0.15); border: 1px solid #4cd137; padding: 20px; border-radius: 12px; color: #fff; text-align: left; cursor: pointer;">
+            <span style="color: #4cd137; font-size: 0.75rem; text-transform: uppercase; display: block; font-weight: bold;">💰 Agarrar la Plata</span>
+            <strong style="font-size: 1rem; display: block; margin: 8px 0;">Aceptar el contrato del Casino</strong>
+            <span style="color: #4cd137; font-size: 0.8rem;">Ganas efectivo, pero pierdes suscriptores</span>
+          </button>
+
+          <button id="opt-casino-reject" class="interactive-card" style="background: rgba(232, 65, 24, 0.15); border: 1px solid #e84118; padding: 20px; border-radius: 12px; color: #fff; text-align: left; cursor: pointer;">
+            <span style="color: #e84118; font-size: 0.75rem; text-transform: uppercase; display: block; font-weight: bold;">🛡️ Mantener la Ética</span>
+            <strong style="font-size: 1rem; display: block; margin: 8px 0;">Rechazar la propuesta</strong>
+            <span style="color: #fbc531; font-size: 0.8rem;">Ganas respeto en la comunidad (+2 Carisma)</span>
+          </button>
+        </div>
+      </div>
+    `;
+
+    setTimeout(() => {
+      container.querySelector('#opt-casino-accept').addEventListener('click', () => {
+        p.dinero += ofertaDinero;
+        p.suscriptores = Math.max(0, p.suscriptores - subsPerdidos);
+        gameState.ultimoEventoResultado = `🎰 Aceptaste el sponsoreo del casino. Ganaste +$${ofertaDinero.toLocaleString()}, pero perdiste ${subsPerdidos.toLocaleString()} suscriptores enojados.`;
+        window.location.hash = '#videoResult';
+      });
+
+      container.querySelector('#opt-casino-reject').addEventListener('click', () => {
+        if (!p.atributos) p.atributos = {};
+        p.atributos.carisma = (p.atributos.carisma || 10) + 2;
+        gameState.ultimoEventoResultado = `🛡️ Rechazaste la oferta del casino. Tu comunidad respeta tu integridad (+2 Carisma).`;
+        window.location.hash = '#videoResult';
+      });
+    }, 0);
+
+    return container;
+  }
+
+  // -----------------------------------------------------------------------
+  // 3. SELECCIÓN DE EVENTO ESTÁNDAR
   // -----------------------------------------------------------------------
   let eventosValidos = bancoEventos.filter(e => 
     e.nicho === p.niche && p.suscriptores >= e.minSubs && p.suscriptores <= e.maxSubs
@@ -233,7 +316,7 @@ export function renderPasanCosas() {
     : bancoEventos[0];
 
   container.innerHTML = `
-    ${renderHeaderHud()}
+    ${typeof renderHeaderHud === 'function' ? renderHeaderHud() : ''}
     <div style="background: var(--bg-card); border: var(--border-card); border-radius: 16px; padding: 25px; margin-top: 20px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
         <span style="color: var(--accent-red); font-size: 0.85rem; font-weight: bold; text-transform: uppercase;">
@@ -280,3 +363,6 @@ export function renderPasanCosas() {
 
   return container;
 }
+
+export const pasanCosasScreen = { render: renderPasanCosas };
+export default pasanCosasScreen;
