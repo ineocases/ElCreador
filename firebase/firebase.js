@@ -1,5 +1,5 @@
 // firebase/firebase.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; // O la ruta general de firebase app
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Tus credenciales de Firebase
@@ -14,15 +14,14 @@ const firebaseConfig = {
 };
 
 // Inicializar Firebase de forma segura
-let app;
-let db;
+let db = null;
 
 try {
-    app = initializeApp(firebaseConfig);
+    const app = initializeApp(firebaseConfig);
     db = getFirestore(app);
     console.log("🔥 Firebase conectado correctamente.");
 } catch (error) {
-    console.warn("⚠️ Firebase no se pudo inicializar (funcionando en modo local).", error);
+    console.warn("⚠️ Firebase operando en modo local o sin config completa.", error);
 }
 
 export { db };
