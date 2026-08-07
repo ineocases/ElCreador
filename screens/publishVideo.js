@@ -188,7 +188,7 @@ export function renderPublishVideo() {
         attrPoints: chosenOption.attrPoints
       };
 
-      window.location.hash = '#videoResult';
+      window.location.hash = '#pasanCosas';
     });
   }, 0);
 
