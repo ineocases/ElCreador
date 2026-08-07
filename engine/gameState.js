@@ -7,7 +7,7 @@ export const gameState = {
     niche: "",
     edad: 18,
     año: 2026,
-    trimestre: 1, // 1 a 3 trimestres por año
+    trimestre: 1, // 1 a 2 trimestres por año
     
     suscriptores: 15,
     // Getters/Setters de compatibilidad (para screens que leen .subs)
@@ -55,7 +55,7 @@ export const gameState = {
   },
 
   mejorarAtributo(key, cantidad) {
-    if (this.player.atributos[key] !== undefined) {
+    if (this.player.atributos && this.player.atributos[key] !== undefined) {
       this.player.atributos[key] += cantidad;
     }
   },
@@ -68,22 +68,21 @@ export const gameState = {
     this.player.dinero += cantidad;
   },
 
-  // Pasa de trimestre y avanza el año al llegar a 4
-  // Dentro de engine/gameState.js
-
-avanzarTrimestre() {
+  // Pasa de trimestre y avanza el año al llegar a 3
+  avanzarTrimestre() {
     this.player.trimestre++;
 
     // Configurado a 2 trimestres por año
     if (this.player.trimestre > 2) {
-        this.player.trimestre = 1;
-        this.player.año++;
+      this.player.trimestre = 1;
+      this.player.año++;
     }
 
-    if (typeof saveManager !== 'undefined' && saveManager.saveLocal) {
-        saveManager.saveLocal();
+    if (typeof saveManager !== 'undefined' && saveManager && saveManager.saveLocal) {
+      saveManager.saveLocal();
     }
+  }
 };
 
-// Exportación por defecto para solucionar SyntaxError en importaciones
+// Exportación por defecto para solucionar importaciones
 export default gameState;
