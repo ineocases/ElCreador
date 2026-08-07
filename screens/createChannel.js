@@ -13,17 +13,17 @@ export function renderCreateChannel() {
   `;
 
   container.innerHTML = `
-    <h1 style="font-family: var(--font-heading); font-size: 2.5rem; text-align: center; margin-top: 0; color: var(--accent-green); text-transform: uppercase;">
+    <h1 style="font-family: var(--font-heading); font-size: 2.5rem; text-align: center; margin-top: 0; color: var(--accent-red); text-transform: uppercase;">
       Creá tu Creador
     </h1>
     <p style="text-align: center; color: var(--text-muted); margin-bottom: 30px;">
-      Configurá la identidad de tu personaje antes de arrancar tu carrera en el streaming.
+      Configurá la identidad de tu personaje antes de arrancar tu carrera en YouTube.
     </p>
 
     <form id="create-channel-form" style="display: flex; flex-direction: column; gap: 20px;">
       <div>
         <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">Tu Nombre o Alias</label>
-        <input type="text" id="player-name" required placeholder="Ej: Eros, Spreen, Momo..." style="
+        <input type="text" id="player-name" required placeholder="Ej: Eros, Mateo..." style="
           width: 100%;
           padding: 12px 16px;
           background: rgba(0,0,0,0.5);
@@ -37,7 +37,7 @@ export function renderCreateChannel() {
 
       <div>
         <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">Nombre de tu Canal</label>
-        <input type="text" id="channel-name" required placeholder="Ej: ErosPlay, SpreenDMC..." style="
+        <input type="text" id="channel-name" required placeholder="Ej: ErosPlay, MateoVlogs..." style="
           width: 100%;
           padding: 12px 16px;
           background: rgba(0,0,0,0.5);
@@ -70,8 +70,8 @@ export function renderCreateChannel() {
       <button type="submit" style="
         margin-top: 15px;
         padding: 16px;
-        background: var(--accent-green);
-        color: #000;
+        background: var(--accent-red);
+        color: #fff;
         font-family: var(--font-heading);
         font-size: 1.2rem;
         font-weight: bold;
@@ -82,12 +82,11 @@ export function renderCreateChannel() {
         letter-spacing: 1px;
         transition: transform 0.2s, background 0.2s;
       ">
-        🚀 Iniciar Carrera
+        ▶ Iniciar Carrera
       </button>
     </form>
   `;
 
-  // Evento de envio del formulario
   setTimeout(() => {
     const form = container.querySelector('#create-channel-form');
     form.addEventListener('submit', (e) => {
@@ -97,10 +96,7 @@ export function renderCreateChannel() {
       const canal = container.querySelector('#channel-name').value;
       const niche = container.querySelector('#channel-niche').value;
 
-      // Guardar en gameState
       gameState.iniciarPartida({ nombre, canal, niche });
-
-      // Cambiar a la pantalla del dashboard
       window.location.hash = '#dashboard';
     });
   }, 0);
