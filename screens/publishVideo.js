@@ -1,9 +1,13 @@
 // screens/publishVideo.js
+import { renderHeaderHud } from '../components/HeaderHud.js';
 import { gameState } from '../engine/gameState.js';
+import { procesarPublicacionVideo } from '../engine/videoSystem.js';
 
 export function renderPublishVideo(el) {
-  const container = el || document.getElementById('publishScreen');
-  if (!container) return;
+  const container = el || document.createElement('div');
+  if (!el) {
+    container.id = 'publishScreen';
+  }
 
   const atributos = ['edicion', 'carisma', 'algoritmo', 'marketing', 'constancia'];
   const nombresAtributos = {
@@ -15,6 +19,7 @@ export function renderPublishVideo(el) {
   };
 
   container.innerHTML = `
+    ${typeof renderHeaderHud === 'function' ? renderHeaderHud() : ''}
     <div style="max-width: 650px; margin: 30px auto; padding: 25px; background: var(--bg-card); border: var(--border-card); border-radius: 12px; color: #fff;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h1 style="font-family: var(--font-heading); color: var(--accent-red); margin: 0; font-size: 1.8rem; text-transform: uppercase;">📹 Publicar Nuevo Video</h1>
@@ -86,11 +91,10 @@ export function renderPublishVideo(el) {
         return;
       }
 
-      // Procesar creación de video en gameState
-      if (gameState.publicarVideo) {
-        gameState.publicarVideo({ titulo, enfoquePrincipal, enfoqueSecundario });
-      }
+      // Procesar la creación del video mediante el motor de videoSystem
+      procesarPublicacionVideo(titulo, enfoquePrincipal, enfoqueSecundario);
 
+      // Redirigir a la pantalla de resultados
       window.location.hash = '#videoResult';
     });
   }
