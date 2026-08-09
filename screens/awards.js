@@ -1,4 +1,3 @@
-```js
 // screens/awards.js
 
 import { gameState } from "../engine/gameState.js";
@@ -24,11 +23,10 @@ export const awardsScreen = {
 
 
         // =====================================================
-        // DATOS ACTUALES
+        // DATOS ACTUALES DEL JUGADOR
         // =====================================================
 
-        const player =
-            gameState.player;
+        const player = gameState.player;
 
         const año =
             gameState.time?.año ??
@@ -41,13 +39,10 @@ export const awardsScreen = {
         const fama =
             Number(player.fama) || 0;
 
-
-        // =====================================================
-        // TÍTULO
-        // =====================================================
-
-        title.innerText =
-            `🏆 Coscu Army Awards ${año}`;
+        const canal =
+            player.canal ||
+            player.nombre ||
+            "Mi Canal";
 
 
         // =====================================================
@@ -57,21 +52,41 @@ export const awardsScreen = {
         let premio =
             "Mención de honor — Seguí participando";
 
+        let famaPremio = 0;
+
 
         if (suscriptores >= 100000) {
 
             premio =
-                "Streamer Revelación del Año 🔥";
+                "🏆 Streamer Revelación del Año";
 
-            player.fama += 10;
+            famaPremio = 10;
 
         } else if (suscriptores >= 10000) {
 
             premio =
-                "Promesa del Año 🚀";
+                "🥉 Promesa del Año";
 
-            player.fama += 5;
+            famaPremio = 5;
         }
+
+
+        // Aplicamos la fama una sola vez
+        if (famaPremio > 0) {
+
+            player.fama =
+                Number(player.fama || 0) +
+                famaPremio;
+
+        }
+
+
+        // =====================================================
+        // TÍTULO
+        // =====================================================
+
+        title.innerText =
+            `🏆 Coscu Army Awards ${año}`;
 
 
         // =====================================================
@@ -90,33 +105,24 @@ export const awardsScreen = {
 
                 <p>
                     <strong>Canal:</strong>
-                    ${player.canal || "Mi Canal"}
+                    ${canal}
                 </p>
 
 
                 <p>
-                    <strong>
-                        Suscriptores totales:
-                    </strong>
-
+                    <strong>Suscriptores totales:</strong>
                     ${suscriptores.toLocaleString()}
                 </p>
 
 
                 <p>
-                    <strong>
-                        Fama actual:
-                    </strong>
-
-                    ${player.fama}/100
+                    <strong>Fama actual:</strong>
+                    ${Number(player.fama || 0)}/100
                 </p>
 
 
                 <p>
-                    <strong>
-                        Galardón:
-                    </strong>
-
+                    <strong>Galardón:</strong>
                     ${premio}
                 </p>
 
@@ -124,48 +130,35 @@ export const awardsScreen = {
 
 
             <p>
-                ¡Preparáte para un nuevo año
+                ¡Preparate para un nuevo año
                 de creación de contenido!
             </p>
-
         `;
 
 
         // =====================================================
-        // BOTÓN SIGUIENTE AÑO
+        // SIGUIENTE AÑO
         // =====================================================
 
         if (btnNextYear) {
 
             btnNextYear.onclick = () => {
 
-                // Avanzamos directamente al siguiente año.
-                // No dependemos de una función que todavía
-                // no existe en gameState.
-
-                gameState.time.año =
-                    Number(gameState.time.año || año) + 1;
+                // Pasamos al siguiente año
+                gameState.time.año += 1;
 
                 gameState.time.trimestre = 1;
 
-
-                // Mantener sincronizado el jugador
-
+                // También mantenemos el año del jugador
                 gameState.player.año =
                     gameState.time.año;
 
-                gameState.player.trimestre =
-                    1;
+
+                // Reiniciamos ingresos del trimestre
+                gameState.player.ingresosTrimestre = 0;
 
 
-                // Reiniciar ingresos del trimestre
-
-                gameState.player.ingresosTrimestre =
-                    0;
-
-
-                // Guardar partida
-
+                // Guardamos
                 if (
                     saveManager &&
                     typeof saveManager.saveLocal === "function"
@@ -176,8 +169,7 @@ export const awardsScreen = {
                 }
 
 
-                // Volver al dashboard
-
+                // Volvemos al dashboard
                 window.location.hash =
                     "#dashboard";
 
@@ -191,4 +183,3 @@ export const awardsScreen = {
 
 
 export default awardsScreen;
-```
