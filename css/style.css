@@ -1,0 +1,35 @@
+/* Fondo con efecto de luz radial estilo YouTube/Gaming */
+body {
+  background-color: var(--bg-main);
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(255, 0, 0, 0.15) 0%, transparent 60%),
+    radial-gradient(circle at 80% 80%, rgba(120, 0, 0, 0.08) 0%, transparent 50%);
+  background-attachment: fixed;
+  color: var(--text-main);
+  min-height: 100vh;
+}
+
+/* Scrollbar personalizado estilo gamer */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-red);
+}
+
+/* Efecto hover suave para tarjetas */
+.interactive-card {
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.interactive-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent-red) !important;
+  box-shadow: 0 8px 25px rgba(255, 0, 0, 0.2);
+}

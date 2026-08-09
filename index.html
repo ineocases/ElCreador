@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>El Creador - Simulador Streamer</title>
+  
+  <!-- Estilos y Tipografía esport -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+
+  <!-- Contenedor dinámico de pantallas -->
+  <div id="app">
+<!-- PANTALLA 1: CREACIÓN DEL CANAL -->
+<div id="createChannelScreen" class="screen" style="display:none;"></div>
+
+<!-- PANTALLA 2: PRETEMPORADA -->
+<div id="pretemporadaScreen" class="screen" style="display:none;"></div>
+
+<!-- PANTALLA 3: DASHBOARD PRINCIPAL -->
+<div id="dashboardScreen" class="screen" style="display:none;"></div>
+
+<!-- PANTALLA 4: PUBLICAR VIDEO -->
+<div id="publishScreen" class="screen" style="display:none;"></div>
+
+<!-- PANTALLA 5: RESULTADO DEL VIDEO -->
+<div id="resultScreen" class="screen" style="display:none;"></div>
+
+<!-- PANTALLA 6: PASAN COSAS -->
+<div id="pasanCosasScreen" class="screen" style="display:none;"></div>
+
+<!-- PANTALLA 7: TIENDA DE MEJORAS -->
+<div id="storeScreen" class="screen" style="display:none;"></div>
+
+<!-- PANTALLA 8: PREMIOS DE FIN DE AÑO -->
+<div id="awardsScreen" class="screen" style="display:none; text-align:center;">
+
+    <h2 id="awardsTitle">
+        🏆 Coscu Army Awards
+    </h2>
+
+    <div
+        id="awardsSummary"
+        style="margin:20px 0;"
+    ></div>
+
+    <button
+        id="btnNextYear"
+        style="
+            background-color:gold;
+            color:black;
+            font-weight:bold;
+            padding:10px 20px;
+            border:none;
+            border-radius:6px;
+            cursor:pointer;
+        "
+    >
+        Empezar Siguiente Año
+    </button>
+
+</div>
+
+<!-- PANTALLA 9: PANEL ADMINISTRADOR -->
+<div id="adminScreen" class="screen" style="display:none;">
+
+    <div id="adminContainer"></div>
+
+</div>
+
+<!-- PANTALLA 10: COLABORACIONES -->
+<div id="collabsScreen" class="screen" style="display:none;">
+
+    <div id="collabsContainer"></div>
+
+</div>
+
+<!-- PANTALLA 11: SPONSORS -->
+<div id="sponsorsScreen" class="screen" style="display:none;">
+
+    <div id="sponsorsContainer"></div>
+
+</div>
+<!-- PANTALLA 10: NOTIFICACIONES -->
+
+<div
+    id="notificationsScreen"
+    class="screen"
+    style="display:none;"
+></div>
+
+</div>
+
+  <!-- Arranque JavaScript Modular -->
+  <script type="module" src="js/app.js"></script>
+
+</body>
+</html>
