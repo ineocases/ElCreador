@@ -1,83 +1,75 @@
-// js/router.js
+// router.js
 
-import saveManager from "../engine/saveManager.js";
+import saveManager from "./engine/saveManager.js";
 
 import * as createChannelScreen
-    from "../screens/createChannel.js";
+    from "./screens/createChannel.js";
 
 import * as dashboardScreen
-    from "../screens/dashboard.js";
+    from "./screens/dashboard.js";
 
 import * as pretemporadaScreen
-    from "../screens/pretemporada.js";
+    from "./screens/pretemporada.js";
 
 import * as publishVideoScreen
-    from "../screens/publishVideo.js";
+    from "./screens/publishVideo.js";
 
 import * as videoResultScreen
-    from "../screens/videoResult.js";
-
-import * as pasanCosasScreen
-    from "../screens/pasanCosas.js";
+    from "./screens/videoResult.js";
 
 import * as storeScreen
-    from "../screens/store.js";
+    from "./screens/store.js";
 
 import * as awardsScreen
-    from "../screens/awards.js";
-
-import * as collabsScreen
-    from "../screens/collabs.js";
-
-import * as sponsorsScreen
-    from "../screens/sponsors.js";
-
-import * as timelineScreen
-    from "../screens/timeline.js";
+    from "./screens/awards.js";
 
 import * as adminDashboardScreen
-    from "../screens/admin/AdminDashboard.js";
+    from "./screens/admin/AdminDashboard.js";
+
+import * as collabsScreen
+    from "./screens/collabs.js";
+
+import * as sponsorsScreen
+    from "./screens/sponsors.js";
+
+import * as pasanCosasScreen
+    from "./screens/pasanCosas.js";
 
 
-// ==================================================
+// ============================================================
 // INICIAR ROUTER
-// ==================================================
+// ============================================================
 
 export function initRouter() {
 
     console.log(
-        "🚀 Router de 'El Creador' inicializado"
+        "🚀 Router de El Creador inicializado"
     );
 
 
+    // Intentar cargar partida
     let hasSave = false;
 
     try {
 
         hasSave =
-            typeof saveManager.loadLocal === "function"
-                ? !!saveManager.loadLocal()
-                : false;
+            !!saveManager.loadLocal();
 
     } catch (error) {
 
         console.warn(
-            "No se pudo cargar la partida:",
+            "⚠️ No se pudo cargar la partida:",
             error
         );
+
+        hasSave = false;
 
     }
 
 
-    /*
-     * Si no existe una partida:
-     *
-     * Crear canal
-     *
-     * Si existe:
-     *
-     * Dashboard
-     */
+    // ========================================================
+    // RUTA INICIAL
+    // ========================================================
 
     if (!window.location.hash) {
 
@@ -89,20 +81,25 @@ export function initRouter() {
     }
 
 
+    // ========================================================
+    // ESCUCHAR CAMBIOS
+    // ========================================================
+
     window.addEventListener(
         "hashchange",
         handleRoute
     );
 
 
+    // Render inicial
     handleRoute();
 
 }
 
 
-// ==================================================
+// ============================================================
 // MANEJAR RUTA
-// ==================================================
+// ============================================================
 
 function handleRoute() {
 
@@ -111,9 +108,15 @@ function handleRoute() {
         "#createChannel";
 
 
-    /*
-     * Ocultar pantallas existentes.
-     */
+    console.log(
+        "📍 Ruta:",
+        hash
+    );
+
+
+    // ========================================================
+    // OCULTAR TODAS LAS PANTALLAS
+    // ========================================================
 
     document
         .querySelectorAll(".screen")
@@ -124,11 +127,16 @@ function handleRoute() {
         });
 
 
+    // ========================================================
+    // ROUTER
+    // ========================================================
+
     switch (hash) {
 
-        // ==========================================
+
+        // ----------------------------------------------------
         // CREAR CANAL
-        // ==========================================
+        // ----------------------------------------------------
 
         case "#createChannel":
 
@@ -140,9 +148,9 @@ function handleRoute() {
             break;
 
 
-        // ==========================================
+        // ----------------------------------------------------
         // PRETEMPORADA
-        // ==========================================
+        // ----------------------------------------------------
 
         case "#pretemporada":
 
@@ -154,9 +162,9 @@ function handleRoute() {
             break;
 
 
-        // ==========================================
+        // ----------------------------------------------------
         // DASHBOARD
-        // ==========================================
+        // ----------------------------------------------------
 
         case "#dashboard":
 
@@ -168,9 +176,9 @@ function handleRoute() {
             break;
 
 
-        // ==========================================
+        // ----------------------------------------------------
         // PUBLICAR VIDEO
-        // ==========================================
+        // ----------------------------------------------------
 
         case "#publish":
 
@@ -182,9 +190,9 @@ function handleRoute() {
             break;
 
 
-        // ==========================================
+        // ----------------------------------------------------
         // RESULTADO VIDEO
-        // ==========================================
+        // ----------------------------------------------------
 
         case "#videoResult":
 
@@ -196,9 +204,9 @@ function handleRoute() {
             break;
 
 
-        // ==========================================
+        // ----------------------------------------------------
         // PASAN COSAS
-        // ==========================================
+        // ----------------------------------------------------
 
         case "#pasanCosas":
 
@@ -210,9 +218,9 @@ function handleRoute() {
             break;
 
 
-        // ==========================================
+        // ----------------------------------------------------
         // TIENDA
-        // ==========================================
+        // ----------------------------------------------------
 
         case "#store":
 
@@ -224,37 +232,9 @@ function handleRoute() {
             break;
 
 
-        // ==========================================
-        // COLABORACIONES
-        // ==========================================
-
-        case "#collabs":
-
-            renderScreen(
-                "collabsScreen",
-                collabsScreen
-            );
-
-            break;
-
-
-        // ==========================================
-        // SPONSORS
-        // ==========================================
-
-        case "#sponsors":
-
-            renderScreen(
-                "sponsorsScreen",
-                sponsorsScreen
-            );
-
-            break;
-
-
-        // ==========================================
+        // ----------------------------------------------------
         // PREMIOS
-        // ==========================================
+        // ----------------------------------------------------
 
         case "#awards":
 
@@ -266,39 +246,58 @@ function handleRoute() {
             break;
 
 
-        // ==========================================
-        // TIMELINE
-        // ==========================================
+        // ----------------------------------------------------
+        // COLABORACIONES
+        // ----------------------------------------------------
 
-        case "#timeline":
+        case "#collabs":
 
             renderScreen(
-                "timelineScreen",
-                timelineScreen
+                "collabsScreen",
+                collabsScreen
             );
 
             break;
 
 
-        // ==========================================
+        // ----------------------------------------------------
+        // SPONSORS
+        // ----------------------------------------------------
+
+        case "#sponsors":
+
+            renderScreen(
+                "sponsorsScreen",
+                sponsorsScreen
+            );
+
+            break;
+
+
+        // ----------------------------------------------------
         // ADMIN
-        // ==========================================
+        // ----------------------------------------------------
 
         case "#admin":
 
             renderScreen(
-                "adminScreen",
+                "adminDashboardScreen",
                 adminDashboardScreen
             );
 
             break;
 
 
-        // ==========================================
-        // DEFAULT
-        // ==========================================
+        // ----------------------------------------------------
+        // RUTA DESCONOCIDA
+        // ----------------------------------------------------
 
         default:
+
+            console.warn(
+                "⚠️ Ruta desconocida:",
+                hash
+            );
 
             window.location.hash =
                 "#dashboard";
@@ -310,9 +309,9 @@ function handleRoute() {
 }
 
 
-// ==================================================
-// RENDERIZAR PANTALLA
-// ==================================================
+// ============================================================
+// RENDER SCREEN
+// ============================================================
 
 function renderScreen(
     elementId,
@@ -320,18 +319,15 @@ function renderScreen(
 ) {
 
     const el =
-        document.getElementById(elementId);
+        document.getElementById(
+            elementId
+        );
 
-
-    /*
-     * Si el elemento no existe en index.html,
-     * no rompemos toda la aplicación.
-     */
 
     if (!el) {
 
-        console.warn(
-            `⚠️ No existe #${elementId} en index.html`
+        console.error(
+            `❌ No existe el contenedor #${elementId}`
         );
 
         return;
@@ -341,8 +337,8 @@ function renderScreen(
 
     if (!screenModule) {
 
-        console.warn(
-            `⚠️ No existe módulo para ${elementId}`
+        console.error(
+            `❌ No existe el módulo para #${elementId}`
         );
 
         return;
@@ -350,21 +346,18 @@ function renderScreen(
     }
 
 
+    // Mostrar
     el.style.display = "block";
 
 
-    /*
-     * ==========================================
-     * 1. EXPORT DEFAULT
-     * ==========================================
-     */
+    // ========================================================
+    // DEFAULT
+    // ========================================================
 
     if (screenModule.default) {
 
-        /*
-         * default = función
-         */
 
+        // default = función
         if (
             typeof screenModule.default ===
             "function"
@@ -374,31 +367,30 @@ function renderScreen(
                 screenModule.default(el);
 
 
-            if (
-                result instanceof HTMLElement
-            ) {
-
-                el.innerHTML = "";
-
-                el.appendChild(result);
-
-            }
+            procesarResultado(
+                el,
+                result
+            );
 
             return;
 
         }
 
 
-        /*
-         * default = objeto con render()
-         */
-
+        // default = objeto con render
         if (
             typeof screenModule.default.render ===
             "function"
         ) {
 
-            screenModule.default.render(el);
+            const result =
+                screenModule.default.render(el);
+
+
+            procesarResultado(
+                el,
+                result
+            );
 
             return;
 
@@ -407,11 +399,9 @@ function renderScreen(
     }
 
 
-    /*
-     * ==========================================
-     * 2. EXPORT DIRECTO render()
-     * ==========================================
-     */
+    // ========================================================
+    // EXPORT render()
+    // ========================================================
 
     if (
         typeof screenModule.render ===
@@ -422,63 +412,75 @@ function renderScreen(
             screenModule.render(el);
 
 
-        if (
-            result instanceof HTMLElement
-        ) {
-
-            el.innerHTML = "";
-
-            el.appendChild(result);
-
-        }
+        procesarResultado(
+            el,
+            result
+        );
 
         return;
 
     }
 
 
-    /*
-     * ==========================================
-     * 3. BUSCAR renderDashboard(),
-     *    renderPretemporada(), etc.
-     * ==========================================
-     */
+    // ========================================================
+    // BUSCAR renderX()
+    // ========================================================
 
     const renderFnKey =
         Object.keys(screenModule)
-            .find(key =>
-
-                key.startsWith("render") &&
-
-                typeof screenModule[key] ===
-                "function"
-
+            .find(
+                key =>
+                    key.startsWith("render") &&
+                    typeof screenModule[key] ===
+                    "function"
             );
 
 
     if (renderFnKey) {
 
         const result =
-            screenModule[renderFnKey](el);
+            screenModule[
+                renderFnKey
+            ](el);
 
 
-        if (
-            result instanceof HTMLElement
-        ) {
-
-            el.innerHTML = "";
-
-            el.appendChild(result);
-
-        }
+        procesarResultado(
+            el,
+            result
+        );
 
         return;
 
     }
 
 
-    console.warn(
-        `⚠️ No se encontró función render para ${elementId}`
+    console.error(
+        `❌ El módulo de #${elementId} no tiene una función render válida`
     );
+
+}
+
+
+// ============================================================
+// PROCESAR RESULTADO
+// ============================================================
+
+function procesarResultado(
+    el,
+    result
+) {
+
+    if (
+        result instanceof HTMLElement &&
+        result !== el
+    ) {
+
+        el.innerHTML = "";
+
+        el.appendChild(
+            result
+        );
+
+    }
 
 }
