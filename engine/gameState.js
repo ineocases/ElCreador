@@ -2,8 +2,9 @@
 
 import { creatorsIniciales } from "../data/creators.js";
 
+
 // ============================================================
-// ATRIBUTOS DEL CREADOR
+// ATRIBUTOS
 // ============================================================
 
 function crearAtributos() {
@@ -20,7 +21,7 @@ function crearAtributos() {
 
 
 // ============================================================
-// ESTADÍSTICAS
+// STATS
 // ============================================================
 
 function crearStats() {
@@ -36,7 +37,7 @@ function crearStats() {
 
 
 // ============================================================
-// JUGADOR
+// PLAYER
 // ============================================================
 
 function crearPlayer() {
@@ -69,14 +70,13 @@ function crearPlayer() {
 
         stats: crearStats(),
 
-        // Relaciones con otros creadores
         relationships: {}
     };
 }
 
 
 // ============================================================
-// ESTADO PRINCIPAL DEL JUEGO
+// GAME STATE
 // ============================================================
 
 export const gameState = {
@@ -92,8 +92,9 @@ export const gameState = {
 
     notifications: [],
 
-    // ÚNICA fuente de creadores
-    creators: [...creatorsIniciales],
+    creators: creatorsIniciales.map(
+        creator => ({ ...creator })
+    ),
 
     trends: [],
 
@@ -167,10 +168,7 @@ export const gameState = {
         );
 
 
-        // Máximo 50 notificaciones
-
         if (this.notifications.length > 50) {
-
             this.notifications =
                 this.notifications.slice(0, 50);
         }
@@ -181,7 +179,7 @@ export const gameState = {
 
 
     // ========================================================
-    // MARCAR NOTIFICACIÓN COMO LEÍDA
+    // MARCAR NOTIFICACIÓN
     // ========================================================
 
     marcarNotificacionLeida(id) {
@@ -191,7 +189,6 @@ export const gameState = {
                 n => n.id === id
             );
 
-
         if (notificacion) {
             notificacion.leida = true;
         }
@@ -199,7 +196,7 @@ export const gameState = {
 
 
     // ========================================================
-    // CONTADOR DE NOTIFICACIONES
+    // NOTIFICACIONES NO LEÍDAS
     // ========================================================
 
     notificacionesNoLeidas() {
@@ -211,19 +208,17 @@ export const gameState = {
 
 
     // ========================================================
-    // REINICIAR PARTIDA
+    // RESET
     // ========================================================
 
     resetPlayer() {
 
         this.player = crearPlayer();
 
-
         this.time = {
             año: 2026,
             trimestre: 1
         };
-
 
         this.inventory = [];
 
@@ -241,20 +236,16 @@ export const gameState = {
 
         this.lastCollab = null;
 
-
-        // Restaurar creadores iniciales
         this.creators =
             creatorsIniciales.map(
-                creator => ({
-                    ...creator
-                })
+                creator => ({ ...creator })
             );
     }
 };
 
 
 // ============================================================
-// NORMALIZAR GAME STATE
+// NORMALIZAR
 // ============================================================
 
 export function normalizarGameState() {
@@ -262,172 +253,100 @@ export function normalizarGameState() {
     const p = gameState.player;
 
 
-    // --------------------------------------------------------
-    // PLAYER
-    // --------------------------------------------------------
-
     if (!p) {
-
-        gameState.player =
-            crearPlayer();
-
+        gameState.player = crearPlayer();
         return;
     }
 
 
-    // --------------------------------------------------------
     // ATRIBUTOS
-    // --------------------------------------------------------
 
     if (!p.atributos) {
         p.atributos = crearAtributos();
     }
 
-
     const atributosDefault =
         crearAtributos();
-
 
     Object.keys(
         atributosDefault
     ).forEach(key => {
 
         if (
-            typeof p.atributos[key] !==
-            "number"
+            typeof p.atributos[key] !== "number"
         ) {
-
             p.atributos[key] =
                 atributosDefault[key];
         }
+
     });
 
 
-    // --------------------------------------------------------
     // STATS
-    // --------------------------------------------------------
 
     if (!p.stats) {
         p.stats = crearStats();
     }
 
-
     const statsDefault =
         crearStats();
-
 
     Object.keys(
         statsDefault
     ).forEach(key => {
 
         if (
-            typeof p.stats[key] !==
-            "number"
+            typeof p.stats[key] !== "number"
         ) {
-
             p.stats[key] =
                 statsDefault[key];
         }
+
     });
 
 
-    // --------------------------------------------------------
     // EQUIPMENT
-    // --------------------------------------------------------
 
     if (!p.equipment) {
 
         p.equipment = {
-
             pc: "government_pc",
-
             camera: "old_phone",
-
             microphone: "earphones"
         };
+
     }
 
 
-    // --------------------------------------------------------
     // RELATIONSHIPS
-    // --------------------------------------------------------
 
     if (!p.relationships) {
-
         p.relationships = {};
     }
 
 
-    // --------------------------------------------------------
-    // INVENTARIO
-    // --------------------------------------------------------
+    // ARRAYS
 
-    if (
-        !Array.isArray(
-            gameState.inventory
-        )
-    ) {
-
+    if (!Array.isArray(gameState.inventory)) {
         gameState.inventory = [];
     }
 
-
-    // --------------------------------------------------------
-    // NOTIFICACIONES
-    // --------------------------------------------------------
-
-    if (
-        !Array.isArray(
-            gameState.notifications
-        )
-    ) {
-
+    if (!Array.isArray(gameState.notifications)) {
         gameState.notifications = [];
     }
 
-
-    // --------------------------------------------------------
-    // CREADORES
-    // --------------------------------------------------------
-
-    if (
-        !Array.isArray(
-            gameState.creators
-        )
-    ) {
-
+    if (!Array.isArray(gameState.creators)) {
         gameState.creators =
             creatorsIniciales.map(
-                creator => ({
-                    ...creator
-                })
+                creator => ({ ...creator })
             );
     }
 
-
-    // --------------------------------------------------------
-    // TENDENCIAS
-    // --------------------------------------------------------
-
-    if (
-        !Array.isArray(
-            gameState.trends
-        )
-    ) {
-
+    if (!Array.isArray(gameState.trends)) {
         gameState.trends = [];
     }
 
-
-    // --------------------------------------------------------
-    // SPONSORS
-    // --------------------------------------------------------
-
-    if (
-        !Array.isArray(
-            gameState.sponsors
-        )
-    ) {
-
+    if (!Array.isArray(gameState.sponsors)) {
         gameState.sponsors = [];
     }
+}
