@@ -14,7 +14,6 @@ import { gameState }
 const bancoCartas = [
 
     {
-
         titulo:
             "CURSO RÁPIDO DE PREMIERE",
 
@@ -32,12 +31,10 @@ const bancoCartas = [
 
         color:
             "var(--accent-yellow)"
-
     },
 
 
     {
-
         titulo:
             "SETUP NUEVO EN CUOTAS",
 
@@ -55,12 +52,10 @@ const bancoCartas = [
 
         color:
             "var(--accent-green)"
-
     },
 
 
     {
-
         titulo:
             "CURSO DE TEATRO E IMPRO",
 
@@ -78,12 +73,10 @@ const bancoCartas = [
 
         color:
             "var(--accent-yellow)"
-
     },
 
 
     {
-
         titulo:
             "ESTRATEGIA DE CONTENIDO EN TIKTOK",
 
@@ -101,12 +94,10 @@ const bancoCartas = [
 
         color:
             "var(--accent-green)"
-
     },
 
 
     {
-
         titulo:
             "DISCIPLINA DE STREAMER",
 
@@ -124,14 +115,13 @@ const bancoCartas = [
 
         color:
             "var(--accent-red)"
-
     }
 
 ];
 
 
 // ============================================================
-// FORMATEAR ATRIBUTO
+// NOMBRE ATRIBUTO
 // ============================================================
 
 function nombreAtributo(
@@ -140,36 +130,45 @@ function nombreAtributo(
 
     const nombres = {
 
-        edicion: "EDICIÓN",
+        edicion:
+            "EDICIÓN",
 
-        carisma: "CARISMA",
+        carisma:
+            "CARISMA",
 
-        algoritmo: "ALGORITMO",
+        algoritmo:
+            "ALGORITMO",
 
-        marketing: "MARKETING",
+        marketing:
+            "MARKETING",
 
-        constancia: "CONSTANCIA",
+        constancia:
+            "CONSTANCIA",
 
-        humor: "HUMOR",
+        humor:
+            "HUMOR",
 
-        creatividad: "CREATIVIDAD"
+        creatividad:
+            "CREATIVIDAD"
 
     };
 
 
     return (
         nombres[atributo] ||
-        atributo.toUpperCase()
+        String(atributo).toUpperCase()
     );
 
 }
 
 
 // ============================================================
-// PRETEMPORADA
+// RENDER
 // ============================================================
 
-export function renderPretemporada(el) {
+export function renderPretemporada(
+    el
+) {
 
     const container =
         el ||
@@ -190,7 +189,7 @@ export function renderPretemporada(el) {
 
 
     // ========================================================
-    // PREVENIR ERROR SI SE ABRE DIRECTAMENTE
+    // VERIFICAR PLAYER
     // ========================================================
 
     if (!gameState.player) {
@@ -208,7 +207,29 @@ export function renderPretemporada(el) {
 
 
     // ========================================================
-    // CARTAS ALEATORIAS
+    // EVITAR REPETIR PRETEMPORADA
+    // ========================================================
+
+    if (
+        gameState.player.pretemporada &&
+        gameState.player.pretemporada.año ===
+            gameState.time.año
+    ) {
+
+        console.log(
+            "ℹ️ La pretemporada ya fue completada."
+        );
+
+        window.location.hash =
+            "#dashboard";
+
+        return;
+
+    }
+
+
+    // ========================================================
+    // ELEGIR 3 CARTAS
     // ========================================================
 
     const opciones =
@@ -226,7 +247,12 @@ export function renderPretemporada(el) {
 
     container.innerHTML = `
 
-        <div class="preseason-page">
+        <div
+            style="
+                min-height:100%;
+                padding:20px;
+            "
+        >
 
             ${
                 typeof renderHeaderHud ===
@@ -236,118 +262,221 @@ export function renderPretemporada(el) {
             }
 
 
-            <div class="preseason-header">
+            <div
+                style="
+                    max-width:1000px;
+                    margin:25px auto;
+                "
+            >
 
-                <div class="preseason-kicker">
+                <div
+                    style="
+                        margin-bottom:30px;
+                    "
+                >
 
-                    ⚡ PRETEMPORADA
-                    · AÑO
-                    ${gameState.time.año}
+                    <div
+                        style="
+                            color:var(--accent-red);
+                            font-size:.8rem;
+                            font-weight:bold;
+                            letter-spacing:1px;
+                        "
+                    >
+                        ⚡ PRETEMPORADA
+                        · AÑO
+                        ${gameState.time.año}
+                    </div>
+
+
+                    <h1
+                        style="
+                            font-family:var(--font-heading);
+                            font-size:2.3rem;
+                            margin:8px 0;
+                        "
+                    >
+                        Prepará tu carrera
+                    </h1>
+
+
+                    <p
+                        style="
+                            color:var(--text-muted);
+                            max-width:650px;
+                            line-height:1.6;
+                        "
+                    >
+                        Antes de comenzar tu carrera
+                        elegí una carta de entrenamiento.
+                        Esta decisión modificará tus
+                        atributos iniciales.
+                    </p>
 
                 </div>
 
 
-                <h1>
-                    Prepará tu carrera
-                </h1>
+                <div
+                    style="
+                        display:grid;
+                        grid-template-columns:
+                            repeat(
+                                auto-fit,
+                                minmax(230px,1fr)
+                            );
+                        gap:18px;
+                    "
+                >
 
-
-                <p>
-
-                    Antes de empezar el año
-                    podés elegir una mejora
-                    para tu creador.
-
-                    <br>
-
-                    Esta decisión va a afectar
-                    tus primeros videos.
-
-                </p>
-
-            </div>
-
-
-            <div class="cards-grid">
-
-                ${
-                    opciones
+                    ${opciones
                         .map(
                             (carta, index) => `
 
-                        <div
-                            class="preseason-card"
-                            data-index="${index}"
-                            style="
-                                border-top:
-                                    3px solid
-                                    ${carta.color};
-                            "
-                        >
+                            <div
+                                class="preseason-card"
+                                data-index="${index}"
 
-                            <div>
+                                style="
+                                    background:
+                                        var(--bg-card);
 
-                                <span
-                                    class="card-type"
-                                    style="
-                                        background:
-                                            ${carta.color};
-                                    "
-                                >
-                                    ${carta.tipo}
-                                </span>
+                                    border:
+                                        var(--border-card);
+
+                                    border-top:
+                                        4px solid
+                                        ${carta.color};
+
+                                    border-radius:16px;
+
+                                    padding:22px;
+
+                                    min-height:300px;
+
+                                    display:flex;
+
+                                    flex-direction:column;
+
+                                    justify-content:
+                                        space-between;
+
+                                    transition:
+                                        transform .2s ease,
+                                        box-shadow .2s ease;
+                                "
+                            >
+
+                                <div>
+
+                                    <span
+                                        style="
+                                            display:inline-block;
+
+                                            background:
+                                                ${carta.color};
+
+                                            color:#000;
+
+                                            padding:
+                                                4px 9px;
+
+                                            border-radius:5px;
+
+                                            font-size:.7rem;
+
+                                            font-weight:bold;
+                                        "
+                                    >
+                                        ${carta.tipo}
+                                    </span>
 
 
-                                <h2>
-
-                                    ${carta.titulo}
-
-                                </h2>
-
-
-                                <p>
-
-                                    ${carta.desc}
-
-                                </p>
-
-                            </div>
+                                    <h2
+                                        style="
+                                            font-size:1.15rem;
+                                            margin:
+                                                18px 0 10px;
+                                        "
+                                    >
+                                        ${carta.titulo}
+                                    </h2>
 
 
-                            <div>
+                                    <p
+                                        style="
+                                            color:
+                                                var(--text-muted);
 
-                                <div
-                                    class="card-bonus"
-                                >
+                                            font-size:.85rem;
 
-                                    +${carta.pts}
-                                    ${nombreAtributo(
-                                        carta.attr
-                                    )}
-                                    ▲
+                                            line-height:1.5;
+                                        "
+                                    >
+                                        ${carta.desc}
+                                    </p>
 
                                 </div>
 
 
-                                <button
-                                    class="
-                                        select-card-button
-                                    "
-                                    data-index="${index}"
-                                >
+                                <div>
 
-                                    ELEGIR MEJORA
+                                    <div
+                                        style="
+                                            text-align:center;
 
-                                </button>
+                                            color:
+                                                var(--accent-green);
+
+                                            font-weight:bold;
+
+                                            margin:
+                                                20px 0;
+                                        "
+                                    >
+                                        +${carta.pts}
+                                        ${nombreAtributo(carta.attr)}
+                                    </div>
+
+
+                                    <button
+                                        class="
+                                            select-card-button
+                                        "
+
+                                        data-index="${index}"
+
+                                        style="
+                                            width:100%;
+
+                                            padding:13px;
+
+                                            border:none;
+
+                                            border-radius:9px;
+
+                                            background:
+                                                var(--accent-red);
+
+                                            color:#fff;
+
+                                            font-weight:bold;
+
+                                            cursor:pointer;
+                                        "
+                                    >
+                                        ELEGIR MEJORA
+                                    </button>
+
+                                </div>
 
                             </div>
 
-                        </div>
-
-                    `
+                        `
                         )
                         .join("")
-                }
+                    }
+
+                </div>
 
             </div>
 
@@ -357,17 +486,54 @@ export function renderPretemporada(el) {
 
 
     // ========================================================
-    // BOTONES
+    // EFECTO HOVER
     // ========================================================
 
-    const buttons =
-        container.querySelectorAll(
+    container
+        .querySelectorAll(
+            ".preseason-card"
+        )
+        .forEach(card => {
+
+            card.addEventListener(
+                "mouseenter",
+                () => {
+
+                    card.style.transform =
+                        "translateY(-5px)";
+
+                    card.style.boxShadow =
+                        "0 15px 40px rgba(0,0,0,.35)";
+
+                }
+            );
+
+
+            card.addEventListener(
+                "mouseleave",
+                () => {
+
+                    card.style.transform =
+                        "translateY(0)";
+
+                    card.style.boxShadow =
+                        "none";
+
+                }
+            );
+
+        });
+
+
+    // ========================================================
+    // SELECCIÓN
+    // ========================================================
+
+    container
+        .querySelectorAll(
             ".select-card-button"
-        );
-
-
-    buttons.forEach(
-        button => {
+        )
+        .forEach(button => {
 
             button.addEventListener(
                 "click",
@@ -395,31 +561,30 @@ export function renderPretemporada(el) {
 
 
                     // ========================================
-                    // EVITAR DOBLE ELECCIÓN
+                    // BLOQUEAR BOTONES
                     // ========================================
 
-                    buttons.forEach(
-                        btn => {
+                    container
+                        .querySelectorAll(
+                            ".select-card-button"
+                        )
+                        .forEach(btn => {
 
                             btn.disabled = true;
 
                             btn.style.opacity =
                                 "0.5";
 
-                        }
-                    );
+                        });
 
 
                     // ========================================
-                    // APLICAR ATRIBUTO
+                    // APLICAR MEJORA
                     // ========================================
 
                     gameState.mejorarAtributo(
-
                         elegida.attr,
-
                         elegida.pts
-
                     );
 
 
@@ -477,14 +642,14 @@ export function renderPretemporada(el) {
 
 
                     // ========================================
-                    // PEQUEÑA PAUSA VISUAL
+                    // PANTALLA FINAL
                     // ========================================
 
                     container.innerHTML = `
 
                         <div
                             style="
-                                min-height:100vh;
+                                min-height:80vh;
 
                                 display:flex;
 
@@ -499,6 +664,7 @@ export function renderPretemporada(el) {
                             <div
                                 style="
                                     width:100%;
+
                                     max-width:500px;
 
                                     background:
@@ -518,18 +684,13 @@ export function renderPretemporada(el) {
                                 <div
                                     style="
                                         font-size:3rem;
-                                        margin-bottom:15px;
                                     "
                                 >
                                     ⚡
                                 </div>
 
 
-                                <h2
-                                    style="
-                                        margin:0 0 10px;
-                                    "
-                                >
+                                <h2>
                                     ¡Pretemporada lista!
                                 </h2>
 
@@ -539,29 +700,22 @@ export function renderPretemporada(el) {
                                         color:
                                             var(--text-muted);
 
-                                        line-height:1.5;
+                                        line-height:1.6;
                                     "
                                 >
-
                                     ${elegida.titulo}
-
-                                    <br>
-
-                                    <strong
-                                        style="
-                                            color:
-                                                var(--accent-green);
-                                        "
-                                    >
-
-                                        +${elegida.pts}
-                                        ${nombreAtributo(
-                                            elegida.attr
-                                        )}
-
-                                    </strong>
-
                                 </p>
+
+
+                                <strong
+                                    style="
+                                        color:
+                                            var(--accent-green);
+                                    "
+                                >
+                                    +${elegida.pts}
+                                    ${nombreAtributo(elegida.attr)}
+                                </strong>
 
 
                                 <p
@@ -569,12 +723,10 @@ export function renderPretemporada(el) {
                                         color:
                                             var(--text-muted);
 
-                                        font-size:.85rem;
+                                        margin-top:20px;
                                     "
                                 >
-
                                     Preparando tu primer año...
-
                                 </p>
 
                             </div>
@@ -595,14 +747,13 @@ export function renderPretemporada(el) {
                                 "#dashboard";
 
                         },
-                        700
+                        900
                     );
 
                 }
             );
 
-        }
-    );
+        });
 
 
     return container;
@@ -611,7 +762,7 @@ export function renderPretemporada(el) {
 
 
 // ============================================================
-// EXPORT
+// EXPORTS
 // ============================================================
 
 export const pretemporadaScreen = {
