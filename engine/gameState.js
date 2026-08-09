@@ -1,6 +1,27 @@
 // engine/gameState.js
 
-import { creatorsIniciales } from "../data/creators.js";
+import { creatorsIniciales }
+    from "../data/creators.js";
+
+
+// ============================================================
+// UTILIDADES
+// ============================================================
+
+function crearId(prefix = "id") {
+
+    if (
+        typeof crypto !== "undefined" &&
+        typeof crypto.randomUUID === "function"
+    ) {
+        return crypto.randomUUID();
+    }
+
+    return `${prefix}_${Date.now()}_${Math.random()
+        .toString(36)
+        .slice(2)}`;
+}
+
 
 // ============================================================
 // ATRIBUTOS
@@ -11,11 +32,17 @@ function crearAtributos() {
     return {
 
         edicion: 10,
+
         carisma: 15,
+
         algoritmo: 10,
+
         marketing: 5,
+
         constancia: 15,
+
         humor: 5,
+
         creatividad: 5
 
     };
@@ -32,10 +59,15 @@ function crearStats() {
     return {
 
         mejorVideo: 0,
+
         videosVirales: 0,
+
         videosPublicados: 0,
+
         colaboraciones: 0,
+
         sponsors: 0,
+
         eventosGanados: 0
 
     };
@@ -52,38 +84,75 @@ function crearPlayer() {
     return {
 
         nombre: "Creador",
+
         canal: "Mi Canal",
+
         niche: "Gaming",
 
+
         año: 2026,
+
         trimestre: 1,
+
 
         dinero: 500,
 
+
         suscriptores: 0,
+
         vistasTotales: 0,
+
         videosSubidos: 0,
+
         fama: 0,
+
 
         comunidad: 50,
 
+
         ingresosTrimestre: 0,
 
-        atributos: crearAtributos(),
+
+        atributos:
+            crearAtributos(),
+
 
         equipment: {
 
             pc: "government_pc",
+
             camera: "old_phone",
+
             microphone: "earphones"
 
         },
 
-        stats: crearStats(),
 
-        relationships: {}
+        stats:
+            crearStats(),
+
+
+        relationships: {},
+
+
+        pretemporada: null
 
     };
+
+}
+
+
+// ============================================================
+// CREADORES
+// ============================================================
+
+function crearCreadores() {
+
+    return creatorsIniciales.map(
+        creator => ({
+            ...creator
+        })
+    );
 
 }
 
@@ -94,12 +163,18 @@ function crearPlayer() {
 
 export const gameState = {
 
-    player: crearPlayer(),
+    // ========================================================
+    // DATOS
+    // ========================================================
+
+    player:
+        crearPlayer(),
 
 
     time: {
 
         año: 2026,
+
         trimestre: 1
 
     },
@@ -107,24 +182,28 @@ export const gameState = {
 
     inventory: [],
 
+
     notifications: [],
 
 
-    creators: creatorsIniciales.map(
-        creator => ({ ...creator })
-    ),
+    creators:
+        crearCreadores(),
 
 
     trends: [],
+
 
     sponsors: [],
 
 
     lastVideo: null,
 
+
     lastVideoResult: null,
 
+
     ultimoEventoResultado: null,
+
 
     lastCollab: null,
 
@@ -138,61 +217,44 @@ export const gameState = {
 
     iniciarPartida(datos = {}) {
 
-        // ----------------------------------------
-        // Asegurar jugador
-        // ----------------------------------------
-
-        if (!this.player) {
-
-            this.player = crearPlayer();
-
-        }
+        console.log(
+            "🎬 Iniciando nueva partida..."
+        );
 
 
-        // ----------------------------------------
-        // Datos del creador
-        // ----------------------------------------
+        // Crear jugador completamente nuevo
 
-        if (
-            typeof datos.nombre === "string" &&
-            datos.nombre.trim() !== ""
-        ) {
-
-            this.player.nombre =
-                datos.nombre.trim();
-
-        }
+        this.player =
+            crearPlayer();
 
 
-        if (
-            typeof datos.canal === "string" &&
-            datos.canal.trim() !== ""
-        ) {
+        // Datos del formulario
 
-            this.player.canal =
-                datos.canal.trim();
-
-        }
+        this.player.nombre =
+            String(
+                datos.nombre ||
+                "Creador"
+            ).trim();
 
 
-        if (
-            typeof datos.niche === "string" &&
-            datos.niche.trim() !== ""
-        ) {
-
-            this.player.niche =
-                datos.niche;
-
-        }
+        this.player.canal =
+            String(
+                datos.canal ||
+                "Mi Canal"
+            ).trim();
 
 
-        // ----------------------------------------
-        // Fecha inicial
-        // ----------------------------------------
+        this.player.niche =
+            datos.niche ||
+            "Gaming";
+
+
+        // Tiempo inicial
 
         this.time = {
 
             año: 2026,
+
             trimestre: 1
 
         };
@@ -203,64 +265,7 @@ export const gameState = {
         this.player.trimestre = 1;
 
 
-        // ----------------------------------------
-        // Economía y métricas
-        // ----------------------------------------
-
-        this.player.dinero = 500;
-
-        this.player.suscriptores = 0;
-
-        this.player.vistasTotales = 0;
-
-        this.player.videosSubidos = 0;
-
-        this.player.fama = 0;
-
-        this.player.comunidad = 50;
-
-        this.player.ingresosTrimestre = 0;
-
-
-        // ----------------------------------------
-        // Atributos
-        // ----------------------------------------
-
-        this.player.atributos =
-            crearAtributos();
-
-
-        // ----------------------------------------
-        // Equipo inicial
-        // ----------------------------------------
-
-        this.player.equipment = {
-
-            pc: "government_pc",
-            camera: "old_phone",
-            microphone: "earphones"
-
-        };
-
-
-        // ----------------------------------------
-        // Estadísticas
-        // ----------------------------------------
-
-        this.player.stats =
-            crearStats();
-
-
-        // ----------------------------------------
-        // Relaciones
-        // ----------------------------------------
-
-        this.player.relationships = {};
-
-
-        // ----------------------------------------
-        // Limpiar estado anterior
-        // ----------------------------------------
+        // Limpiar sistemas
 
         this.inventory = [];
 
@@ -269,6 +274,7 @@ export const gameState = {
         this.trends = [];
 
         this.sponsors = [];
+
 
         this.lastVideo = null;
 
@@ -279,30 +285,54 @@ export const gameState = {
         this.lastCollab = null;
 
 
-        // ----------------------------------------
-        // Restaurar creadores
-        // ----------------------------------------
+        // Recrear creadores
 
         this.creators =
-            creatorsIniciales.map(
-                creator => ({ ...creator })
-            );
+            crearCreadores();
 
 
-        // ----------------------------------------
-        // Notificación inicial
-        // ----------------------------------------
+        // Crear relaciones iniciales
+
+        this.creators.forEach(
+            creator => {
+
+                if (
+                    !this.player
+                        .relationships[
+                            creator.id
+                        ]
+                ) {
+
+                    this.player
+                        .relationships[
+                            creator.id
+                        ] = 0;
+
+                }
+
+            }
+        );
+
+
+        // Notificación
 
         this.agregarNotificacion({
 
             tipo: "sistema",
 
-            titulo: "🎬 ¡Comienza tu carrera!",
+            titulo:
+                "🎬 Carrera iniciada",
 
             descripcion:
-                `Bienvenido ${this.player.nombre}. Tu canal ${this.player.canal} está listo para comenzar.`
+                `Bienvenido, ${this.player.nombre}. Tu canal "${this.player.canal}" está listo para comenzar.`
 
         });
+
+
+        console.log(
+            "✅ Partida creada:",
+            this.player
+        );
 
 
         return this.player;
@@ -314,7 +344,10 @@ export const gameState = {
     // MEJORAR ATRIBUTO
     // ========================================================
 
-    mejorarAtributo(atributo, cantidad) {
+    mejorarAtributo(
+        atributo,
+        cantidad
+    ) {
 
         if (!this.player.atributos) {
 
@@ -325,17 +358,37 @@ export const gameState = {
 
 
         if (
-            typeof this.player.atributos[atributo]
-            !== "number"
+            typeof this.player
+                .atributos[atributo] !==
+            "number"
         ) {
 
-            this.player.atributos[atributo] = 0;
+            this.player
+                .atributos[atributo] = 0;
 
         }
 
 
-        this.player.atributos[atributo] +=
+        this.player
+            .atributos[atributo] +=
             Number(cantidad) || 0;
+
+
+        // Evitamos atributos negativos
+
+        if (
+            this.player
+                .atributos[atributo] < 0
+        ) {
+
+            this.player
+                .atributos[atributo] = 0;
+
+        }
+
+
+        return this.player
+            .atributos[atributo];
 
     },
 
@@ -344,32 +397,37 @@ export const gameState = {
     // NOTIFICACIONES
     // ========================================================
 
-    agregarNotificacion(data) {
+    agregarNotificacion(data = {}) {
 
         const notificacion = {
 
             id:
+                crearId(
+                    "notification"
+                ),
 
-                typeof crypto !== "undefined" &&
-                crypto.randomUUID
-
-                    ? crypto.randomUUID()
-
-                    : `notification_${Date.now()}`,
 
             tipo:
-                data.tipo || "general",
+                data.tipo ||
+                "general",
+
 
             titulo:
                 data.titulo ||
                 "Nueva notificación",
 
+
             descripcion:
-                data.descripcion || "",
+                data.descripcion ||
+                "",
+
 
             leida: false,
 
-            fecha: Date.now(),
+
+            fecha:
+                Date.now(),
+
 
             ...data
 
@@ -388,7 +446,10 @@ export const gameState = {
         ) {
 
             this.notifications =
-                this.notifications.slice(0, 50);
+                this.notifications.slice(
+                    0,
+                    50
+                );
 
         }
 
@@ -406,7 +467,8 @@ export const gameState = {
 
         const notificacion =
             this.notifications.find(
-                n => n.id === id
+                notification =>
+                    notification.id === id
             );
 
 
@@ -426,8 +488,271 @@ export const gameState = {
     notificacionesNoLeidas() {
 
         return this.notifications.filter(
-            n => !n.leida
+            notification =>
+                !notification.leida
         ).length;
+
+    },
+
+
+    // ========================================================
+    // AVANZAR TRIMESTRE
+    // ========================================================
+
+    nextQuarter() {
+
+        this.time.trimestre += 1;
+
+
+        if (
+            this.time.trimestre > 4
+        ) {
+
+            this.time.trimestre = 1;
+
+            this.time.año += 1;
+
+        }
+
+
+        this.player.año =
+            this.time.año;
+
+
+        this.player.trimestre =
+            this.time.trimestre;
+
+
+        // Reiniciar ingresos del trimestre
+
+        this.player.ingresosTrimestre = 0;
+
+
+        return this.time;
+
+    },
+
+
+    // ========================================================
+    // GUARDAR
+    // ========================================================
+
+    guardar() {
+
+        try {
+
+            const data = {
+
+                player:
+                    this.player,
+
+                time:
+                    this.time,
+
+                inventory:
+                    this.inventory,
+
+                notifications:
+                    this.notifications,
+
+                creators:
+                    this.creators,
+
+                trends:
+                    this.trends,
+
+                sponsors:
+                    this.sponsors,
+
+                lastVideo:
+                    this.lastVideo,
+
+                lastVideoResult:
+                    this.lastVideoResult,
+
+                ultimoEventoResultado:
+                    this.ultimoEventoResultado,
+
+                lastCollab:
+                    this.lastCollab
+
+            };
+
+
+            localStorage.setItem(
+                "elCreadorGameState",
+                JSON.stringify(data)
+            );
+
+
+            console.log(
+                "💾 Partida guardada"
+            );
+
+
+            return true;
+
+        } catch (error) {
+
+            console.error(
+                "❌ Error guardando partida:",
+                error
+            );
+
+
+            return false;
+
+        }
+
+    },
+
+
+    // ========================================================
+    // CARGAR
+    // ========================================================
+
+    cargar() {
+
+        try {
+
+            const raw =
+                localStorage.getItem(
+                    "elCreadorGameState"
+                );
+
+
+            if (!raw) {
+
+                return false;
+
+            }
+
+
+            const data =
+                JSON.parse(raw);
+
+
+            if (
+                data.player
+            ) {
+
+                this.player =
+                    data.player;
+
+            }
+
+
+            if (
+                data.time
+            ) {
+
+                this.time =
+                    data.time;
+
+            }
+
+
+            if (
+                Array.isArray(
+                    data.inventory
+                )
+            ) {
+
+                this.inventory =
+                    data.inventory;
+
+            }
+
+
+            if (
+                Array.isArray(
+                    data.notifications
+                )
+            ) {
+
+                this.notifications =
+                    data.notifications;
+
+            }
+
+
+            if (
+                Array.isArray(
+                    data.creators
+                )
+            ) {
+
+                this.creators =
+                    data.creators;
+
+            }
+
+
+            if (
+                Array.isArray(
+                    data.trends
+                )
+            ) {
+
+                this.trends =
+                    data.trends;
+
+            }
+
+
+            if (
+                Array.isArray(
+                    data.sponsors
+                )
+            ) {
+
+                this.sponsors =
+                    data.sponsors;
+
+            }
+
+
+            this.lastVideo =
+                data.lastVideo ||
+                null;
+
+
+            this.lastVideoResult =
+                data.lastVideoResult ||
+                null;
+
+
+            this.ultimoEventoResultado =
+                data.ultimoEventoResultado ||
+                null;
+
+
+            this.lastCollab =
+                data.lastCollab ||
+                null;
+
+
+            normalizarGameState();
+
+
+            console.log(
+                "💾 Partida cargada"
+            );
+
+
+            return true;
+
+        } catch (error) {
+
+            console.error(
+                "❌ Error cargando partida:",
+                error
+            );
+
+
+            return false;
+
+        }
 
     },
 
@@ -445,6 +770,7 @@ export const gameState = {
         this.time = {
 
             año: 2026,
+
             trimestre: 1
 
         };
@@ -469,9 +795,17 @@ export const gameState = {
 
 
         this.creators =
-            creatorsIniciales.map(
-                creator => ({ ...creator })
-            );
+            crearCreadores();
+
+
+        localStorage.removeItem(
+            "elCreadorGameState"
+        );
+
+
+        console.log(
+            "🔄 Partida reiniciada"
+        );
 
     }
 
@@ -498,100 +832,6 @@ export function normalizarGameState() {
             crearPlayer();
 
         return;
-
-    }
-
-
-    // ========================================================
-    // ATRIBUTOS
-    // ========================================================
-
-    if (!p.atributos) {
-
-        p.atributos =
-            crearAtributos();
-
-    }
-
-
-    const atributosDefault =
-        crearAtributos();
-
-
-    Object.keys(
-        atributosDefault
-    ).forEach(key => {
-
-        if (
-            typeof p.atributos[key]
-            !== "number"
-        ) {
-
-            p.atributos[key] =
-                atributosDefault[key];
-
-        }
-
-    });
-
-
-    // ========================================================
-    // STATS
-    // ========================================================
-
-    if (!p.stats) {
-
-        p.stats =
-            crearStats();
-
-    }
-
-
-    const statsDefault =
-        crearStats();
-
-
-    Object.keys(
-        statsDefault
-    ).forEach(key => {
-
-        if (
-            typeof p.stats[key]
-            !== "number"
-        ) {
-
-            p.stats[key] =
-                statsDefault[key];
-
-        }
-
-    });
-
-
-    // ========================================================
-    // EQUIPMENT
-    // ========================================================
-
-    if (!p.equipment) {
-
-        p.equipment = {
-
-            pc: "government_pc",
-            camera: "old_phone",
-            microphone: "earphones"
-
-        };
-
-    }
-
-
-    // ========================================================
-    // RELATIONSHIPS
-    // ========================================================
-
-    if (!p.relationships) {
-
-        p.relationships = {};
 
     }
 
@@ -646,11 +886,126 @@ export function normalizarGameState() {
 
 
     // ========================================================
+    // ATRIBUTOS
+    // ========================================================
+
+    if (!p.atributos) {
+
+        p.atributos =
+            crearAtributos();
+
+    }
+
+
+    const atributosDefault =
+        crearAtributos();
+
+
+    Object.keys(
+        atributosDefault
+    ).forEach(
+        key => {
+
+            if (
+                typeof p.atributos[key] !==
+                "number"
+            ) {
+
+                p.atributos[key] =
+                    atributosDefault[key];
+
+            }
+
+        }
+    );
+
+
+    // ========================================================
+    // STATS
+    // ========================================================
+
+    if (!p.stats) {
+
+        p.stats =
+            crearStats();
+
+    }
+
+
+    const statsDefault =
+        crearStats();
+
+
+    Object.keys(
+        statsDefault
+    ).forEach(
+        key => {
+
+            if (
+                typeof p.stats[key] !==
+                "number"
+            ) {
+
+                p.stats[key] =
+                    statsDefault[key];
+
+            }
+
+        }
+    );
+
+
+    // ========================================================
+    // EQUIPMENT
+    // ========================================================
+
+    if (!p.equipment) {
+
+        p.equipment = {
+
+            pc: "government_pc",
+
+            camera: "old_phone",
+
+            microphone: "earphones"
+
+        };
+
+    }
+
+
+    // ========================================================
+    // RELATIONSHIPS
+    // ========================================================
+
+    if (!p.relationships) {
+
+        p.relationships = {};
+
+    }
+
+
+    // ========================================================
+    // PRETEMPORADA
+    // ========================================================
+
+    if (
+        !("pretemporada" in p)
+    ) {
+
+        p.pretemporada = null;
+
+    }
+
+
+    // ========================================================
     // ARRAYS
     // ========================================================
 
     if (
-        !Array.isArray(gameState.inventory)
+        !Array.isArray(
+            gameState.inventory
+        )
     ) {
 
         gameState.inventory = [];
@@ -659,7 +1014,9 @@ export function normalizarGameState() {
 
 
     if (
-        !Array.isArray(gameState.notifications)
+        !Array.isArray(
+            gameState.notifications
+        )
     ) {
 
         gameState.notifications = [];
@@ -668,19 +1025,21 @@ export function normalizarGameState() {
 
 
     if (
-        !Array.isArray(gameState.creators)
+        !Array.isArray(
+            gameState.creators
+        )
     ) {
 
         gameState.creators =
-            creatorsIniciales.map(
-                creator => ({ ...creator })
-            );
+            crearCreadores();
 
     }
 
 
     if (
-        !Array.isArray(gameState.trends)
+        !Array.isArray(
+            gameState.trends
+        )
     ) {
 
         gameState.trends = [];
@@ -689,7 +1048,9 @@ export function normalizarGameState() {
 
 
     if (
-        !Array.isArray(gameState.sponsors)
+        !Array.isArray(
+            gameState.sponsors
+        )
     ) {
 
         gameState.sponsors = [];
@@ -705,31 +1066,24 @@ export function normalizarGameState() {
 
         gameState.time = {
 
-            año: p.año || 2026,
-            trimestre: p.trimestre || 1
+            año:
+                p.año || 2026,
+
+            trimestre:
+                p.trimestre || 1
 
         };
 
     }
 
 
-    if (
-        typeof gameState.time.año
-        !== "number"
-    ) {
-
-        gameState.time.año = 2026;
-
-    }
-
-
-    if (
-        typeof gameState.time.trimestre
-        !== "number"
-    ) {
-
-        gameState.time.trimestre = 1;
-
-    }
+    return gameState;
 
 }
+
+
+// ============================================================
+// NORMALIZAR AL CARGAR EL MÓDULO
+// ============================================================
+
+normalizarGameState();
