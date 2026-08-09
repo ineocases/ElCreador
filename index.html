@@ -1,105 +1,685 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>El Creador - Simulador Streamer</title>
-  
-  <!-- Estilos y Tipografía esport -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
-  
-  <link rel="stylesheet" href="css/variables.css">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/animations.css">
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>El Creador</title>
+
+    <meta
+        name="description"
+        content="El Creador - Simulador de carrera de creador de contenido"
+    >
+
+    <style>
+
+        :root {
+            --bg-main: #090909;
+            --bg-card: #151515;
+            --bg-card-hover: #1d1d1d;
+
+            --accent-red: #e50914;
+            --accent-green: #39d353;
+            --accent-yellow: #ffd43b;
+
+            --text-main: #ffffff;
+            --text-muted: #969696;
+
+            --border-card: 1px solid rgba(255,255,255,.08);
+            --border-subtle: 1px solid rgba(255,255,255,.12);
+
+            --font-main:
+                Inter,
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            --font-heading:
+                Arial Black,
+                Inter,
+                Arial,
+                sans-serif;
+        }
+
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+
+            min-height: 100%;
+
+            background: var(--bg-main);
+            color: var(--text-main);
+
+            font-family: var(--font-main);
+        }
+
+
+        body {
+            min-height: 100vh;
+        }
+
+
+        button,
+        input,
+        select {
+            font-family: inherit;
+        }
+
+
+        button {
+            cursor: pointer;
+        }
+
+
+        a {
+            color: inherit;
+        }
+
+
+        .screen {
+            display: none;
+
+            width: 100%;
+            min-height: 100vh;
+        }
+
+
+        /* =====================================================
+           CREATE CHANNEL
+        ===================================================== */
+
+        #createChannelScreen {
+            padding: 25px 15px;
+        }
+
+
+        .create-channel-wrapper {
+            width: 100%;
+            max-width: 650px;
+
+            margin: 60px auto;
+
+            background: var(--bg-card);
+
+            border: var(--border-card);
+            border-radius: 18px;
+
+            padding: 35px;
+
+            box-shadow:
+                0 20px 60px
+                rgba(0,0,0,.4);
+        }
+
+
+        .create-channel-logo {
+            color: var(--accent-red);
+
+            font-size: .8rem;
+            font-weight: 800;
+
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+
+        .create-channel-wrapper h1 {
+            margin: 8px 0;
+
+            font-family: var(--font-heading);
+            font-size: 2.4rem;
+        }
+
+
+        .create-channel-wrapper > p {
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+
+        .form-group {
+            margin-top: 22px;
+        }
+
+
+        .form-group label {
+            display: block;
+
+            margin-bottom: 8px;
+
+            color: var(--text-muted);
+
+            font-size: .78rem;
+            font-weight: bold;
+
+            text-transform: uppercase;
+        }
+
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+
+            padding: 14px 16px;
+
+            background: #080808;
+
+            color: white;
+
+            border: var(--border-subtle);
+            border-radius: 9px;
+
+            outline: none;
+
+            font-size: 1rem;
+        }
+
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--accent-red);
+        }
+
+
+        .main-button {
+            width: 100%;
+
+            margin-top: 25px;
+
+            padding: 16px;
+
+            background: var(--accent-red);
+
+            color: white;
+
+            border: none;
+            border-radius: 9px;
+
+            font-size: 1rem;
+            font-weight: 800;
+
+            text-transform: uppercase;
+            letter-spacing: .5px;
+
+            transition:
+                transform .15s ease,
+                filter .15s ease;
+        }
+
+
+        .main-button:hover {
+            filter: brightness(1.15);
+            transform: translateY(-2px);
+        }
+
+
+        /* =====================================================
+           GENERAL
+        ===================================================== */
+
+        .page-container {
+            width: 100%;
+            max-width: 1100px;
+
+            margin: 0 auto;
+
+            padding: 25px 18px;
+        }
+
+
+        .card {
+            background: var(--bg-card);
+
+            border: var(--border-card);
+            border-radius: 16px;
+
+            padding: 20px;
+        }
+
+
+        /* =====================================================
+           HEADER HUD
+        ===================================================== */
+
+        .game-hud {
+            width: 100%;
+
+            background: #101010;
+
+            border-bottom:
+                1px solid
+                rgba(255,255,255,.08);
+
+            padding: 12px 18px;
+
+            position: sticky;
+            top: 0;
+
+            z-index: 100;
+        }
+
+
+        .game-hud-inner {
+            max-width: 1100px;
+
+            margin: auto;
+
+            display: flex;
+
+            justify-content: space-between;
+            align-items: center;
+
+            gap: 10px;
+
+            flex-wrap: wrap;
+        }
+
+
+        .hud-brand {
+            font-family: var(--font-heading);
+        }
+
+
+        .hud-stats {
+            display: flex;
+
+            gap: 12px;
+
+            flex-wrap: wrap;
+        }
+
+
+        .hud-stat {
+            padding: 7px 10px;
+
+            background:
+                rgba(255,255,255,.04);
+
+            border-radius: 7px;
+
+            font-size: .8rem;
+        }
+
+
+        .hud-stat span {
+            color: var(--text-muted);
+        }
+
+
+        /* =====================================================
+           PRETEMPORADA
+        ===================================================== */
+
+        .preseason-page {
+            width: 100%;
+            max-width: 950px;
+
+            margin: 0 auto;
+
+            padding: 25px 15px 60px;
+        }
+
+
+        .preseason-header {
+            background: var(--bg-card);
+
+            border: var(--border-card);
+            border-radius: 18px;
+
+            padding: 28px;
+
+            margin-top: 20px;
+            margin-bottom: 18px;
+        }
+
+
+        .preseason-kicker {
+            color: var(--accent-red);
+
+            font-size: .78rem;
+            font-weight: 900;
+
+            letter-spacing: 1.5px;
+        }
+
+
+        .preseason-header h1 {
+            margin: 7px 0 10px;
+
+            font-family: var(--font-heading);
+
+            font-size: clamp(
+                1.8rem,
+                5vw,
+                2.6rem
+            );
+        }
+
+
+        .preseason-header p {
+            margin: 0;
+
+            color: var(--text-muted);
+
+            line-height: 1.5;
+        }
+
+
+        .cards-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(
+                    auto-fit,
+                    minmax(220px, 1fr)
+                );
+
+            gap: 15px;
+        }
+
+
+        .preseason-card {
+            position: relative;
+
+            min-height: 300px;
+
+            padding: 22px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    #191919,
+                    #0d0d0d
+                );
+
+            border: 1px solid
+                rgba(255,255,255,.08);
+
+            border-radius: 15px;
+
+            display: flex;
+
+            flex-direction: column;
+
+            justify-content: space-between;
+
+            transition:
+                transform .15s ease,
+                border-color .15s ease,
+                box-shadow .15s ease;
+        }
+
+
+        .preseason-card:hover {
+            transform: translateY(-5px);
+
+            border-color:
+                rgba(255,255,255,.22);
+
+            box-shadow:
+                0 15px 35px
+                rgba(0,0,0,.35);
+        }
+
+
+        .card-type {
+            display: inline-block;
+
+            width: fit-content;
+
+            padding: 4px 8px;
+
+            border-radius: 5px;
+
+            color: #000;
+
+            font-size: .68rem;
+            font-weight: 900;
+        }
+
+
+        .preseason-card h2 {
+            margin: 15px 0 9px;
+
+            font-size: 1.15rem;
+        }
+
+
+        .preseason-card p {
+            color: var(--text-muted);
+
+            font-size: .85rem;
+
+            line-height: 1.5;
+        }
+
+
+        .card-bonus {
+            margin-top: 20px;
+
+            text-align: center;
+
+            color: var(--accent-green);
+
+            font-weight: 900;
+        }
+
+
+        .select-card-button {
+            width: 100%;
+
+            margin-top: 15px;
+
+            padding: 11px;
+
+            background: rgba(255,255,255,.07);
+
+            color: white;
+
+            border:
+                1px solid
+                rgba(255,255,255,.12);
+
+            border-radius: 8px;
+
+            font-weight: 800;
+
+            transition: background .15s ease;
+        }
+
+
+        .select-card-button:hover {
+            background: var(--accent-red);
+        }
+
+
+        /* =====================================================
+           DASHBOARD PLACEHOLDER
+        ===================================================== */
+
+        .dashboard-placeholder {
+            max-width: 900px;
+
+            margin: 40px auto;
+
+            padding: 30px;
+
+            background: var(--bg-card);
+
+            border: var(--border-card);
+
+            border-radius: 16px;
+
+            text-align: center;
+        }
+
+
+        /* =====================================================
+           RESPONSIVE
+        ===================================================== */
+
+        @media (max-width: 600px) {
+
+            .create-channel-wrapper {
+                margin: 20px auto;
+                padding: 22px;
+            }
+
+
+            .create-channel-wrapper h1 {
+                font-size: 1.9rem;
+            }
+
+
+            .preseason-header {
+                padding: 22px;
+            }
+
+
+            .preseason-card {
+                min-height: 260px;
+            }
+
+        }
+
+    </style>
 </head>
+
+
 <body>
 
-  <!-- Contenedor dinámico de pantallas -->
-  <div id="app">
-<!-- PANTALLA 1: CREACIÓN DEL CANAL -->
-<div id="createChannelScreen" class="screen" style="display:none;"></div>
 
-<!-- PANTALLA 2: PRETEMPORADA -->
-<div id="pretemporadaScreen" class="screen" style="display:none;"></div>
+    <!-- =====================================================
+         CREAR CANAL
+    ====================================================== -->
 
-<!-- PANTALLA 3: DASHBOARD PRINCIPAL -->
-<div id="dashboardScreen" class="screen" style="display:none;"></div>
+    <section
+        id="createChannelScreen"
+        class="screen"
+    ></section>
 
-<!-- PANTALLA 4: PUBLICAR VIDEO -->
-<div id="publishScreen" class="screen" style="display:none;"></div>
 
-<!-- PANTALLA 5: RESULTADO DEL VIDEO -->
-<div id="resultScreen" class="screen" style="display:none;"></div>
+    <!-- =====================================================
+         PRETEMPORADA
+    ====================================================== -->
 
-<!-- PANTALLA 6: PASAN COSAS -->
-<div id="pasanCosasScreen" class="screen" style="display:none;"></div>
+    <section
+        id="pretemporadaScreen"
+        class="screen"
+    ></section>
 
-<!-- PANTALLA 7: TIENDA DE MEJORAS -->
-<div id="storeScreen" class="screen" style="display:none;"></div>
 
-<!-- PANTALLA 8: PREMIOS DE FIN DE AÑO -->
-<div id="awardsScreen" class="screen" style="display:none; text-align:center;">
+    <!-- =====================================================
+         DASHBOARD
+    ====================================================== -->
 
-    <h2 id="awardsTitle">
-        🏆 Coscu Army Awards
-    </h2>
+    <section
+        id="dashboardScreen"
+        class="screen"
+    ></section>
 
-    <div
-        id="awardsSummary"
-        style="margin:20px 0;"
-    ></div>
 
-    <button
-        id="btnNextYear"
-        style="
-            background-color:gold;
-            color:black;
-            font-weight:bold;
-            padding:10px 20px;
-            border:none;
-            border-radius:6px;
-            cursor:pointer;
-        "
-    >
-        Empezar Siguiente Año
-    </button>
+    <!-- =====================================================
+         PUBLICAR VIDEO
+    ====================================================== -->
 
-</div>
+    <section
+        id="publishScreen"
+        class="screen"
+    ></section>
 
-<!-- PANTALLA 9: PANEL ADMINISTRADOR -->
-<div id="adminScreen" class="screen" style="display:none;">
 
-    <div id="adminContainer"></div>
+    <!-- =====================================================
+         RESULTADO
+    ====================================================== -->
 
-</div>
+    <section
+        id="resultScreen"
+        class="screen"
+    ></section>
 
-<!-- PANTALLA 10: COLABORACIONES -->
-<div id="collabsScreen" class="screen" style="display:none;">
 
-    <div id="collabsContainer"></div>
+    <!-- =====================================================
+         PASAN COSAS
+    ====================================================== -->
 
-</div>
+    <section
+        id="pasanCosasScreen"
+        class="screen"
+    ></section>
 
-<!-- PANTALLA 11: SPONSORS -->
-<div id="sponsorsScreen" class="screen" style="display:none;">
 
-    <div id="sponsorsContainer"></div>
+    <!-- =====================================================
+         TIENDA
+    ====================================================== -->
 
-</div>
-<!-- PANTALLA 10: NOTIFICACIONES -->
+    <section
+        id="storeScreen"
+        class="screen"
+    ></section>
 
-<div
-    id="notificationsScreen"
-    class="screen"
-    style="display:none;"
-></div>
 
-</div>
+    <!-- =====================================================
+         PREMIOS
+    ====================================================== -->
 
-  <!-- Arranque JavaScript Modular -->
-  <script type="module" src="js/app.js"></script>
+    <section
+        id="awardsScreen"
+        class="screen"
+    ></section>
+
+
+    <!-- =====================================================
+         COLABORACIONES
+    ====================================================== -->
+
+    <section
+        id="collabsScreen"
+        class="screen"
+    ></section>
+
+
+    <!-- =====================================================
+         SPONSORS
+    ====================================================== -->
+
+    <section
+        id="sponsorsScreen"
+        class="screen"
+    ></section>
+
+
+    <!-- =====================================================
+         ADMIN
+    ====================================================== -->
+
+    <section
+        id="adminContainer"
+        class="screen"
+    ></section>
+
+
+    <!-- =====================================================
+         APP
+    ====================================================== -->
+
+    <script
+        type="module"
+        src="./app.js"
+    ></script>
 
 </body>
+
 </html>
