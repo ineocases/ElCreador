@@ -1,7 +1,7 @@
 // screens/publishVideo.js
 import { renderHeaderHud } from "../components/HeaderHud.js";
 import { gameState } from "../engine/gameState.js";
-import { generarVideos, procesarPublicacionVideo } from "../engine/videoSystem.js";
+import { generarVideos, procesarPublicacionTrimestre } from "../engine/videoSystem.js";
 
 export function renderPublishVideo(el) {
     const container = el || document.getElementById("publishScreen");
@@ -41,7 +41,7 @@ export function renderPublishVideo(el) {
             <div style="margin:25px 0;">
                 <div style="color:var(--accent-red);font-size:.8rem;font-weight:bold;">TRIMESTRE ${gameState.time.trimestre}/2</div>
                 <h1 style="font-family:var(--font-heading);margin:6px 0;">📹 Elegí tu video</h1>
-                <p style="color:var(--text-muted);">Este trimestre podés publicar exactamente 1 video.</p>
+                <p style="color:var(--text-muted);">Este trimestre podés publicar exactamente 1 video manualmente. El resto de tu actividad se procesará al finalizar.</p>
             </div>
             ${videos.map(renderVideoCard).join("")}
         </div>
@@ -61,7 +61,8 @@ export function renderPublishVideo(el) {
 
             gameState.player.dinero -= video.costo;
 
-            const resultado = procesarPublicacionVideo(
+            // Usamos la nueva función que procesa el video manual + simulación del trimestre
+            const resultado = procesarPublicacionTrimestre(
                 video.titulo,
                 video.formato,
                 video.tema
@@ -69,7 +70,6 @@ export function renderPublishVideo(el) {
 
             gameState.registrarVideoPublicado();
             gameState.lastVideo = video;
-            gameState.lastVideoResult = resultado;
             gameState.guardar();
 
             window.location.hash = "#videoResult";
