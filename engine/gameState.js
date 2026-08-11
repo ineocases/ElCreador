@@ -82,6 +82,9 @@ function crearPlayer() {
         vistasTotales: 0,
         videosSubidos: 0,
         fama: 0,
+        famaAudiencia: 0,
+        famaLogros: 0,
+        famaHitosAlcanzados: [],
         debutYear: 2026,
         revelacionGanada: false,
         comunidad: 50,
@@ -142,6 +145,74 @@ function eventHasPositive(option) {
     return Object.values(a).some(v => Number(v) > 0);
 }
 
+
+const FAMA_HITOS_SUBS = [
+    [1000, 5],
+    [5000, 10],
+    [10000, 15],
+    [50000, 25],
+    [100000, 35],
+    [500000, 50],
+    [1000000, 65],
+    [5000000, 80],
+    [10000000, 90]
+];
+
+function famaAudienciaPorSubs(subs) {
+    const cantidad = Math.max(0, Number(subs) || 0);
+    let valor = 0;
+    for (const [umbral, fama] of FAMA_HITOS_SUBS) {
+        if (cantidad >= umbral) valor = fama;
+        else break;
+    }
+    return valor;
+}
+
+function recalcularFama(player) {
+    if (!player) return 0;
+    player.famaAudiencia = famaAudienciaPorSubs(player.suscriptores);
+    player.famaLogros = Math.max(0, Number(player.famaLogros) || 0);
+    player.fama = Math.max(0, Math.min(100, Math.round(player.famaAudiencia + player.famaLogros)));
+    return player.fama;
+}
+
+function agregarFamaLogro(player, cantidad, motivo = "") {
+    if (!player) return 0;
+    const antes = Math.round(Number(player.fama) || 0);
+    player.famaLogros = Math.max(0, Number(player.famaLogros) || 0) + Math.max(0, Number(cantidad) || 0);
+    recalcularFama(player);
+    const despues = Math.round(Number(player.fama) || 0);
+    const diferencia = despues - antes;
+    if (diferencia > 0) {
+        player.ultimoDesgloseFama = {
+            total: diferencia,
+            texto: motivo ? `+${diferencia} por ${motivo}` : `+${diferencia} por logro`,
+            fecha: Date.now()
+        };
+    }
+    return diferencia;
+}
+
+function actualizarFamaPorSubs(player) {
+    if (!player) return { cambio: 0, texto: "" };
+    const antes = Math.round(Number(player.fama) || 0);
+    const audienciaAntes = Number(player.famaAudiencia) || 0;
+    recalcularFama(player);
+    const despues = Math.round(Number(player.fama) || 0);
+    const cambio = despues - antes;
+    if (cambio > 0 && Number(player.famaAudiencia) !== audienciaAntes) {
+        const hit = FAMA_HITOS_SUBS.filter(([umbral]) => Number(player.suscriptores) >= umbral).at(-1);
+        if (hit) {
+            player.ultimoDesgloseFama = {
+                total: cambio,
+                texto: `+${cambio} por hito de ${hit[0].toLocaleString("es-AR")} subs`,
+                fecha: Date.now()
+            };
+        }
+    }
+    return { cambio, texto: player.ultimoDesgloseFama?.texto || "" };
+}
+
 export const gameState = {
     player: crearPlayer(),
     time: { año: 2026, trimestre: 1 },
@@ -185,6 +256,10 @@ export const gameState = {
         this.player.carreraAño = 1;
         this.player.retirado = false;
         this.player.revelacionGanada = false;
+        this.player.famaAudiencia = 0;
+        this.player.famaLogros = 0;
+        this.player.famaHitosAlcanzados = [];
+        recalcularFama(this.player);
 
         this.time = { año: 2026, trimestre: 1 };
         this.player.año = 2026;
@@ -701,7 +776,7 @@ export const gameState = {
 
         this.player.vistasTotales += vistas;
         this.player.suscriptores += subs;
-        this.player.fama = Math.min(100, Number(this.player.fama || 0) + 2 + (creador ? Math.min(4, Number(creador.popularidad || 0) / 30) : 0));
+        agregarFamaLogro(this.player, 2 + (creador ? Math.min(4, Number(creador.popularidad || 0) / 30) : 0), "colaboración");
         this.player.stats.colaboraciones = (Number(this.player.stats?.colaboraciones) || 0) + 1;
         this.player.relationships[oferta.creatorId] = Math.min(100, Number(this.player.relationships?.[oferta.creatorId] || 0) + 15);
         if (creador) creador.colaboraciones = (Number(creador.colaboraciones) || 0) + 1;
@@ -844,10 +919,7 @@ export const gameState = {
         if (this.lastQuarterResult) {
             this.lastQuarterResult.totalDinero = (Number(this.lastQuarterResult.totalDinero) || 0) + pago;
         }
-        this.player.fama = Math.min(
-            100,
-            Number(this.player.fama) + Number(oferta.prestige || 0)
-        );
+        agregarFamaLogro(this.player, Number(oferta.prestige || 0), `sponsor ${oferta.name}`);
 
         const reputacionCambio = Number(oferta.reputacionAceptar || 0);
         if (reputacionCambio) {
@@ -1191,6 +1263,8 @@ export const gameState = {
     }
 };
 
+export { recalcularFama, agregarFamaLogro, actualizarFamaPorSubs, famaAudienciaPorSubs, FAMA_HITOS_SUBS };
+
 export function normalizarGameState() {
     if (!gameState.player) gameState.player = crearPlayer();
 
@@ -1210,7 +1284,10 @@ export function normalizarGameState() {
     if (typeof p.retirado !== "boolean") p.retirado = false;
     if (!Array.isArray(p.awardsHistory)) p.awardsHistory=[];
     if (typeof p.fama !== "number") p.fama = 0;
-    p.fama = Math.max(0, Math.min(100, p.fama));
+    if (typeof p.famaAudiencia !== "number") p.famaAudiencia = famaAudienciaPorSubs(p.suscriptores);
+    if (typeof p.famaLogros !== "number") p.famaLogros = Math.max(0, Number(p.fama) - Number(p.famaAudiencia));
+    if (!Array.isArray(p.famaHitosAlcanzados)) p.famaHitosAlcanzados = [];
+    recalcularFama(p);
     if (typeof p.debutYear !== "number") p.debutYear = 2026;
     if (typeof p.revelacionGanada !== "boolean") p.revelacionGanada = false;
     if (typeof p.comunidad !== "number") p.comunidad = 50;

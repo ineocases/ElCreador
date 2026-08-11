@@ -6,11 +6,11 @@ const fameInt = n => Math.round(Number(n) || 0);
 
 export function fameLevel(fame) {
     const f = fameInt(fame);
-    if (f >= 80) return { name: "Leyenda", emoji: "🌈", next: 100, color: "holographic" };
-    if (f >= 60) return { name: "Ídolo", emoji: "👑", next: 80, color: "gold" };
-    if (f >= 40) return { name: "Referente", emoji: "⭐", next: 60, color: "silver" };
-    if (f >= 20) return { name: "Querido", emoji: "🥉", next: 40, color: "bronze" };
-    return { name: "Uno más del under", emoji: "⚪", next: 20, color: "gray" };
+    if (f >= 80) return { name: "Leyenda", emoji: "🌈", min: 80, next: 100, color: "holographic" };
+    if (f >= 55) return { name: "Ídolo", emoji: "👑", min: 55, next: 80, color: "gold" };
+    if (f >= 30) return { name: "Referente", emoji: "⭐", min: 30, next: 55, color: "silver" };
+    if (f >= 10) return { name: "Querido", emoji: "🥉", min: 10, next: 30, color: "bronze" };
+    return { name: "Uno más del under", emoji: "⚪", min: 0, next: 10, color: "gray" };
 }
 
 function currentStep() {
@@ -33,7 +33,7 @@ export function renderHeaderHud() {
     const dinero = Number(p.dinero) || 0;
     const level = fameLevel(fama);
     const step = currentStep();
-    const progress = level.next === 100 ? fama : Math.round(((fama - (level.next - 20)) / 20) * 100);
+    const progress = level.next === 100 ? fama : Math.round(((fama - level.min) / Math.max(1, level.next - level.min)) * 100);
     const canVelada = subs >= 1000000 && fama >= 40;
     const awardAccess = fama >= 20 || subs >= 25000;
 

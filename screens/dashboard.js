@@ -45,15 +45,6 @@ export function renderDashboard(el) {
                 </div>
             </div>
 
-            <div class="season-progress panel">
-                <div class="season-progress-head">
-                    <div><div class="eyebrow">TEMPORADA ${p.año}</div><strong>${p.trimestre === 1 ? "Primera mitad del año" : "Último trimestre del año"}</strong></div>
-                    <span>${progresoAño}%</span>
-                </div>
-                <div class="season-track"><i style="width:${progresoAño}%"></i><b class="season-dot dot-1">1</b><b class="season-dot dot-2">2</b></div>
-                <small>Elegís 1 video destacado por trimestre. El resto de tu canal publica automáticamente.</small>
-            </div>
-
             ${pendingEvent ? `<div class="callout event-callout dramatic-callout"><div class="callout-icon">⚡</div><div><b>${pendingEvent.title}</b><span>${pendingEvent.text}</span></div><a class="btn primary" href="#pasanCosas">TOMAR DECISIÓN</a></div>` : ""}
             ${collab ? `<div class="callout sponsor-callout dramatic-callout"><div class="callout-icon">🤝</div><div><b>${collab.creatorName} quiere colaborar con vos.</b><span>La invitación apareció sola.</span></div><a class="btn gold" href="#collabs">VER INVITACIÓN</a></div>` : ""}
             ${sponsor && !collab ? `<div class="callout sponsor-callout dramatic-callout"><div class="callout-icon">💼</div><div><b>${sponsor.name} quiere trabajar con vos.</b><span>La propuesta apareció sola.</span></div><a class="btn gold" href="#sponsors">ABRIR PROPUESTA</a></div>` : ""}
@@ -84,6 +75,8 @@ export function renderDashboard(el) {
                 <section class="panel">
                     <div class="eyebrow">🧠 REPUTACIÓN</div>
                     <div class="big-metric"><strong>${fame(p.fama)}/100</strong><span>Fama</span></div>
+                    <small class="muted">Audiencia ${fame(p.famaAudiencia || 0)} · Logros ${fame(p.famaLogros || 0)}</small>
+                    ${p.ultimoDesgloseFama?.texto ? `<div class="fame-breakdown">${p.ultimoDesgloseFama.texto}</div>` : ""}
                     <div class="metric-line"><span>Comunidad</span><b>${nf(p.comunidad)}/100</b></div>
                     <div class="progress"><i style="width:${Math.min(100,p.comunidad || 0)}%"></i></div>
                     <div class="metric-line"><span>Reputación</span><b>${nf(p.reputacion)}/100</b></div>

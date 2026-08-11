@@ -6,7 +6,7 @@
 
 import formats from "../data/generator/formats.js";
 import topics from "../data/generator/topics.js";
-import { gameState } from "./gameState.js";
+import { gameState, recalcularFama, agregarFamaLogro, actualizarFamaPorSubs } from "./gameState.js";
 import { simulateWorld } from "./worldSimulation.js";
 
 function random(min, max) {
@@ -268,12 +268,17 @@ function baseVistasPorVideo(player, calidad = 1) {
     // La audiencia de un canal grande genera una base mucho mayor, pero siempre
     // existe descubrimiento externo. Así 1.7M subs puede producir cientos de miles
     // de vistas por video sin convertir cada publicación en un hit garantizado.
-    const engagement =
-        0.075 +
-        clamp(fama / 100, 0, 1) * 0.050 +
-        clamp(constancia / 100, 0, 1) * 0.018 +
-        clamp(algoritmo / 100, 0, 1) * 0.028 +
-        clamp(marketing / 100, 0, 1) * 0.018;
+    // La nueva escala busca que un canal con 5k subs vea aproximadamente
+    // 1k-3k vistas por publicación normal, no decenas de vistas.
+    const baseEngagement =
+        0.20 +
+        clamp(fama / 100, 0, 1) * 0.07 +
+        clamp(constancia / 100, 0, 1) * 0.05 +
+        clamp(algoritmo / 100, 0, 1) * 0.10 +
+        clamp(edicion / 100, 0, 1) * 0.08 +
+        clamp(marketing / 100, 0, 1) * 0.04;
+    const smallChannelBoost = subs < 10000 ? 2 : 1;
+    const engagement = clamp(baseEngagement * smallChannelBoost, 0.20, 0.60);
 
     let pre = 1;
     const efecto = bonusPretemporada(player);
@@ -281,9 +286,13 @@ function baseVistasPorVideo(player, calidad = 1) {
     if (efecto === "algoritmo") pre *= 1.10;
     if (efecto === "edicion") pre *= 1.12;
 
-    const variacion = randomFloat(0.68, 1.38);
+    const variacion = randomFloat(0.78, 1.28);
     const audiencia = subs * engagement * variacion * calidad * calcularTendencia() * pre * boostViews * edadFactor;
-    const descubrimiento = 100 + Math.floor(Math.sqrt(subs) * 2.5) + edicion * 8;
+    // Los canales nuevos también reciben descubrimiento para no quedar
+    // atrapados en un ciclo de 20 vistas y 0 crecimiento.
+    const descubrimiento = subs < 10000
+        ? random(180, 700) + Math.floor(edicion * 10)
+        : 0;
     return Math.max(descubrimiento, Math.floor(audiencia));
 }
 
@@ -296,14 +305,14 @@ function calcularSubsPorVideo(vistas, player, viral = false) {
 
     // Conversión decreciente: los canales chicos convierten mejor; los grandes
     // necesitan muchas más vistas para sumar una cantidad enorme de seguidores.
-    let conversion = 0.0090;
-    if (subsActuales >= 1000000) conversion = 0.00072;
-    else if (subsActuales >= 500000) conversion = 0.00088;
-    else if (subsActuales >= 250000) conversion = 0.00105;
-    else if (subsActuales >= 100000) conversion = 0.00135;
-    else if (subsActuales >= 50000) conversion = 0.00180;
-    else if (subsActuales >= 10000) conversion = 0.00290;
-    else if (subsActuales >= 1000) conversion = 0.00520;
+    let conversion = 0.0115;
+    if (subsActuales >= 1000000) conversion = 0.00085;
+    else if (subsActuales >= 500000) conversion = 0.00100;
+    else if (subsActuales >= 250000) conversion = 0.00125;
+    else if (subsActuales >= 100000) conversion = 0.00155;
+    else if (subsActuales >= 50000) conversion = 0.00210;
+    else if (subsActuales >= 10000) conversion = 0.00360;
+    else if (subsActuales >= 1000) conversion = 0.00700;
 
     conversion *= 1 + clamp(carisma / 100, 0, 1) * 0.65;
     conversion *= 0.85 + clamp(comunidad / 100, 0, 1) * 0.30;
@@ -376,6 +385,12 @@ function resultadoVideoManual(titulo, enfoquePrincipal, enfoqueSecundario, conte
     const algoritmo = Number(a.algoritmo) || 0;
     const carisma = Number(a.carisma) || 0;
 
+    // Entre el año 1 y 2 existe un primer gran momento guionado:
+    // no ocurre siempre en el mismo trimestre, pero evita carreras estancadas.
+    const carreraAño = Number(p.carreraAño || 1);
+    const primerViralPendiente = carreraAño <= 2 && !p.primerViralForzado;
+    const puedeForzarPrimerViral = primerViralPendiente && (Number(p.stats?.videosPublicados) || 0) >= 3;
+
     let probViral =
         0.35 +
         creatividad * 0.035 +
@@ -386,13 +401,14 @@ function resultadoVideoManual(titulo, enfoquePrincipal, enfoqueSecundario, conte
     // despegar que un video genérico.
     probViral *= 1 + Math.max(0, tituloImpacto - 1) * 0.75;
     probViral = clamp(probViral, 0.5, 12);
+    if (puedeForzarPrimerViral) probViral = 100;
 
     const viral = Math.random() * 100 < probViral;
     let nivelViralidad = "normal";
     let multiplicadorViral = 1;
 
     if (viral) {
-        multiplicadorViral = random(2, 8);
+        multiplicadorViral = puedeForzarPrimerViral ? randomFloat(10, 20) : random(2, 8);
         vistas *= multiplicadorViral;
         nivelViralidad =
             multiplicadorViral >= 7 ? "fenomeno" :
@@ -404,6 +420,8 @@ function resultadoVideoManual(titulo, enfoquePrincipal, enfoqueSecundario, conte
 
     const nuevosSuscriptores = calcularSubsPorVideo(vistas, p, viral);
     const ingresos = calcularIngresosPorVideo(vistas, p);
+
+    if (viral && Number(p.carreraAño || 1) <= 2 && !p.primerViralForzado) p.primerViralForzado = true;
 
     const famaGanada =
         viral ? random(1, 3) :
@@ -432,11 +450,12 @@ function aplicarResultado(resultado, contarVideo = true) {
 
     p.vistasTotales += resultado.vistas;
     p.suscriptores += resultado.suscriptores;
+    actualizarFamaPorSubs(p);
     const dinero = Math.round(Number(resultado.dinero) || 0);
     p.dinero += dinero;
     p.ingresosTrimestre += dinero;
     p.ingresosGenerados = (Number(p.ingresosGenerados) || 0) + dinero;
-    p.fama = clamp(Number(p.fama) + resultado.famaGanada, 0, 100);
+    if (resultado.famaGanada > 0) agregarFamaLogro(p, resultado.famaGanada, resultado.viral ? "viral" : "video destacado");
 
     if (contarVideo) p.videosSubidos += 1;
 
@@ -605,10 +624,11 @@ export function procesarPublicacionTrimestre(
     const p = gameState.player;
     p.vistasTotales += simVistas;
     p.suscriptores += simSubsFinal;
+    actualizarFamaPorSubs(p);
     p.dinero += simDineroFinal;
     p.ingresosTrimestre += simDineroFinal;
     p.ingresosGenerados = (Number(p.ingresosGenerados) || 0) + simDineroFinal;
-    p.fama = clamp(Number(p.fama) + simFamaEntera, 0, 100);
+    if (simFamaEntera > 0) agregarFamaLogro(p, simFamaEntera, "virales del trimestre");
 
     p.videosSubidos += videosDelResto;
     if (!p.stats) p.stats = {};

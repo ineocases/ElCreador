@@ -69,6 +69,8 @@ export function renderVideoResult(el) {
                 </div>
             </div>
 
+            ${gameState.player.ultimoDesgloseFama?.texto ? `<div class="callout fame-breakdown-callout">⭐ ${gameState.player.ultimoDesgloseFama.texto}</div>` : ""}
+
             <div class="panel featured-video reveal-card">
                 <div class="eyebrow">🎬 VIDEO QUE ELEGISTE</div>
                 <h2>${res.manualVideo.titulo}</h2>
