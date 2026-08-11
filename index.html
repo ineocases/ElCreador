@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El Creador</title>
+    <meta name="description" content="El Creador - Simulador de carrera de creador de contenido">
+    <style>
+        :root {
+            --bg-main: #090909;
+            --bg-card: #151515;
+            --bg-card-hover: #1d1d1d;
+            --bg-header-hud: #101010;
+            --accent-red: #e50914;
+            --accent-green: #39d353;
+            --accent-yellow: #ffd43b;
+            --text-main: #ffffff;
+            --text-muted: #969696;
+            --border-card: 1px solid rgba(255,255,255,.08);
+            --border-subtle: 1px solid rgba(255,255,255,.12);
+            --font-main: Inter, Arial, Helvetica, sans-serif;
+            --font-heading: "Arial Black", Inter, Arial, sans-serif;
+        }
+        * { box-sizing: border-box; }
+        html, body {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+            background: var(--bg-main);
+            color: var(--text-main);
+            font-family: var(--font-main);
+        }
+        body { min-height: 100vh; }
+        button, input, select { font-family: inherit; }
+        button { cursor: pointer; }
+        a { color: inherit; }
+
+        .screen {
+            display: none;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        .skill-pill {
+            display: inline-block;
+            padding: 8px 14px;
+            background: rgba(255,255,255,.05);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        .skill-pill strong { color: #fff; margin-left: 4px; }
+
+        .stats-box {
+            background: rgba(0,0,0,.4);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .stats-box p { margin: 8px 0; }
+
+        .interactive-card:hover {
+            transform: translateY(-3px);
+            transition: transform .15s ease;
+        }
+
+        .preseason-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,.35);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===================================================== -->
+    <!-- CREAR CANAL -->
+    <!-- ===================================================== -->
+    <section id="createChannelScreen" class="screen"></section>
+
+    <!-- ===================================================== -->
+    <!-- PRETEMPORADA -->
+    <!-- ===================================================== -->
+    <section id="pretemporadaScreen" class="screen"></section>
+
+    <!-- ===================================================== -->
+    <!-- DASHBOARD -->
+    <!-- ===================================================== -->
+    <section id="dashboardScreen" class="screen"></section>
+
+    <!-- ===================================================== -->
+    <!-- PUBLICAR VIDEO -->
+    <!-- ===================================================== -->
+    <section id="publishScreen" class="screen"></section>
+
+    <!-- ===================================================== -->
+    <!-- RESULTADO -->
+    <!-- ===================================================== -->
+    <section id="resultScreen" class="screen"></section>
+
+    <!-- ===================================================== -->
+    <!-- PASAN COSAS -->
+    <!-- ===================================================== -->
+    <section id="pasanCosasScreen" class="screen"></section>
+
+    <!-- ===================================================== -->
+    <!-- TIENDA -->
+    <!-- ===================================================== -->
+    <section id="storeScreen" class="screen"></section>
+
+    <!-- ===================================================== -->
+    <!-- PREMIOS -->
+    <!-- ===================================================== -->
+    <section id="awardsScreen" class="screen"></section>
+
+    <!-- ===================================================== -->
+    <!-- COLABORACIONES -->
+    <!-- ===================================================== -->
+    <section id="collabsScreen" class="screen"></section>
+
+    <!-- ===================================================== -->
+    <!-- SPONSORS -->
+    <!-- ===================================================== -->
+    <section id="sponsorsScreen" class="screen"></section>
+
+    <!-- ===================================================== -->
+    <!-- ADMIN -->
+    <!-- ===================================================== -->
+    <section id="adminContainer" class="screen"></section>
+
+    <!-- ===================================================== -->
+    <!-- APP -->
+    <!-- ===================================================== -->
+    <script type="module" src="./app.js"></script>
+</body>
+</html>
