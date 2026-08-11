@@ -118,8 +118,55 @@ const saveManager = {
     // =====================================================
 
     hasSave() {
-        return !!localStorage.getItem(this.SAVE_KEY);
-    },
+
+    try {
+
+        const raw =
+            localStorage.getItem(
+                this.SAVE_KEY
+            );
+
+        if (!raw) {
+            return false;
+        }
+
+        const data =
+            JSON.parse(raw);
+
+        if (!data.player) {
+            return false;
+        }
+
+        /*
+         * Una partida válida tiene que haber sido
+         * iniciada desde Crear Canal.
+         */
+
+        if (
+            data.player.partidaIniciada !== true
+        ) {
+            return false;
+        }
+
+        if (
+            !data.player.nombre ||
+            !data.player.canal
+        ) {
+            return false;
+        }
+
+        return true;
+
+    } catch (error) {
+
+        console.warn(
+            "⚠️ Save inválido:",
+            error
+        );
+
+        return false;
+    }
+},
 
     // =====================================================
     // BORRAR PARTIDA
