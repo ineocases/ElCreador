@@ -73,6 +73,9 @@ function crearPlayer() {
 
         año: 2026,
         trimestre: 1,
+        edad: 18,
+        carreraAño: 1,
+        retirado: false,
 
         dinero: 500,
         suscriptores: 50,
@@ -106,6 +109,7 @@ function crearPlayer() {
         historialTrimestre1: null,
         historialTrimestre2: null,
         historialAños: [],
+        awardsHistory: [],
         yearStartSnapshot: null
     };
 }
@@ -155,12 +159,14 @@ export const gameState = {
     pendingEvent: null,
     pendingCollabOffer: null,
     pendingMinigame: null,
+    pendingVideoSelection: null,
     boosts: {},
 
     lastVideo: null,
     lastVideoResult: null,
     lastQuarterResult: null,
     lastYearSummary: null,
+    lastAwardsResults: null,
     ultimoEventoResultado: null,
     lastCollab: null,
 
@@ -175,6 +181,9 @@ export const gameState = {
         this.player.canal = String(datos.canal || "Mi Canal").trim() || "Mi Canal";
         this.player.niche = datos.niche || "Gaming";
         this.player.debutYear = 2026;
+        this.player.edad = 18;
+        this.player.carreraAño = 1;
+        this.player.retirado = false;
         this.player.revelacionGanada = false;
 
         this.time = { año: 2026, trimestre: 1 };
@@ -193,11 +202,13 @@ export const gameState = {
         this.pendingEvent = null;
         this.pendingCollabOffer = null;
         this.pendingMinigame = null;
+        this.pendingVideoSelection = null;
         this.boosts = {};
         this.lastVideo = null;
         this.lastVideoResult = null;
         this.lastQuarterResult = null;
         this.lastYearSummary = null;
+        this.lastAwardsResults = null;
         this.worldNews = [];
         this.worldYearNews = [];
         this.ultimoEventoResultado = null;
@@ -432,6 +443,14 @@ export const gameState = {
         const pool = elegirMalo ? negativos : positivos.length ? positivos : negativos;
         const evento = pool[Math.floor(Math.random() * pool.length)];
 
+        // Opción C: una salida avanzada que exige un atributo. Nunca es gratis.
+        if (!evento.c) {
+            const posibles = ["carisma","edicion","marketing","networking","creatividad","algoritmo"];
+            const attr = posibles[Math.floor(Math.random()*posibles.length)];
+            const req = 20 + Math.floor(Math.random()*16);
+            evento.c = { label: `Tomar el riesgo con ${attr}`, desc: `Requiere ${attr} ${req} · +10% vistas si sale bien, pero puede fallar`, requires: { atributo: attr, valor: req }, action: { fama: 2 }, cierre: { vistasPct: Math.random() < 0.62 ? 0.10 : -0.12, reputacion: 0 } };
+        }
+
         this.pendingEvent = JSON.parse(JSON.stringify(evento));
 
         if (!p.awardsStats) p.awardsStats = { clips: 0, enojos: 0, reacciones: 0 };
@@ -510,7 +529,10 @@ export const gameState = {
         const evento = this.pendingEvent;
         if (!evento || !evento[opcion]) return false;
 
-        const action = evento[opcion].action || {};
+        const choice = evento[opcion];
+        if (!choice) return false;
+        if (choice.requires?.atributo && Number(this.player.atributos?.[choice.requires.atributo] || 0) < Number(choice.requires.valor || 0)) return false;
+        const action = choice.action || {};
         const p = this.player;
 
         for (const [key, value] of Object.entries(action)) {
@@ -799,6 +821,15 @@ export const gameState = {
         return oferta;
     },
 
+    negociarSponsor(extra = 0) {
+        const oferta=this.pendingSponsorOffer; if(!oferta) return false;
+        const pedido=Math.max(0,Number(extra)||0);
+        if(pedido<=0) return true;
+        const chance=Math.max(0.15, 0.82 - pedido/Math.max(1,Number(oferta.pago||1))*1.4 - (oferta.minSubs>300000?0.05:0));
+        if(Math.random()>chance){ this.pendingSponsorOffer=null; this.sponsors.push({...oferta,estado:'negociacion_fallida',fecha:Date.now()}); this.guardar(); return false; }
+        oferta.pago=Math.round(Number(oferta.pago||0)+pedido); oferta.negociado=true; this.guardar(); return true;
+    },
+
     aceptarSponsor() {
         const oferta = this.pendingSponsorOffer;
         if (!oferta) return false;
@@ -875,11 +906,13 @@ export const gameState = {
                 pendingEvent: this.pendingEvent,
                 pendingCollabOffer: this.pendingCollabOffer,
                 pendingMinigame: this.pendingMinigame,
+                pendingVideoSelection: this.pendingVideoSelection,
                 boosts: this.boosts,
                 lastVideo: this.lastVideo,
                 lastVideoResult: this.lastVideoResult,
                 lastQuarterResult: this.lastQuarterResult,
                 lastYearSummary: this.lastYearSummary,
+                lastAwardsResults: this.lastAwardsResults,
                 ultimoEventoResultado: this.ultimoEventoResultado,
                 lastCollab: this.lastCollab,
                 lastMinigame: this.lastMinigame,
@@ -925,9 +958,11 @@ export const gameState = {
             this.lastVideoResult = data.lastVideoResult || null;
             this.lastQuarterResult = data.lastQuarterResult || null;
             this.lastYearSummary = data.lastYearSummary || null;
+            this.lastAwardsResults = data.lastAwardsResults || null;
             this.ultimoEventoResultado = data.ultimoEventoResultado || null;
             this.lastCollab = data.lastCollab || null;
             this.lastMinigame = data.lastMinigame || null;
+            this.pendingVideoSelection = data.pendingVideoSelection || null;
 
             normalizarGameState();
             return true;
@@ -979,6 +1014,10 @@ export const gameState = {
         this.generarCreadoresNuevos(nextYear);
         this.player.año = nextYear;
         this.player.trimestre = 1;
+        this.player.edad = 18 + (nextYear - 2026);
+        this.player.carreraAño = Math.max(1, nextYear - 2025);
+        this.aplicarDecliveEdad();
+        if (this.player.edad >= 40) { this.player.retirado = true; }
         this.player.pretemporada = null;
         this.player.videoSubidoEsteTrimestre = false;
         this.player.ingresosTrimestre = 0;
@@ -991,6 +1030,7 @@ export const gameState = {
 
         this.lastQuarterResult = null;
         this.lastYearSummary = null;
+        this.lastAwardsResults = null;
         this.pendingSponsorOffer = null;
         this.pendingEvent = null;
         this.pendingCollabOffer = null;
@@ -1015,6 +1055,15 @@ export const gameState = {
 
         this.guardar();
         return this.time;
+    },
+
+    calcularRankingNicho() {
+        const p=this.player; const lista=[...(this.creators||[])].filter(c=>c.activo!==false && (c.pais||"Argentina")==="Argentina" && c.nicho===p.niche);
+        lista.push({id:"player",seguidores:p.suscriptores});
+        lista.sort((a,b)=>Number(b.seguidores||0)-Number(a.seguidores||0));
+        const pos=Math.max(1,lista.findIndex(c=>c.id==="player")+1);
+        const prev=Number(this.player.historialAños?.at(-1)?.rankingNicho?.posicion || pos);
+        return {posicion:pos,total:lista.length,subio:Math.max(0,prev-pos),bajo:Math.max(0,pos-prev)};
     },
 
     finalizarAño() {
@@ -1053,7 +1102,10 @@ export const gameState = {
             videosVirales: (Number(this.player.historialTrimestre1?.virales) || 0) + (Number(this.player.historialTrimestre2?.virales) || 0),
 
             trimestre1: this.player.historialTrimestre1 || null,
-            trimestre2: this.player.historialTrimestre2 || null
+            trimestre2: this.player.historialTrimestre2 || null,
+            rankingNicho: this.calcularRankingNicho(),
+            premiosGanadosCount: 0,
+            premiosGanados: []
         };
 
         this.agregarNotificacion({
@@ -1064,6 +1116,40 @@ export const gameState = {
 
         this.guardar();
         return this.lastYearSummary;
+    },
+
+    puedeRetirarse() {
+        return Number(this.player.edad || 18) >= 40 || Number(this.player.carreraAño || 1) >= 8;
+    },
+
+    retirarse() {
+        if (!this.puedeRetirarse()) return false;
+        this.player.retirado = true;
+        this.guardar();
+        window.location.hash = "#careerEnd";
+        return true;
+    },
+
+    aplicarDecliveEdad() {
+        const p = this.player;
+        const edad = Number(p.edad || 18);
+        if (edad < 30) return [];
+        const staff = p.staff || {};
+        const protegidos = new Set();
+        if (staff.editor?.level >= 2) protegidos.add("edicion");
+        if (staff.manager?.level >= 2) protegidos.add("networking");
+        if (staff.community?.level >= 2) protegidos.add("marketing");
+        if (staff.trainer?.level >= 2) protegidos.add("constancia");
+        const pool = ["edicion","carisma","constancia","creatividad","algoritmo"];
+        const perdidos=[];
+        const intensidad = edad >= 36 ? 2 : 1;
+        for(let i=0;i<intensidad;i++){
+            const disponibles=pool.filter(k=>!protegidos.has(k) && Number(p.atributos?.[k]||0)>1);
+            if(!disponibles.length) break;
+            const k=disponibles[Math.floor(Math.random()*disponibles.length)];
+            p.atributos[k]=Math.max(1,Number(p.atributos[k])-1); perdidos.push(k);
+        }
+        return perdidos;
     },
 
     resetPlayer() {
@@ -1083,9 +1169,11 @@ export const gameState = {
         this.lastVideoResult = null;
         this.lastQuarterResult = null;
         this.lastYearSummary = null;
+        this.lastAwardsResults = null;
         this.ultimoEventoResultado = null;
         this.lastCollab = null;
         this.lastMinigame = null;
+        this.pendingVideoSelection = null;
 
         try {
             [
@@ -1117,6 +1205,10 @@ export function normalizarGameState() {
     if (typeof p.suscriptores !== "number") p.suscriptores = 50;
     if (typeof p.vistasTotales !== "number") p.vistasTotales = 0;
     if (typeof p.videosSubidos !== "number") p.videosSubidos = 0;
+    if (typeof p.edad !== "number") p.edad = 18 + (Number(p.año)||2026) - 2026;
+    if (typeof p.carreraAño !== "number") p.carreraAño = Math.max(1,(Number(p.año)||2026)-2025);
+    if (typeof p.retirado !== "boolean") p.retirado = false;
+    if (!Array.isArray(p.awardsHistory)) p.awardsHistory=[];
     if (typeof p.fama !== "number") p.fama = 0;
     p.fama = Math.max(0, Math.min(100, p.fama));
     if (typeof p.debutYear !== "number") p.debutYear = 2026;

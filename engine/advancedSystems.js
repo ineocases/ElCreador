@@ -7,6 +7,7 @@ export function ensureAdvancedState(game) {
   p.staff.community = p.staff.community || { level: 0, cost: 0 };
   p.staff.accountant = p.staff.accountant || { level: 0, cost: 0 };
   p.staff.lawyer = p.staff.lawyer || { level: 0, cost: 0 };
+  p.staff.trainer = p.staff.trainer || { level: 0, cost: 0 };
   p.patrimonio ||= { etapa: 0, nombre: "Casa de tus viejos", activos: [] };
   p.awardsHistory ||= [];
   p.velada ||= { tier: 0, training: 0, rival: null, eligible: false, wins: 0, losses: 0 };
@@ -21,7 +22,8 @@ const STAFF = {
   manager: { names: ["Sin manager", "Manager chico", "Manager profesional"], costs: [0, 450, 1500], effects: [{networking:0},{networking:5},{networking:12}] },
   community: { names: ["Vos", "Community manager", "Equipo social"], costs: [0, 300, 1000], effects: [{marketing:0},{marketing:4},{marketing:9}] },
   accountant: { names: ["Sin contador", "Contador", "Estudio contable"], costs: [0, 180, 650], effects: [{},{},{marketing:2}] },
-  lawyer: { names: ["Sin abogado", "Abogado freelance", "Estudio legal"], costs: [0, 220, 800], effects: [{},{reputacion:2},{reputacion:5}] }
+  lawyer: { names: ["Sin abogado", "Abogado freelance", "Estudio legal"], costs: [0, 220, 800], effects: [{},{reputacion:2},{reputacion:5}] },
+  trainer: { names: ["Sin entrenador", "Entrenador personal", "Preparador de élite"], costs: [0, 260, 950], effects: [{constancia:0},{constancia:3},{constancia:8}] }
 };
 
 export function buyStaff(game, role) {

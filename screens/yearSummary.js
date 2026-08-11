@@ -15,6 +15,7 @@ export function renderYearSummary(el) {
 
     const awardsResults = obtenerOResolverAwards(s);
     const awardsGanados = awardsResults.filter(r => r.ganador?.isPlayer);
+    const ranking = s.rankingNicho || gameState.calcularRankingNicho?.() || {posicion:1,total:1,subio:0};
     const premiosTexto = awardsResults.map(r => `${r.nombre}: ${r.ganador?.nombre || "—"}`).join(" · ");
 
     const worldNews = Array.isArray(gameState.worldYearNews) ? gameState.worldYearNews : (gameState.worldNews || []);
@@ -51,7 +52,7 @@ export function renderYearSummary(el) {
 
             <section class="panel world-movers-panel">
                 <div class="eyebrow">🌎 MIENTRAS TANTO, EN EL MUNDO</div>
-                ${dramas.length ? `<div class="world-drama-list">${dramas.slice(-8).reverse().map(n => `<div class="world-drama-row"><span>⚠️</span><div><strong>${n.creator || "Un creador"}</strong><p>${n.text}</p></div></div>`).join("")}</div>` : `<p class="muted">No hubo una gran funa en la temporada.</p>`}
+                ${dramas.length ? `<div class="world-drama-list">${dramas.slice(-1).map(n => `<div class="world-drama-row"><span>⚠️</span><div><strong>${n.creator || "Un creador"}</strong><p>${n.text}</p></div></div>`).join("")}</div>` : `<p class="muted">No hubo una gran funa en la temporada.</p>`}
                 ${highlights.length ? `<div class="world-news-list year-world-news">${highlights.map(n => `<div class="world-news-row"><span>${n.type === "viral" ? "🔥" : n.type === "collab" ? "🤝" : "💼"}</span><p>${n.text}</p></div>`).join("")}</div>` : ""}
             </section>
 
@@ -67,12 +68,8 @@ export function renderYearSummary(el) {
                 <p class="muted">${premiosTexto}</p>
             </section>
 
-            <div class="continue-row single-next">${awardsGanados.length ? '<a class="btn gold big next-button" href="#awards">🏆 VER TU CEREMONIA</a>' : `<button id="nextYear" class="btn primary big next-button">🚀 EMPEZAR ${s.año + 1}</button>`}</div>
+            <div class="continue-row single-next"><a class="btn gold big next-button" href="#awards">🏆 IR A LOS AWARDS</a></div>
         </div>`;
-    container.querySelector("#nextYear")?.addEventListener("click", () => {
-        gameState.prepararSiguienteAño();
-        window.location.hash = "#pretemporada";
-    });
     return container;
 }
 

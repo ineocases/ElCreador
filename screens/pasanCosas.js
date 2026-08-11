@@ -83,6 +83,11 @@ export function renderPasanCosas(el) {
                     <h2>${event.b.label}</h2>
                     <strong class="decision-impact">${bonusPreview("b")}</strong>
                 </button>
+                <button class="decision-card advanced" data-option="c" ${event.c?.requires?.atributo && Number(gameState.player.atributos?.[event.c.requires.atributo]||0)<Number(event.c.requires.valor||0)?'disabled':''}>
+                    <span>OPCIÓN C · ${event.c?.requires ? `REQUIERE ${event.c.requires.atributo} ${event.c.requires.valor}` : 'AVANZADA'}</span>
+                    <h2>${event.c?.label || 'Opción avanzada'}</h2>
+                    <strong class="decision-impact">${bonusPreview("c")}</strong>
+                </button>
             </div>
 
             <p class="event-footnote">

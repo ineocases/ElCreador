@@ -1,151 +1,19 @@
-// screens/store.js
-// REESCRITO: Sistema de tienda compatible con el router y con gameState
-
 import { gameState } from "../engine/gameState.js";
 import { renderHeaderHud } from "../components/HeaderHud.js";
+import { buyStaff } from "../engine/advancedSystems.js";
 import items from "../data/items/items.js";
-
-export function renderStore(el) {
-
-    const container = el || document.getElementById("storeScreen");
-    if (!container) return;
-
-    const player = gameState.player;
-
-    // Compatibilidad
-    if (typeof player.shopTier !== "number") player.shopTier = 1;
-    if (!Array.isArray(player.inventory)) player.inventory = [];
-
-    const disponibles = items.filter(item =>
-        item.tier <= player.shopTier && !player.inventory.includes(item.id)
-    );
-
-    const tierLabels = { 0: "Inicial", 1: "Básico", 2: "Pro", 3: "Élite" };
-
-    container.innerHTML = `
-        ${typeof renderHeaderHud === "function" ? renderHeaderHud() : ""}
-        <div style="max-width:1000px; margin:25px auto; padding:20px; color:#fff;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
-                <div>
-                    <span style="color:var(--accent-red); font-size:.8rem; font-weight:bold; text-transform:uppercase;">
-                        🛒 TIENDA DE EQUIPAMIENTO
-                    </span>
-                    <h1 style="margin:5px 0; font-family:var(--font-heading);">Mejorá tu setup</h1>
-                    <p style="color:var(--text-muted);">
-                        Tu nivel actual de tienda: <strong style="color:#fff;">${tierLabels[player.shopTier] || "Básico"}</strong>
-                    </p>
-                </div>
-                <a href="#dashboard" style="color:var(--text-muted); text-decoration:none;">← Volver</a>
-            </div>
-
-            <section style="background:var(--bg-card);border:var(--border-card);border-radius:14px;padding:20px;margin-bottom:18px;">
-                <div style="color:var(--accent-red);font-size:.8rem;font-weight:bold;">🚀 IMPULSOS</div>
-                <h2 style="margin:5px 0;">Comprá un empujón para tu próximo trimestre</h2>
-                <p style="color:var(--text-muted);font-size:.85rem;">No son pay-to-win permanente: duran un trimestre y aumentan el alcance de tus publicaciones.</p>
-                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
-                    ${[
-                        ["algoritmo","Boost de algoritmo","+15% alcance",250],
-                        ["tendencia","Impulso de tendencia","+28% alcance",600],
-                        ["alcance","Pack de difusión","+40% alcance",1200]
-                    ].map(([id,name,effect,price]) => `<button class="boost-buy" data-boost="${id}" style="background:#0b0b0b;color:#fff;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:14px;text-align:left;cursor:pointer;"><b>${name}</b><br><span style="color:var(--accent-green)">${effect}</span><br><strong>$${price.toLocaleString()}</strong></button>`).join("")}
-                </div>
-            </section>
-
-            ${disponibles.length === 0 ? `
-                <div style="background:var(--bg-card); padding:30px; border-radius:14px; text-align:center;">
-                    <h2>🎉 ¡Ya tenés todo lo disponible!</h2>
-                    <p style="color:var(--text-muted);">Subí de nivel de tienda desbloqueando más contenido.</p>
-                </div>
-            ` : `
-                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:15px;">
-                    ${disponibles.map(item => `
-                        <div style="
-                            background:var(--bg-card);
-                            border:var(--border-card);
-                            border-radius:14px;
-                            padding:20px;
-                            display:flex;
-                            flex-direction:column;
-                            justify-content:space-between;
-                            min-height:220px;
-                        ">
-                            <div>
-                                <div style="font-size:2.5rem; text-align:center; margin-bottom:10px;">${item.icon}</div>
-                                <h3 style="margin:0 0 5px; font-size:1.1rem;">${item.name}</h3>
-                                <p style="color:var(--text-muted); font-size:.8rem; margin:0 0 10px;">
-                                    Slot: <strong style="color:#fff;">${item.slot}</strong>
-                                </p>
-                                ${item.audio > 0 ? `<p style="margin:3px 0; font-size:.85rem;">🎙️ Audio: <strong>+${item.audio}</strong></p>` : ""}
-                                ${item.editing > 0 ? `<p style="margin:3px 0; font-size:.85rem;">✂️ Edición: <strong>+${item.editing}</strong></p>` : ""}
-                                ${item.quality > 0 ? `<p style="margin:3px 0; font-size:.85rem;">📺 Calidad: <strong>+${item.quality}</strong></p>` : ""}
-                            </div>
-                            <div>
-                                <div style="text-align:center; font-size:1.3rem; font-weight:bold; color:var(--accent-green); margin:15px 0 10px;">
-                                    ${item.price === 0 ? "GRATIS" : "$" + item.price.toLocaleString()}
-                                </div>
-                                <button class="buy-item-btn" data-item-id="${item.id}" style="
-                                    width:100%;
-                                    padding:12px;
-                                    background:var(--accent-red);
-                                    color:white;
-                                    border:none;
-                                    border-radius:8px;
-                                    font-weight:bold;
-                                    cursor:pointer;
-                                ">COMPRAR</button>
-                            </div>
-                        </div>
-                    `).join("")}
-                </div>
-            `}
-        </div>
-    `;
-
-    container.querySelectorAll(".boost-buy").forEach(button => {
-        button.addEventListener("click", () => {
-            const ok = gameState.comprarBoost(button.dataset.boost);
-            if (!ok) alert("No tenés suficiente dinero para este impulso.");
-            renderStore(container);
-        });
-    });
-
-    container.querySelectorAll(".buy-item-btn").forEach(button => {
-        button.addEventListener("click", () => {
-            const itemId = button.dataset.itemId;
-            const item = items.find(i => i.id === itemId);
-            if (!item) return;
-
-            if (player.dinero < item.price) {
-                alert(`No tenés suficiente dinero. Te faltan $${(item.price - player.dinero).toLocaleString()}.`);
-                return;
-            }
-
-            player.dinero -= item.price;
-            player.inventory.push(item.id);
-
-            // Actualizar el equipamiento si aplica al slot
-            if (item.slot && ["pc", "camera", "microphone", "light"].includes(item.slot)) {
-                if (!player.equipment) player.equipment = {};
-                player.equipment[item.slot] = item.id;
-            }
-
-            // Bonus a atributos
-            if (item.editing) player.atributos.edicion = (player.atributos.edicion || 0) + item.editing;
-            if (item.audio) player.atributos.edicion = (player.atributos.edicion || 0) + Math.floor(item.audio / 3);
-
-            gameState.agregarNotificacion({
-                tipo: "tienda",
-                titulo: `🛒 Compraste ${item.name}`,
-                descripcion: `Nuevo equipamiento agregado a tu setup.`
-            });
-
-            gameState.guardar();
-            renderStore(container);
-        });
-    });
-
-    return container;
+const nf=n=>Number(n||0).toLocaleString("es-AR");
+export function renderStore(el){
+ const c=el||document.getElementById('storeScreen'),p=gameState.player;if(!c)return;
+ p.shopTier=Number(p.shopTier||1);p.inventory ||= [];p.staff ||= {};
+ const available=items.filter(i=>i.tier<=p.shopTier&&!p.inventory.includes(i.id));
+ const staffCfg=[['editor','✂️ Editor',250],['manager','🧠 Mánager',450],['community','📱 Community',300],['lawyer','⚖️ Abogado',220],['trainer','🥊 Entrenador',260]];
+ const tab=sessionStorage.getItem('elcreador_store_tab')||'setup';
+ c.innerHTML=`<div class="page-shell compact-page">${renderHeaderHud()}<div class="dashboard-top"><div><div class="eyebrow">🛒 TIENDA</div><h1 class="page-title">Invertí en tu carrera</h1><p class="page-subtitle">Setup, Staff y Patrimonio. Cada compra tiene impacto real.</p></div><a href="#dashboard" class="btn ghost">← Volver</a></div><div class="store-tabs"><button class="btn ${tab==='setup'?'primary':'ghost'}" data-tab="setup">🖥️ Setup</button><button class="btn ${tab==='staff'?'primary':'ghost'}" data-tab="staff">👥 Staff</button><button class="btn ${tab==='patrimonio'?'primary':'ghost'}" data-tab="patrimonio">🏠 Patrimonio</button></div>${tab==='setup'?`<section class="panel"><div class="eyebrow">🚀 IMPULSOS</div><div class="store-grid">${[['algoritmo','Boost algoritmo','+15% alcance',250],['tendencia','Impulso tendencia','+28% alcance',600],['alcance','Pack difusión','+40% alcance',1200]].map(x=>`<button class="store-card boost-buy" data-boost="${x[0]}"><b>${x[1]}</b><span>${x[2]}</span><strong>$${nf(x[3])}</strong></button>`).join('')}</div></section><section class="panel"><div class="eyebrow">🖥️ SETUP</div><div class="store-grid">${available.length?available.map(i=>`<div class="store-card"><b>${i.icon} ${i.name}</b><span>${i.slot} · edición +${i.editing||0} · audio +${i.audio||0}</span><strong>${i.price?'$'+nf(i.price):'GRATIS'}</strong><button class="btn primary buy-item-btn" data-item-id="${i.id}">COMPRAR</button></div>`).join(''):'<p class="muted">No hay nuevas mejoras desbloqueadas todavía.</p>'}</div></section>`:tab==='staff'?`<section class="panel"><div class="eyebrow">👥 STAFF · COSTO RECURRENTE</div><div class="store-grid">${staffCfg.map(([id,name,cost])=>{const lvl=Number(p.staff?.[id]?.level||0);return `<div class="store-card"><b>${name}</b><span>Nivel ${lvl}/2 · costo base $${nf(cost)} por nivel</span><strong>${lvl>=2?'MÁXIMO': '$'+nf(cost)}</strong><button class="btn ${lvl>=2?'ghost':'primary'} staff-buy" data-role="${id}" ${lvl>=2?'disabled':''}>${lvl>=2?'COMPLETO':'MEJORAR'}</button></div>`}).join('')}</div></section>`:`<section class="panel"><div class="eyebrow">🏠 PATRIMONIO</div><h2>${p.patrimonio?.nombre||'Casa de tus viejos'}</h2><p class="muted">El patrimonio progresa con tu tamaño. También podés sumar lujos cosméticos en futuras versiones.</p><div class="store-grid">${['Casa de tus viejos','Habitación/estudio propio','Departamento con estudio','Casa con estudio profesional','Country + estudio profesional'].map((n,i)=>`<div class="store-card ${Number(p.patrimonio?.etapa||0)>=i?'owned':''}"><b>${i+1}. ${n}</b><span>${Number(p.patrimonio?.etapa||0)>=i?'✓ Desbloqueado':'🔒 Se desbloquea con más audiencia'}</span></div>`).join('')}</div></section>`}</div>`;
+ c.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{sessionStorage.setItem('elcreador_store_tab',b.dataset.tab);renderStore(c)});
+ c.querySelectorAll('.boost-buy').forEach(b=>b.onclick=()=>{if(!gameState.comprarBoost(b.dataset.boost))alert('No tenés suficiente dinero.');renderStore(c)});
+ c.querySelectorAll('.staff-buy').forEach(b=>b.onclick=()=>{if(!buyStaff(gameState,b.dataset.role))alert('No podés mejorar este puesto ahora.');gameState.guardar();renderStore(c)});
+ c.querySelectorAll('.buy-item-btn').forEach(b=>b.onclick=()=>{const i=items.find(x=>x.id===b.dataset.itemId);if(!i||p.dinero<i.price){alert('No tenés suficiente dinero.');return}p.dinero-=i.price;p.inventory.push(i.id);p.equipment ||= {};if(i.slot)p.equipment[i.slot]=i.id;if(i.editing)p.atributos.edicion+=i.editing;if(i.audio)p.atributos.edicion+=Math.floor(i.audio/3);gameState.guardar();renderStore(c)});
+ return c;
 }
-
-export const storeScreen = { render: renderStore };
-export default storeScreen;
+export const storeScreen={render:renderStore};export default storeScreen;

@@ -30,7 +30,7 @@ export function renderPublishVideo(el) {
             <h2>${video.titulo}</h2>
             <p class="video-option-meta">${video.formato} · ${video.tema}</p>
             <div class="video-option-bottom">
-                <span>🎯 ${video.enfoquePrincipal}</span>
+                <span>🎯 ${video.enfoquePrincipal} · ${Math.round((Number(gameState.player.atributos?.[video.enfoquePrincipal])||0)*1.5)} sinergia</span>
                 <button class="select-video btn primary" data-video-id="${video.id}">PUBLICAR</button>
             </div>
         </article>
@@ -62,24 +62,10 @@ export function renderPublishVideo(el) {
                 return;
             }
 
-            gameState.player.dinero -= video.costo;
-
-            // Usamos la nueva función que procesa el video manual + simulación del trimestre
-            const resultado = procesarPublicacionTrimestre(
-                video.titulo,
-                video.enfoquePrincipal,
-                video.enfoqueSecundario,
-                { tituloImpacto: video.tituloImpacto, tituloHook: video.tituloHook }
-            );
-
-            gameState.registrarVideoPublicado();
-            gameState.lastVideo = video;
+            gameState.pendingVideoSelection = { ...video };
+            gameState.pendingMinigame = { type: "videoSetup", title: video.titulo, text: "Elegí cómo presentar tu video: una buena miniatura y el horario correcto pueden cambiar su rendimiento.", createdAt: Date.now() };
             gameState.guardar();
-
-            // El cierre del trimestre pasa siempre por la misma puerta.
-            // Si hubo un evento, Pasan Cosas lo muestra; si no hubo, la pantalla
-            // avanza sola al siguiente trimestre/año sin mostrar un resumen intermedio.
-            window.location.hash = "#pasanCosas";
+            window.location.hash = "#minigame";
         });
     });
 

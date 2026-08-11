@@ -82,6 +82,16 @@ function score(c, categoria) {
         value = c.clips * 28 + c.virales * 12 + views * 3;
     } else if (categoria === "enojo") {
         value = c.enojos * 45 + c.virales * 3 + c.popularidad * 0.04;
+    } else if (categoria === "edicion") {
+        value = c.videos * 2 + c.vistas * 0.00001 + c.virales * 6;
+    } else if (categoria === "colab") {
+        value = Number(c.mundo?.colaboraciones || 0) * 30 + c.vistas * 0.000008 + c.crecimiento * 0.2;
+    } else if (categoria === "querido" || categoria === "comunidad") {
+        value = c.popularidad * 0.7 + c.crecimiento * 0.4 + followers * 3;
+    } else if (categoria === "trayectoria") {
+        value = c.vistas * 0.00002 + Math.max(0, (c.debutYear ? 2026 - c.debutYear : 0)) * 4 + c.popularidad * 0.5;
+    } else if (categoria === "crecimiento") {
+        value = growth * 35 + c.crecimiento * 0.35 + c.virales * 6;
     }
 
     return value + Math.random() * 4;
@@ -113,19 +123,29 @@ function nominados(pool, categoria) {
 }
 
 const CATEGORIAS = [
-    { id: "clip", nombre: "Clip del Año", icono: "🎬", desc: "El momento que más circuló durante la temporada." },
-    { id: "revelacion", nombre: "Streamer Revelación", icono: "🚀", desc: "Un creador que está dentro de sus primeros cinco años y realmente dio el salto." },
-    { id: "streamer", nombre: "Streamer del Año", icono: "🏆", desc: "La temporada más completa entre audiencia, impacto y crecimiento." },
-    { id: "enojo", nombre: "Mejor Enojo", icono: "😡", desc: "La reacción que más quedó en la memoria de la comunidad." }
-];
+    { id:"clip", nombre:"Clip del Año", icono:"🎬", desc:"El momento que más circuló durante la temporada." },
+    { id:"revelacion", nombre:"Streamer Revelación", icono:"🚀", desc:"Un creador dentro de sus primeros cinco años que realmente dio el salto." },
+    { id:"streamer", nombre:"Streamer del Año", icono:"🏆", desc:"La temporada más completa entre audiencia, impacto y crecimiento." },
+    { id:"enojo", nombre:"Mejor Enojo", icono:"😡", desc:"La reacción que más quedó en la memoria de la comunidad." },
+    { id:"edicion", nombre:"Mejor Edición", icono:"✂️", desc:"Calidad y volumen de contenido editado." },
+    { id:"colab", nombre:"Mejor Colab", icono:"🤝", desc:"La colaboración que más movió comunidades." },
+    { id:"querido", nombre:"El Más Querido", icono:"❤️", desc:"Comunidad, reputación y cercanía con la audiencia." },
+    { id:"trayectoria", nombre:"Trayectoria", icono:"🏛️", desc:"Impacto acumulado y constancia en el mundo." },
+    { id:"crecimiento", nombre:"Crecimiento del Año", icono:"📈", desc:"El salto más grande de la temporada." },
+    { id:"comunidad", nombre:"Comunidad del Año", icono:"🌐", desc:"La comunidad más activa y fiel." }
+]
 
 export function obtenerResultados(summary) {
+    if (gameState.lastAwardsResults && Number(gameState.lastAwardsResults.año) === Number(summary?.año)) return gameState.lastAwardsResults.resultados;
     const pool = candidatos(summary);
-    return CATEGORIAS.map(cat => {
+    const resultados = CATEGORIAS.map(cat => {
         const nominadosCat = nominados(pool, cat.id);
         const ganador = [...nominadosCat].sort((a, b) => score(b, cat.id) - score(a, cat.id))[0] || null;
         return { ...cat, nominados: nominadosCat, ganador };
     });
+    gameState.lastAwardsResults = { año: Number(summary?.año), resultados };
+    gameState.guardar();
+    return resultados;
 }
 
 export function obtenerOResolverAwards(summary) {
@@ -144,6 +164,12 @@ export function renderAwards(container) {
     const resultados = obtenerResultados(summary);
     const nominacionesJugador = resultados.filter(r => r.nominados.some(n => n.isPlayer)).length;
     const victoriasJugador = resultados.filter(r => r.ganador?.isPlayer).length;
+    const premiosJugador = resultados.filter(r => r.ganador?.isPlayer).map(r => r.nombre);
+    gameState.player.awardsHistory ||= [];
+    const alreadyRecorded = gameState.player.awardsHistory.some(a => Number(a.año) === Number(summary.año));
+    if (!alreadyRecorded) gameState.player.awardsHistory.push(...premiosJugador.map(nombre => ({ año: summary.año, nombre })));
+    gameState.lastYearSummary.premiosGanados = premiosJugador;
+    gameState.lastYearSummary.premiosGanadosCount = premiosJugador.length;
 
     // El premio Revelación solo puede ganarse una vez.
     if (victoriasJugador > 0 && resultados.some(r => r.id === "revelacion" && r.ganador?.isPlayer)) {
@@ -187,14 +213,15 @@ export function renderAwards(container) {
             </div>
 
             <div class="continue-row single-next">
-                <button id="nextYear" class="btn primary big next-button">🚀 EMPEZAR ${Number(summary.año) + 1}</button>
+                <button id="nextYear" class="btn primary big next-button">${Number(gameState.player.edad) >= 40 ? "🏁 VER FIN DE CARRERA" : "🚀 CONTINUAR AL NUEVO AÑO"}</button>
             </div>
         </div>
     `;
 
     container.querySelector("#nextYear")?.addEventListener("click", () => {
+        if (Number(gameState.player.edad) >= 40) { gameState.player.retirado = true; gameState.guardar(); window.location.hash = "#careerEnd"; return; }
         gameState.prepararSiguienteAño();
-        window.location.hash = "#pretemporada";
+        window.location.hash = "#newYear";
     });
 
     return container;

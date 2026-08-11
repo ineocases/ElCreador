@@ -255,6 +255,9 @@ function baseVistasPorVideo(player, calidad = 1) {
     const subs = Math.max(50, Number(player.suscriptores) || 50);
     const fama = clamp(Number(player.fama) || 0, 0, 100);
     const a = player.atributos || {};
+    const edad = Number(player.edad || 18);
+    const staffMitiga = Number(player.staff?.editor?.level || 0) + Number(player.staff?.manager?.level || 0) + Number(player.staff?.trainer?.level || 0);
+    const edadFactor = edad < 30 ? 1 : Math.max(0.82, 1 - (edad - 29) * 0.012 + staffMitiga * 0.012);
     const algoritmo = Number(a.algoritmo) || 0;
     const marketing = Number(a.marketing) || 0;
     const edicion = Number(a.edicion) || 0;
@@ -279,7 +282,7 @@ function baseVistasPorVideo(player, calidad = 1) {
     if (efecto === "edicion") pre *= 1.12;
 
     const variacion = randomFloat(0.68, 1.38);
-    const audiencia = subs * engagement * variacion * calidad * calcularTendencia() * pre * boostViews;
+    const audiencia = subs * engagement * variacion * calidad * calcularTendencia() * pre * boostViews * edadFactor;
     const descubrimiento = 100 + Math.floor(Math.sqrt(subs) * 2.5) + edicion * 8;
     return Math.max(descubrimiento, Math.floor(audiencia));
 }
@@ -403,8 +406,8 @@ function resultadoVideoManual(titulo, enfoquePrincipal, enfoqueSecundario, conte
     const ingresos = calcularIngresosPorVideo(vistas, p);
 
     const famaGanada =
-        viral ? random(1, 5) :
-        Math.random() < 0.22 ? 1 :
+        viral ? random(1, 3) :
+        Math.random() < 0.16 ? 1 :
         0;
 
     return {
@@ -581,9 +584,23 @@ export function procesarPublicacionTrimestre(
         simDinero += jackpotMoney;
         simFama += random(8, 20);
     }
+    // El video destacado concentra entre 20% y 40% de las vistas del trimestre.
+    // Los demás videos siguen existiendo y suman volumen, pero no compiten con el destacado.
+    const featuredShare = randomFloat(0.22, 0.38);
+    const manualViews = Math.max(1, Number(manualResult.vistas) || 1);
+    const rawSimViews = Math.max(0, simVistas);
+    if (rawSimViews > 0) {
+        const targetTotal = manualViews / featuredShare;
+        const targetSim = Math.max(0, targetTotal - manualViews);
+        const scale = targetSim / rawSimViews;
+        simVistas = Math.round(rawSimViews * scale);
+        simSubs = Math.max(videosDelResto * 15, Math.round(simSubs * scale));
+        simDinero = Math.max(0, Math.round(simDinero * scale));
+    }
+
     const simSubsFinal = Math.max(0, Math.round(simSubs));
     const simDineroFinal = Math.max(0, Math.round(simDinero));
-    const simFamaEntera = Math.min(6, simFama);
+    const simFamaEntera = Math.min(3, simFama);
 
     const p = gameState.player;
     p.vistasTotales += simVistas;

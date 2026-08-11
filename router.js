@@ -6,6 +6,8 @@ import * as pretemporadaScreen from "./screens/pretemporada.js";
 import * as publishVideoScreen from "./screens/publishVideo.js";
 import * as videoResultScreen from "./screens/videoResult.js";
 import * as yearSummaryScreen from "./screens/yearSummary.js";
+import * as newYearScreen from "./screens/newYear.js";
+import * as careerEndScreen from "./screens/careerEnd.js";
 import * as minigameScreen from "./screens/minigame.js";
 import * as veladaScreen from "./screens/velada.js";
 import * as storeScreen from "./screens/store.js";
@@ -43,7 +45,7 @@ function handleRoute() {
     const hash = window.location.hash || "#createChannel";
     const protectedRoutes = [
         "#dashboard", "#pretemporada", "#publish", "#videoResult",
-        "#yearSummary", "#minigame", "#velada", "#pasanCosas", "#store", "#awards",
+        "#yearSummary", "#newYear", "#careerEnd", "#minigame", "#velada", "#pasanCosas", "#store", "#awards",
         "#collabs", "#sponsors", "#admin"
     ];
 
@@ -63,6 +65,8 @@ function handleRoute() {
         "#publish": ["publishScreen", publishVideoScreen],
         "#videoResult": ["resultScreen", videoResultScreen],
         "#yearSummary": ["yearSummaryScreen", yearSummaryScreen],
+        "#newYear": ["newYearScreen", newYearScreen],
+        "#careerEnd": ["careerEndScreen", careerEndScreen],
         "#minigame": ["minigameScreen", minigameScreen],
         "#velada": ["veladaScreen", veladaScreen],
         "#pasanCosas": ["pasanCosasScreen", pasanCosasScreen],

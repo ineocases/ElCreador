@@ -44,18 +44,8 @@ export function renderCreateChannel(el) {
                     ▶ Ir a Pretemporada
                 </button>
             </form>
-            <button id="resetSave" type="button" style="display:block;width:100%;margin-top:12px;padding:11px;background:transparent;color:var(--text-muted);border:1px solid rgba(255,255,255,.08);border-radius:8px;">🗑️ Borrar partida guardada</button>
         </div>
     `;
-
-    const reset = container.querySelector('#resetSave');
-    reset?.addEventListener('click', () => {
-        saveManager.deleteSave();
-        gameState.resetPlayer();
-        container.querySelector('#player-name').value = '';
-        container.querySelector('#channel-name').value = '';
-    });
-
     const form = container.querySelector('#create-channel-form');
     if (form) {
         form.addEventListener('submit', (e) => {
