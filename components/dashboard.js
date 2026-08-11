@@ -1,1 +1,0 @@
-export function progress(label,value){return `<div style="margin-bottom:10px"><strong>${label}:</strong> ${Math.round(value)}<div class="progress-bar"><div class="progress-fill" style="width:${value}%"></div></div></div>`}
