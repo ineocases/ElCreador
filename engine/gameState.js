@@ -1,16 +1,13 @@
 // engine/gameState.js
 // Estado central de El Creador.
-// REGLA: 2 trimestres = 1 año.
-// El jugador elige 1 video destacado por trimestre; después su canal publica
-// entre 30 y 150 videos EN ESE TRIMESTRE. Son videos del propio jugador,
-// como los partidos que jugó un futbolista: el jugador ve el volumen y el resultado,
-// pero no tiene que elegir manualmente cada publicación.
+// REGLA: 1 temporada = 1 año.
+// El jugador elige UN solo video por año. La partida es corta, directa y rejugable.
 
 import { creatorsIniciales } from "../data/creators.js";
 import { ensureAdvancedState, advanceEconomy } from "./advancedSystems.js";
 
 const SAVE_KEY = "elCreador_saveData";
-const TRIMESTRES_POR_AÑO = 2;
+const TRIMESTRES_POR_AÑO = 1;
 
 function crearId(prefix = "id") {
     if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") return crypto.randomUUID();
@@ -354,7 +351,7 @@ export const gameState = {
         const p = this.player;
         if (!p || this.pendingEvent) return null;
 
-        // No pasa algo extraordinario todos los trimestres.
+        // No pasa algo extraordinario todos los años.
         if (Math.random() > 0.72) return null;
 
         const subs = Number(p.suscriptores) || 0;
@@ -474,7 +471,7 @@ export const gameState = {
                 title: "🖥️ Tu equipo empieza a quedarse corto",
                 text: "La audiencia creció y la calidad del contenido empieza a ser un problema.",
                 a: { label: "Invertir $120", desc: "-$120, +15% vistas", action: { dinero: -120, edicion: 4 }, cierre: { vistasPct: 0.15 } },
-                b: { label: "Aguantar", desc: "+10% videos", action: { constancia: 2 }, cierre: { videosPct: 0.10 } }
+                b: { label: "Aguantar", desc: "+4 constancia, sin gastar", action: { constancia: 4 }, cierre: {} }
             }
         ];
 
@@ -570,19 +567,16 @@ export const gameState = {
         const vistasBase = Number(actividad.vistas) || 0;
         const subsBase = Number(actividad.suscriptores) || 0;
         const dineroBase = Number(actividad.dinero) || 0;
-        const videosBase = Number(actividad.videos) || 0;
-
-        const videosPct = Number(cierre.videosPct) || 0;
-        // Si la decisión fue apostar por publicar más, el volumen extra
-        // arrastra también vistas, suscriptores e ingresos.
-        const vistasPct = (Number(cierre.vistasPct) || 0) + videosPct * 0.70;
-        const subsPct = (Number(cierre.subsPct) || 0) + videosPct * 0.55;
-        const dineroPct = (Number(cierre.dineroPct) || 0) + videosPct;
+        // Los eventos modifican el rendimiento del único video del año,
+        // pero nunca agregan publicaciones extra.
+        const vistasPct = Number(cierre.vistasPct) || 0;
+        const subsPct = Number(cierre.subsPct) || 0;
+        const dineroPct = Number(cierre.dineroPct) || 0;
 
         const bonusVistas = Math.max(0, Math.round(vistasBase * vistasPct));
         const bonusSubs = Math.max(0, Math.round(subsBase * subsPct));
         const bonusDinero = Math.max(0, Math.round(dineroBase * dineroPct));
-        const bonusVideos = Math.max(0, Math.round(videosBase * videosPct));
+        const bonusVideos = 0;
 
         p.vistasTotales += bonusVistas;
         p.suscriptores += bonusSubs;
@@ -612,8 +606,7 @@ export const gameState = {
         resultado.bonusCierre = actividad.bonusCierre;
         resultado.cierreAplicado = true;
 
-        if (this.time.trimestre === 1) p.historialTrimestre1 = actividad;
-        else p.historialTrimestre2 = actividad;
+        p.historialTrimestre1 = actividad;
 
         return actividad.bonusCierre;
     },
@@ -1091,7 +1084,7 @@ export const gameState = {
     },
 
     prepararSiguienteAño() {
-        if (this.time.trimestre !== 2) return false;
+        if (this.time.trimestre !== 1) return false;
 
         const añoTerminado = this.time.año;
         const nextYear = añoTerminado + 1;
@@ -1157,7 +1150,7 @@ export const gameState = {
     },
 
     finalizarAño() {
-        if (this.time.trimestre !== 2) return null;
+        if (this.time.trimestre !== 1) return null;
 
         const inicio = this.player.yearStartSnapshot || snapshotAño(this.player);
         const fin = snapshotAño(this.player);
@@ -1192,7 +1185,7 @@ export const gameState = {
             videosVirales: (Number(this.player.historialTrimestre1?.virales) || 0) + (Number(this.player.historialTrimestre2?.virales) || 0),
 
             trimestre1: this.player.historialTrimestre1 || null,
-            trimestre2: this.player.historialTrimestre2 || null,
+            trimestre2: null,
             rankingNicho: this.calcularRankingNicho(),
             premiosGanadosCount: 0,
             premiosGanados: []
@@ -1292,7 +1285,7 @@ export function normalizarGameState() {
     if (typeof p.canal !== "string") p.canal = "Mi Canal";
     if (typeof p.niche !== "string") p.niche = "Gaming";
     if (typeof p.año !== "number") p.año = 2026;
-    if (!Number.isInteger(p.trimestre) || p.trimestre < 1 || p.trimestre > 2) p.trimestre = 1;
+    if (!Number.isInteger(p.trimestre) || p.trimestre !== 1) p.trimestre = 1;
     if (typeof p.dinero !== "number") p.dinero = 500;
     if (typeof p.suscriptores !== "number") p.suscriptores = 50;
     if (typeof p.vistasTotales !== "number") p.vistasTotales = 0;
@@ -1353,7 +1346,7 @@ export function normalizarGameState() {
     }
 
     if (typeof gameState.time.año !== "number") gameState.time.año = p.año;
-    if (!Number.isInteger(gameState.time.trimestre) || gameState.time.trimestre < 1 || gameState.time.trimestre > 2) {
+    if (!Number.isInteger(gameState.time.trimestre) || gameState.time.trimestre !== 1) {
         gameState.time.trimestre = p.trimestre;
     }
 

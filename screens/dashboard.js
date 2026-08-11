@@ -21,7 +21,7 @@ export function renderDashboard(el) {
     const pendingEvent = gameState.pendingEvent;
     const collab = gameState.pendingCollabOffer;
 
-    const progresoAño = p.trimestre === 1 ? 50 : 100;
+    const progresoAño = p.videoSubidoEsteTrimestre ? 100 : 0;
     const mejorado = p.pretemporada?.atributo;
 
 
@@ -37,7 +37,7 @@ export function renderDashboard(el) {
 
             <div class="dashboard-top dashboard-top-clean">
                 <div class="channel-heading">
-                    <div class="eyebrow">CARRERA · ${p.año} · T${p.trimestre}/2</div>
+                    <div class="eyebrow">CARRERA · ${p.año} · TEMPORADA ${p.año}</div>
                     <div class="channel-title-row">
                         <h1 class="page-title">${p.canal}</h1>
                     </div>

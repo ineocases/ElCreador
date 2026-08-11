@@ -27,7 +27,6 @@ function metricForCreator(c) {
 function metricForPlayer(summary) {
     const p = gameState.player;
     const t1 = summary?.trimestre1 || {};
-    const t2 = summary?.trimestre2 || {};
     const stats = p.awardsStats || {};
     return {
         id: "player",
@@ -36,7 +35,7 @@ function metricForPlayer(summary) {
         crecimiento: Number(summary?.crecimientoSubs || 0),
         vistas: Number(summary?.vistasGanadas || 0),
         videos: Number(summary?.videosPublicados || 0),
-        virales: Number(t1.virales || 0) + Number(t2.virales || 0),
+        virales: Number(t1.virales || 0),
         clips: Number(stats.clips || 0) + (Number(summary?.mejorVideo || 0) >= 100000 ? 2 : Number(summary?.mejorVideo || 0) >= 50000 ? 1 : 0),
         enojos: Number(stats.enojos || 0),
         popularidad: Number(summary?.famaFin || p.fama || 0),

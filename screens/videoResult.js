@@ -23,29 +23,27 @@ export function renderVideoResult(el) {
         return container;
     }
 
-    const finDeAño = gameState.time.trimestre === 2;
+    const finDeAño = true;
     container.innerHTML = `
         <div class="page-shell result-page">
             ${renderHeaderHud()}
 
             <div class="result-kicker">
-                📊 CIERRE DEL TRIMESTRE ${gameState.time.trimestre}/2
+                📊 CIERRE DE LA TEMPORADA ${gameState.time.año}
             </div>
 
             <h1 class="page-title">Así rindió tu canal.</h1>
             <p class="page-subtitle">
-                Elegiste el video destacado. Tu canal siguió publicando por su cuenta
-                durante todo el trimestre.
+                Este fue el video que representó toda tu temporada.
             </p>
 
             <div class="result-hero fade">
                 <div class="result-number">${nf(res.totalVideos)}</div>
                 <div>
-                    <div class="eyebrow">PUBLICACIONES DEL CANAL</div>
-                    <h2>videos este trimestre</h2>
+                    <div class="eyebrow">RESULTADO DE TU TEMPORADA</div>
+                    <h2>resultado anual</h2>
                     <p>
-                        1 fue tu video destacado y ${nf(res.simulatedVideos)}
-                        fueron publicaciones normales de tu propio canal.
+                        Este año tomaste una sola decisión de contenido.
                     </p>
                 </div>
             </div>
@@ -88,14 +86,14 @@ export function renderVideoResult(el) {
                 <div class="eyebrow">📌 QUÉ PASÓ</div>
                 <h2>
                     ${res.totalVideos > 100
-                        ? "Tu canal estuvo muy activo."
+                        ? "Tu año fue un éxito."
                         : res.totalVideos > 60
-                            ? "Tu ritmo de publicación fue sólido."
-                            : "Fue un trimestre tranquilo."}
+                            ? "Tu canal siguió creciendo."
+                            : "Todavía estás construyendo tu carrera."}
                 </h2>
                 <p>
-                    Publicaste ${nf(res.totalVideos)} videos y generaste
-                    ${nf(res.totalVistas)} vistas. El crecimiento depende de tu
+                    Tu video consiguió ${nf(res.totalVistas)} vistas y dejó
+                    ${nf(res.totalSubs)} nuevos seguidores. El crecimiento depende de tu
                     audiencia, tus atributos, tus decisiones y de lo que pase
                     alrededor de tu canal.
                 </p>
@@ -103,7 +101,7 @@ export function renderVideoResult(el) {
 
             <div class="continue-row single-next">
                 <button id="continueAfterVideo" class="btn primary big next-button">
-                    ${finDeAño ? "🏆 SIGUIENTE: RESUMEN DEL AÑO" : "▶ SIGUIENTE: TRIMESTRE 2"}
+                    ${finDeAño ? "🏆 VER RESUMEN DEL AÑO" : "▶ CONTINUAR"}
                 </button>
             </div>
         </div>

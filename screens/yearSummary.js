@@ -28,7 +28,7 @@ export function renderYearSummary(el) {
             <div class="year-cover">
                 <div class="eyebrow">TEMPORADA ${s.año}</div>
                 <h1>Así terminó tu año.</h1>
-                <p>Los dos trimestres quedan unificados en un solo cierre.</p>
+                <p>Una sola decisión de contenido define el rumbo de toda la temporada.</p>
             </div>
 
             <div class="stat-grid four">

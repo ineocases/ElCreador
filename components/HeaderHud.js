@@ -16,18 +16,17 @@ export function fameLevel(fame) {
 function currentStep() {
     const h = window.location.hash;
     if (h === "#pretemporada" || h === "#newYear") return "pre";
-    if (h === "#publish" || h === "#videoResult" || h === "#pasanCosas" || h === "#minigame") return gameState.time.trimestre === 1 ? "t1" : "t2";
+    if (h === "#publish" || h === "#videoResult" || h === "#pasanCosas" || h === "#minigame") return "year";
     if (h === "#yearSummary" || h === "#awards") return "awards";
     if (h === "#careerEnd") return "fin";
-    return gameState.time.trimestre === 1 ? "t1" : "t2";
+    return "year";
 }
 
 export function renderHeaderHud() {
     const p = gameState.player;
     if (!p) return "";
     const año = Number(p.año) || 2026;
-    const trimestre = Number(p.trimestre) || 1;
-    const edad = Number(p.edad) || (18 + año - 2026);
+        const edad = Number(p.edad) || (18 + año - 2026);
     const subs = Number(p.suscriptores) || 0;
     const fama = fameInt(p.fama);
     const dinero = Number(p.dinero) || 0;
@@ -45,7 +44,7 @@ export function renderHeaderHud() {
             </div>
             <div class="hud-season">
                 <small>CARRERA · AÑO ${Math.max(1, año - 2025)}</small>
-                <b>${año} · Año ${Math.max(1, año - 2025)} · T${trimestre}/2 · Edad ${edad}</b>
+                <b>${año} · Año ${Math.max(1, año - 2025)} · Edad ${edad}</b>
             </div>
             <nav class="hud-menu" aria-label="Menú de carrera">
                 <a href="#store" class="hud-menu-btn">${icon("store",16)} <span>Tienda</span></a>
@@ -64,7 +63,7 @@ export function renderHeaderHud() {
                 <div><small>$</small><b>$${nf(dinero)}</b></div>
             </div>
             <div class="career-timeline" aria-label="Timeline del año">
-                ${[["pre","Pretemporada"],["t1","T1"],["t2","T2"],["awards","Awards"],["fin","Fin"]].map(([id,label])=>`<span class="timeline-step ${step===id?"active":""}">${label}</span>`).join('<b>→</b>')}
+                ${[["pre","Pretemporada"],["year","Video del año"],["awards","Awards"],["fin","Fin"]].map(([id,label])=>`<span class="timeline-step ${step===id?"active":""}">${label}</span>`).join('<b>→</b>')}
             </div>
         </header>
         <div class="saved-indicator" aria-live="polite">✓ Partida guardada</div>

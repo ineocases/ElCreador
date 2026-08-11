@@ -1,5 +1,5 @@
 // screens/pasanCosas.js
-// Evento automático antes del cierre del trimestre.
+// Evento automático antes del cierre de la temporada.
 // La decisión modifica el resultado final del trimestre.
 import { gameState } from "../engine/gameState.js";
 import { renderHeaderHud } from "../components/HeaderHud.js";
@@ -22,7 +22,7 @@ function continuarDespuesDelEvento() {
             return;
         }
 
-        if (gameState.time.trimestre === 2) {
+        if (gameState.time.trimestre === 1) {
             gameState.finalizarAño();
             window.location.hash = "#yearSummary";
             return;
@@ -62,7 +62,7 @@ export function renderPasanCosas(el) {
 
             <div class="event-topline">
                 <div class="eyebrow">⚡ PASAN COSAS · ANTES DEL CIERRE</div>
-                <span class="event-quarter">${gameState.time.año} · T${gameState.time.trimestre}/2</span>
+                <span class="event-quarter">${gameState.time.año} · TEMPORADA ${gameState.time.año}</span>
             </div>
 
             <div class="panel event-main-card">
@@ -91,7 +91,7 @@ export function renderPasanCosas(el) {
             </div>
 
             <p class="event-footnote">
-                Esta decisión se aplica al cierre del trimestre. Después de elegir, el juego continúa automáticamente.
+                Esta decisión modifica el resultado de tu año. Después de elegir, el juego continúa automáticamente.
             </p>
         </div>
     `;

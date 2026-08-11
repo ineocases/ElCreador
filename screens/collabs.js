@@ -11,7 +11,7 @@ function continuar() {
             window.location.hash = "#sponsors";
             return;
         }
-        if (gameState.time.trimestre === 2) {
+        if (gameState.time.trimestre === 1) {
             gameState.finalizarAño();
             window.location.hash = "#yearSummary";
             return;
@@ -49,7 +49,7 @@ export function renderCollabs(el) {
                 <section class="panel contract-card collab-offer-card">
                     <div class="eyebrow">${offer.direction === "outgoing" ? "📨 PROPUESTA ACEPTADA" : "📩 INVITACIÓN RECIBIDA"}</div>
                     <h2>${offer.direction === "outgoing" ? `🤝 Nueva colaboración con ${offer.creatorName}` : `${offer.creatorName} quiere hacer algo con vos.`}</h2>
-                    <p>${offer.creatorName} tiene <b>${nf(offer.creatorFollowers)}</b> seguidores y descubrió tu contenido durante este trimestre.</p>
+                    <p>${offer.creatorName} tiene <b>${nf(offer.creatorFollowers)}</b> seguidores y descubrió tu contenido durante esta temporada.</p>
                     <div class="contract-stats">
                         <div><span>Vistas</span><b>+${nf(offer.reward.vistas)}</b></div>
                         <div><span>Seguidores</span><b>+${nf(offer.reward.subs)}</b></div>

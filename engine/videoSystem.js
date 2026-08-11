@@ -1,6 +1,6 @@
 // engine/videoSystem.js
 // El jugador elige 1 video destacado por trimestre.
-// Después, su canal publica entre 30 y 150 videos propios durante ese trimestre.
+// Una sola elección de video representa la temporada completa.
 // Esto representa el volumen de publicaciones del creador, como los partidos
 // jugados por un futbolista: no se elige uno por uno, pero sí cuentan en sus stats.
 
@@ -255,47 +255,30 @@ function baseVistasPorVideo(player, calidad = 1) {
     const subs = Math.max(50, Number(player.suscriptores) || 50);
     const fama = clamp(Number(player.fama) || 0, 0, 100);
     const a = player.atributos || {};
-    const edad = Number(player.edad || 18);
-    const staffMitiga = Number(player.staff?.editor?.level || 0) + Number(player.staff?.manager?.level || 0) + Number(player.staff?.trainer?.level || 0);
-    const edadFactor = edad < 30 ? 1 : Math.max(0.82, 1 - (edad - 29) * 0.012 + staffMitiga * 0.012);
     const algoritmo = Number(a.algoritmo) || 0;
     const marketing = Number(a.marketing) || 0;
     const edicion = Number(a.edicion) || 0;
     const constancia = Number(a.constancia) || 0;
-    const boost = player?.boosts || {};
-    const boostViews = boost.viewBoostTurns > 0 ? Number(boost.viewMultiplier || 1) : 1;
 
-    // La audiencia de un canal grande genera una base mucho mayor, pero siempre
-    // existe descubrimiento externo. Así 1.7M subs puede producir cientos de miles
-    // de vistas por video sin convertir cada publicación en un hit garantizado.
-    // La nueva escala busca que un canal con 5k subs vea aproximadamente
-    // 1k-3k vistas por publicación normal, no decenas de vistas.
-    const baseEngagement =
-        0.20 +
-        clamp(fama / 100, 0, 1) * 0.07 +
-        clamp(constancia / 100, 0, 1) * 0.05 +
-        clamp(algoritmo / 100, 0, 1) * 0.10 +
-        clamp(edicion / 100, 0, 1) * 0.08 +
-        clamp(marketing / 100, 0, 1) * 0.04;
-    const smallChannelBoost = subs < 10000 ? 2 : 1;
-    const engagement = clamp(baseEngagement * smallChannelBoost, 0.20, 0.60);
+    // Escala pensada para una carrera corta: un solo video representa el año.
+    // La audiencia existente ayuda, pero el descubrimiento externo es grande.
+    const calidadCanal = 0.65
+        + clamp(algoritmo / 100, 0, 1) * 0.30
+        + clamp(edicion / 100, 0, 1) * 0.20
+        + clamp(marketing / 100, 0, 1) * 0.12
+        + clamp(constancia / 100, 0, 1) * 0.10
+        + clamp(fama / 100, 0, 1) * 0.12;
 
-    let pre = 1;
-    const efecto = bonusPretemporada(player);
-    if (efecto === "marketing") pre *= 1.12;
-    if (efecto === "algoritmo") pre *= 1.10;
-    if (efecto === "edicion") pre *= 1.12;
+    const descubrimientoBase = 600000 + Math.min(5000000, Math.pow(Math.max(1, subs), 0.72) * 700);
+    const audiencia = subs * (0.45 + fama / 220) * randomFloat(0.75, 1.30);
+    const pre = bonusPretemporada(player);
+    const preMult = pre === "marketing" ? 1.12 : pre === "algoritmo" ? 1.10 : pre === "edicion" ? 1.12 : 1;
 
-    const variacion = randomFloat(0.78, 1.28);
-    const audiencia = subs * engagement * variacion * calidad * calcularTendencia() * pre * boostViews * edadFactor;
-    // Los canales nuevos también reciben descubrimiento para no quedar
-    // atrapados en un ciclo de 20 vistas y 0 crecimiento.
-    const descubrimiento = subs < 10000
-        ? random(180, 700) + Math.floor(edicion * 10)
-        : 0;
-    return Math.max(descubrimiento, Math.floor(audiencia));
+    return Math.max(
+        1000,
+        Math.floor((descubrimientoBase + audiencia) * calidadCanal * calidad * calcularTendencia() * preMult)
+    );
 }
-
 function calcularSubsPorVideo(vistas, player, viral = false) {
     const a = player.atributos || {};
     const carisma = Number(a.carisma) || 0;
@@ -303,49 +286,32 @@ function calcularSubsPorVideo(vistas, player, viral = false) {
     const fama = Number(player.fama) || 0;
     const subsActuales = Math.max(50, Number(player.suscriptores) || 50);
 
-    // Conversión decreciente: los canales chicos convierten mejor; los grandes
-    // necesitan muchas más vistas para sumar una cantidad enorme de seguidores.
-    let conversion = 0.0115;
-    if (subsActuales >= 1000000) conversion = 0.00085;
-    else if (subsActuales >= 500000) conversion = 0.00100;
-    else if (subsActuales >= 250000) conversion = 0.00125;
-    else if (subsActuales >= 100000) conversion = 0.00155;
-    else if (subsActuales >= 50000) conversion = 0.00210;
-    else if (subsActuales >= 10000) conversion = 0.00360;
-    else if (subsActuales >= 1000) conversion = 0.00700;
+    // Conversión alta al principio y progresivamente menor en canales enormes.
+    // La escala permite que 8k en un año sea flojo, no un gran resultado.
+    let conversion = 0.027;
+    if (subsActuales >= 10000000) conversion = 0.00110;
+    else if (subsActuales >= 5000000) conversion = 0.00135;
+    else if (subsActuales >= 1000000) conversion = 0.00170;
+    else if (subsActuales >= 500000) conversion = 0.00220;
+    else if (subsActuales >= 250000) conversion = 0.00280;
+    else if (subsActuales >= 100000) conversion = 0.00350;
+    else if (subsActuales >= 50000) conversion = 0.00450;
+    else if (subsActuales >= 10000) conversion = 0.00650;
+    else if (subsActuales >= 1000) conversion = 0.01450;
 
-    conversion *= 1 + clamp(carisma / 100, 0, 1) * 0.65;
-    conversion *= 0.85 + clamp(comunidad / 100, 0, 1) * 0.30;
-    conversion *= 0.92 + clamp(fama / 100, 0, 1) * 0.20;
+    conversion *= 1 + clamp(carisma / 100, 0, 1) * 0.55;
+    conversion *= 0.82 + clamp(comunidad / 100, 0, 1) * 0.36;
+    conversion *= 0.90 + clamp(fama / 100, 0, 1) * 0.22;
     if (player?.pretemporada?.efecto === "carisma") conversion *= 1.14;
-    if (viral) conversion *= randomFloat(1.25, 1.90);
+    if (viral) conversion *= randomFloat(1.25, 1.85);
 
-    const variacion = randomFloat(0.68, 1.34);
-    let resultado = Math.round(vistas * conversion * variacion);
+    let resultado = Math.round(Math.max(0, vistas) * conversion * randomFloat(0.72, 1.30));
 
-    // Regla de crecimiento del juego:
-    // un video publicado por el jugador siempre puede sumar audiencia.
-    // Incluso un video flojo deja al menos 10 subs; un viral puede despegar
-    // muchísimo más y romper la media de forma totalmente aleatoria.
-    resultado = Math.max(15, resultado);
+    if (viral) resultado = Math.round(resultado * randomFloat(1.5, 5.0));
+    if (viral && Math.random() < 0.012) resultado = Math.round(resultado * randomFloat(6, 18));
 
-    if (viral) {
-        // La mayoría de los virales son grandes; unos pocos son verdaderos
-        // saltos de carrera.
-        const saltoViral = randomFloat(1.5, 6.5);
-        resultado = Math.max(100, Math.round(resultado * saltoViral));
-    }
-
-    // Un video excepcional puede convertirse en el descubrimiento de la
-    // temporada. Es raro incluso entre virales, pero permite carreras que
-    // despegan de forma extraordinaria.
-    if (viral && Math.random() < 0.008) {
-        resultado = Math.round(resultado * randomFloat(8, 30));
-    }
-
-    return resultado;
+    return Math.max(25, resultado);
 }
-
 function calcularIngresosPorVideo(vistas, player) {
     const a = player.atributos || {};
     const marketing = Number(a.marketing) || 0;
@@ -371,13 +337,7 @@ function resultadoVideoManual(titulo, enfoquePrincipal, enfoqueSecundario, conte
     potencia += (Number(a[enfoqueSecundario]) || 0) * 0.35;
     potencia += random(-10, 14);
 
-    let vistas = baseVistasPorVideo(
-        p,
-        0.9 + clamp(potencia / 150, 0, 0.8)
-    );
-
-    // El título importa: una idea coherente y excepcional puede multiplicar
-    // el interés. "Conocí a Messi" no vale lo mismo que un gameplay genérico.
+    let vistas = baseVistasPorVideo(p, 0.92 + clamp(potencia / 150, 0, 0.8));
     const tituloImpacto = clamp(Number(contexto.tituloImpacto) || 1, 0.85, 1.70);
     vistas *= tituloImpacto;
 
@@ -385,48 +345,31 @@ function resultadoVideoManual(titulo, enfoquePrincipal, enfoqueSecundario, conte
     const algoritmo = Number(a.algoritmo) || 0;
     const carisma = Number(a.carisma) || 0;
 
-    // Entre el año 1 y 2 existe un primer gran momento guionado:
-    // no ocurre siempre en el mismo trimestre, pero evita carreras estancadas.
+    let probViral = 12 + creatividad * 0.28 + algoritmo * 0.20 + carisma * 0.08;
+    probViral *= 1 + Math.max(0, tituloImpacto - 1) * 0.90;
+    probViral = clamp(probViral, 8, 42);
+
+    // En los primeros dos años existe una posibilidad especial de despegar.
     const carreraAño = Number(p.carreraAño || 1);
-    const primerViralPendiente = carreraAño <= 2 && !p.primerViralForzado;
-    const puedeForzarPrimerViral = primerViralPendiente && (Number(p.stats?.videosPublicados) || 0) >= 3;
-
-    let probViral =
-        0.35 +
-        creatividad * 0.035 +
-        algoritmo * 0.025 +
-        carisma * 0.012;
-
-    // Un concepto excepcional y bien titulado tiene más posibilidades de
-    // despegar que un video genérico.
-    probViral *= 1 + Math.max(0, tituloImpacto - 1) * 0.75;
-    probViral = clamp(probViral, 0.5, 12);
-    if (puedeForzarPrimerViral) probViral = 100;
+    if (carreraAño <= 2) probViral += 8;
 
     const viral = Math.random() * 100 < probViral;
     let nivelViralidad = "normal";
     let multiplicadorViral = 1;
 
     if (viral) {
-        multiplicadorViral = puedeForzarPrimerViral ? randomFloat(10, 20) : random(2, 8);
+        multiplicadorViral = randomFloat(2.2, 7.5);
         vistas *= multiplicadorViral;
-        nivelViralidad =
-            multiplicadorViral >= 7 ? "fenomeno" :
-            multiplicadorViral >= 5 ? "mega_viral" :
-            "viral";
+        nivelViralidad = multiplicadorViral >= 6 ? "fenomeno" : multiplicadorViral >= 4 ? "mega_viral" : "viral";
     }
 
     vistas = Math.max(1, Math.floor(vistas));
-
     const nuevosSuscriptores = calcularSubsPorVideo(vistas, p, viral);
     const ingresos = calcularIngresosPorVideo(vistas, p);
 
-    if (viral && Number(p.carreraAño || 1) <= 2 && !p.primerViralForzado) p.primerViralForzado = true;
+    if (viral && carreraAño <= 2 && !p.primerViralForzado) p.primerViralForzado = true;
 
-    const famaGanada =
-        viral ? random(1, 3) :
-        Math.random() < 0.16 ? 1 :
-        0;
+    const famaGanada = viral ? random(2, 6) : (Math.random() < 0.28 ? 1 : 0);
 
     return {
         titulo: titulo || "Nuevo video",
@@ -444,7 +387,6 @@ function resultadoVideoManual(titulo, enfoquePrincipal, enfoqueSecundario, conte
         multiplicadorViral
     };
 }
-
 function aplicarResultado(resultado, contarVideo = true) {
     const p = gameState.player;
 
@@ -555,6 +497,7 @@ export function procesarPublicacionTrimestre(
     enfoqueSecundario,
     contexto = {}
 ) {
+    // En El Creador, una temporada = un año y el jugador toma UNA decisión.
     const manualResult = procesarPublicacionVideo(
         titulo,
         enfoquePrincipal || "creatividad",
@@ -562,140 +505,50 @@ export function procesarPublicacionTrimestre(
         contexto
     );
 
-    const constancia = Number(gameState.player.atributos?.constancia) || 0;
-    const efectoConstancia = gameState.player.pretemporada?.efecto === "constancia" ? 0.18 : 0;
-    const power = Math.max(0.55, 1.05 - (constancia / 100) * 0.30 - efectoConstancia);
-    const totalVideos = Math.min(150, 30 + Math.floor(Math.pow(Math.random(), power) * 121));
-    const videosDelResto = Math.max(0, totalVideos - 1);
-
-    let simVistas = 0;
-    let simSubs = 0;
-    let simDinero = 0;
-    let simFama = 0;
-    let simVirales = 0;
-    let mejorSimulado = 0;
-
-    for (let i = 0; i < videosDelResto; i++) {
-        const resultado = simularVideoSecundario();
-        simVistas += resultado.vistas;
-        simSubs += resultado.suscriptores;
-        simDinero += resultado.dinero;
-        simFama += resultado.viral ? 1 : 0;
-        mejorSimulado = Math.max(mejorSimulado, resultado.vistas);
-        if (resultado.viral) simVirales++;
-    }
-
-    // Los subs se calculan por video, pero se acumulan sin redondear a cero.
-    // Esto garantiza que 78 videos nunca puedan terminar dando 0 o 24 subs.
-    const simSubsEnteros = Math.max(0, Math.round(simSubs));
-    const simDineroEntero = Math.max(0, Math.round(simDinero));
-
-    // 10 de cada ~1000 carreras tienen una temporada de suerte extraordinaria.
-    // No se fuerza por cantidad de videos: es una anomalía del algoritmo.
-    if (Number(gameState.time.año) === 2026 && !gameState.player.suertePrimeraTemporada && Math.random() < 0.005) {
-        const jackpotSubs = random(100000, 500000);
-        const jackpotViews = Math.round(jackpotSubs * randomFloat(7, 16));
-        const jackpotMoney = Math.round(jackpotViews / 1000 * randomFloat(1.4, 3.2));
-        gameState.player.suertePrimeraTemporada = true;
-        gameState.player.suertePrimeraTemporadaResultado = { subs: jackpotSubs, vistas: jackpotViews, dinero: jackpotMoney };
-        simSubs += jackpotSubs;
-        simVistas += jackpotViews;
-        simDinero += jackpotMoney;
-        simFama += random(8, 20);
-    }
-    // El video destacado concentra entre 20% y 40% de las vistas del trimestre.
-    // Los demás videos siguen existiendo y suman volumen, pero no compiten con el destacado.
-    const featuredShare = randomFloat(0.22, 0.38);
-    const manualViews = Math.max(1, Number(manualResult.vistas) || 1);
-    const rawSimViews = Math.max(0, simVistas);
-    if (rawSimViews > 0) {
-        const targetTotal = manualViews / featuredShare;
-        const targetSim = Math.max(0, targetTotal - manualViews);
-        const scale = targetSim / rawSimViews;
-        simVistas = Math.round(rawSimViews * scale);
-        simSubs = Math.max(videosDelResto * 15, Math.round(simSubs * scale));
-        simDinero = Math.max(0, Math.round(simDinero * scale));
-    }
-
-    const simSubsFinal = Math.max(0, Math.round(simSubs));
-    const simDineroFinal = Math.max(0, Math.round(simDinero));
-    const simFamaEntera = Math.min(3, simFama);
-
-    const p = gameState.player;
-    p.vistasTotales += simVistas;
-    p.suscriptores += simSubsFinal;
-    actualizarFamaPorSubs(p);
-    p.dinero += simDineroFinal;
-    p.ingresosTrimestre += simDineroFinal;
-    p.ingresosGenerados = (Number(p.ingresosGenerados) || 0) + simDineroFinal;
-    if (simFamaEntera > 0) agregarFamaLogro(p, simFamaEntera, "virales del trimestre");
-
-    p.videosSubidos += videosDelResto;
-    if (!p.stats) p.stats = {};
-    p.stats.videosPublicados =
-        (Number(p.stats.videosPublicados) || 0) + videosDelResto;
-    p.stats.mejorVideo = Math.max(
-        Number(p.stats.mejorVideo) || 0,
-        mejorSimulado
-    );
-    p.stats.videosVirales =
-        (Number(p.stats.videosVirales) || 0) + simVirales;
-
     const actividad = {
         año: gameState.time.año,
-        trimestre: gameState.time.trimestre,
-        videos: totalVideos,
-        vistas: Math.floor(manualResult.vistas + simVistas),
-        suscriptores: manualResult.suscriptores + simSubsFinal,
-        dinero: Math.round(manualResult.dinero + simDineroFinal),
-        fama: manualResult.famaGanada + simFamaEntera,
-        virales: (manualResult.viral ? 1 : 0) + simVirales,
-        mejorVideo: Math.max(manualResult.vistas, mejorSimulado)
+        trimestre: 1,
+        videos: 1,
+        vistas: manualResult.vistas,
+        suscriptores: manualResult.suscriptores,
+        dinero: manualResult.dinero,
+        fama: manualResult.famaGanada,
+        virales: manualResult.viral ? 1 : 0,
+        mejorVideo: manualResult.vistas
     };
 
+    const p = gameState.player;
     p.actividadTrimestre = actividad;
+    p.historialTrimestre1 = actividad;
+    p.historialTrimestre2 = null;
 
-    if (p.boosts?.viewBoostTurns > 0) {
-        p.boosts.viewBoostTurns -= 1;
-        if (p.boosts.viewBoostTurns <= 0) {
-            p.boosts.viewBoostTurns = 0;
-            p.boosts.viewMultiplier = 1;
-        }
-    }
-
-    if (gameState.time.trimestre === 1) p.historialTrimestre1 = actividad;
-    else p.historialTrimestre2 = actividad;
-
-    const quarterResult = {
-        manualVideo: manualResult,
-        totalVideos,
-        totalVistas: actividad.vistas,
-        totalSubs: actividad.suscriptores,
-        totalDinero: actividad.dinero,
-        totalFama: actividad.fama,
-        simulatedVideos: videosDelResto,
-        simVistas: Math.floor(simVistas),
-        simSubs: simSubsFinal,
-        simDinero: simDineroFinal,
-        simFama: simFamaEntera,
-        virales: actividad.virales
-    };
-
-    gameState.lastQuarterResult = quarterResult;
-
-    // El mundo avanza al mismo tiempo que el jugador. Los demás creadores
-    // publican, ganan seguidores y generan noticias aunque el jugador no los vea.
+    // El mundo sí avanza, pero el jugador solo ve un resumen anual.
     simulateWorld(gameState);
-
     gameState.generarEventoPendiente();
     if (!gameState.pendingEvent) {
         gameState.generarOfertaColaboracionAutomatica();
         if (!gameState.pendingCollabOffer) gameState.generarOfertaSponsor();
     }
+
+    const quarterResult = {
+        manualVideo: manualResult,
+        totalVideos: 1,
+        totalVistas: manualResult.vistas,
+        totalSubs: manualResult.suscriptores,
+        totalDinero: manualResult.dinero,
+        totalFama: manualResult.famaGanada,
+        simulatedVideos: 0,
+        simVistas: 0,
+        simSubs: 0,
+        simDinero: 0,
+        simFama: 0,
+        virales: manualResult.viral ? 1 : 0
+    };
+
+    gameState.lastQuarterResult = quarterResult;
     gameState.guardar();
     return quarterResult;
 }
-
 export default {
     generarVideos,
     procesarPublicacionVideo,
