@@ -28,6 +28,7 @@ export function renderCollabs(el) {
     const last = gameState.lastCollab;
     const creators = (gameState.creators || [])
         .filter(c => c.activo !== false)
+        .filter(c => c.id !== "player")
         .slice()
         .sort((a, b) => Number(b.seguidores || 0) - Number(a.seguidores || 0))
         .slice(0, 14);
@@ -67,6 +68,18 @@ export function renderCollabs(el) {
                     <p>No necesitás proponer nada. Seguí jugando y las colaboraciones van a surgir cuando tenga sentido.</p>
                 </section>
             `}
+
+            <section class="panel">
+                <div class="eyebrow">📨 PROPONER COLABORACIÓN</div>
+                <p class="muted">Podés ofrecerle una colaboración a alguien con quien ya tenés relación o a cualquier creador que tenga menos seguidores que vos.</p>
+                <div class="collab-directory">
+                    ${creators.slice(0, 14).map(c => {
+                        const rel = Number(gameState.player.relationships?.[c.id] || 0);
+                        const can = gameState.puedeProponerCollab(c.id);
+                        return `<div class="collab-directory-row"><div><b>${c.nombre}</b><span>${nf(c.seguidores)} subs · relación ${rel}</span></div>${can ? `<button class="btn ghost propose-collab" data-id="${c.id}">OFRECER COLAB</button>` : `<small class="muted">Necesitás relación o ser más grande</small>`}</div>`;
+                    }).join("")}
+                </div>
+            </section>
 
             ${last ? `
                 <section class="panel">

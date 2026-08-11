@@ -38,6 +38,19 @@ export function renderStore(el) {
                 <a href="#dashboard" style="color:var(--text-muted); text-decoration:none;">← Volver</a>
             </div>
 
+            <section style="background:var(--bg-card);border:var(--border-card);border-radius:14px;padding:20px;margin-bottom:18px;">
+                <div style="color:var(--accent-red);font-size:.8rem;font-weight:bold;">🚀 IMPULSOS</div>
+                <h2 style="margin:5px 0;">Comprá un empujón para tu próximo trimestre</h2>
+                <p style="color:var(--text-muted);font-size:.85rem;">No son pay-to-win permanente: duran un trimestre y aumentan el alcance de tus publicaciones.</p>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+                    ${[
+                        ["algoritmo","Boost de algoritmo","+15% alcance",250],
+                        ["tendencia","Impulso de tendencia","+28% alcance",600],
+                        ["alcance","Pack de difusión","+40% alcance",1200]
+                    ].map(([id,name,effect,price]) => `<button class="boost-buy" data-boost="${id}" style="background:#0b0b0b;color:#fff;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:14px;text-align:left;cursor:pointer;"><b>${name}</b><br><span style="color:var(--accent-green)">${effect}</span><br><strong>$${price.toLocaleString()}</strong></button>`).join("")}
+                </div>
+            </section>
+
             ${disponibles.length === 0 ? `
                 <div style="background:var(--bg-card); padding:30px; border-radius:14px; text-align:center;">
                     <h2>🎉 ¡Ya tenés todo lo disponible!</h2>
@@ -87,6 +100,14 @@ export function renderStore(el) {
             `}
         </div>
     `;
+
+    container.querySelectorAll(".boost-buy").forEach(button => {
+        button.addEventListener("click", () => {
+            const ok = gameState.comprarBoost(button.dataset.boost);
+            if (!ok) alert("No tenés suficiente dinero para este impulso.");
+            renderStore(container);
+        });
+    });
 
     container.querySelectorAll(".buy-item-btn").forEach(button => {
         button.addEventListener("click", () => {

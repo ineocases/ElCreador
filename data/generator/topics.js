@@ -7,8 +7,17 @@ export default {
         "GTA VI", "EA Sports FC", "Among Us", "Fall Guys", "Only Up"
     ],
     Fútbol: [
-        "Boca", "River", "Champions", "Libertadores", "Messi",
-        "Cristiano Ronaldo", "Mercado de Pases", "Selección Argentina", "Mundial", "Balón de Oro"
+        "Boca", "River", "Racing", "Independiente", "San Lorenzo",
+        "Champions League", "Libertadores", "Mundial", "Selección Argentina",
+        "Mercado de Pases", "Mercado de Pases de Boca", "Mercado de Pases de River",
+        "Los mejores goles de la fecha", "La fecha del fútbol argentino",
+        "Reaccionando al Superclásico", "Reaccionando a los goles de la fecha",
+        "Analizando el partido de Boca", "Analizando el partido de River",
+        "¿Quién fue el mejor de la fecha?", "El jugador que está rompiendo todo",
+        "Predicciones de la próxima fecha", "Debate: ¿quién es mejor?",
+        "Polémicas del fútbol", "El mercado de pases explicado",
+        "La Selección Argentina", "Messi", "Cristiano Ronaldo", "Balón de Oro",
+        "Ranking de delanteros", "Ranking de mediocampistas", "Top 10 goles"
     ],
     Vlog: [
         "Viajes low cost", "Comida callejera", "Mi rutina diaria",

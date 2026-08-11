@@ -79,7 +79,7 @@ export function renderPublishVideo(el) {
             // El cierre del trimestre pasa siempre por la misma puerta.
             // Si hubo un evento, Pasan Cosas lo muestra; si no hubo, la pantalla
             // avanza sola al siguiente trimestre/año sin mostrar un resumen intermedio.
-            window.location.hash = "#minigame";
+            window.location.hash = "#pasanCosas";
         });
     });
 

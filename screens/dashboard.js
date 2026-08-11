@@ -2,7 +2,8 @@
 import { gameState } from "../engine/gameState.js";
 import { renderHeaderHud } from "../components/HeaderHud.js";
 
-const nf = n => Number(n || 0).toLocaleString();
+const nf = n => Number(n || 0).toLocaleString("es-AR");
+const fame = n => String(Math.round(Number(n) || 0));
 
 export function renderDashboard(el) {
     const container = el || document.getElementById("dashboardScreen");
@@ -82,7 +83,7 @@ export function renderDashboard(el) {
 
                 <section class="panel">
                     <div class="eyebrow">🧠 REPUTACIÓN</div>
-                    <div class="big-metric"><strong>${nf(p.fama)}/100</strong><span>Fama</span></div>
+                    <div class="big-metric"><strong>${fame(p.fama)}/100</strong><span>Fama</span></div>
                     <div class="metric-line"><span>Comunidad</span><b>${nf(p.comunidad)}/100</b></div>
                     <div class="progress"><i style="width:${Math.min(100,p.comunidad || 0)}%"></i></div>
                     <div class="metric-line"><span>Reputación</span><b>${nf(p.reputacion)}/100</b></div>

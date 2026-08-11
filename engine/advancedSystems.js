@@ -85,6 +85,38 @@ export function applyBottleFlipResult(game, score, attempts = 3) {
   return p.minigame;
 }
 
+
+export function applyCrisisTimingResult(game, score) {
+  ensureAdvancedState(game);
+  const p = game.player;
+  const s = Math.max(0, Math.min(100, Number(score) || 0));
+  const activity = p.actividadTrimestre;
+  const result = game.lastQuarterResult;
+  if (!activity || !result) { game.pendingMinigame = null; return; }
+
+  // El timing modifica el resultado ya calculado del trimestre.
+  const viewsPct = s >= 90 ? 0.45 : s >= 65 ? 0.22 : s >= 40 ? 0.06 : -0.12;
+  const subsPct = s >= 90 ? 0.32 : s >= 65 ? 0.14 : s >= 40 ? 0.03 : -0.08;
+  const moneyPct = s >= 90 ? 0.28 : s >= 65 ? 0.10 : s >= 40 ? 0.02 : -0.05;
+  const views = Math.round(activity.vistas * viewsPct);
+  const subs = Math.round(activity.suscriptores * subsPct);
+  const money = Math.max(0, Math.round(activity.dinero * moneyPct));
+
+  p.vistasTotales = Math.max(0, p.vistasTotales + views);
+  p.suscriptores = Math.max(0, p.suscriptores + subs);
+  p.dinero = Math.max(0, p.dinero + money);
+  p.ingresosTrimestre += money;
+  p.ingresosGenerados = (Number(p.ingresosGenerados) || 0) + money;
+  if (s >= 90) p.fama = Math.min(100, Number(p.fama || 0) + 2);
+
+  activity.vistas += views; activity.suscriptores += subs; activity.dinero += money;
+  result.totalVistas += views; result.totalSubs += subs; result.totalDinero += money;
+  result.minigameBonus = { views, subs, money, score: s };
+  game.pendingMinigame = null;
+  game.lastMinigame = { type: "crisisTiming", score: s, views, subs, money, fecha: Date.now() };
+  return game.lastMinigame;
+}
+
 export function nicheProfile(game){
  const p=game.player; const n=p.niche;
  const profiles={Gaming:{viral:1.15,views:1.1,events:["lanzamiento","esports"]},"Fútbol":{viral:1.05,views:1.15,events:["superclasico","mercadopases"]},Vlog:{viral:1.0,views:1.0,events:["viaje","tendencia"]},Tecnología:{viral:1.0,views:1.05,events:["producto","lanzamiento"]},Cocina:{viral:.9,views:.95,events:["receta","chef"]},Periodismo:{viral:1.0,views:1.1,events:["noticia","debate"]}};

@@ -154,6 +154,8 @@ export const gameState = {
     pendingSponsorOffer: null,
     pendingEvent: null,
     pendingCollabOffer: null,
+    pendingMinigame: null,
+    boosts: {},
 
     lastVideo: null,
     lastVideoResult: null,
@@ -190,6 +192,8 @@ export const gameState = {
         this.pendingSponsorOffer = null;
         this.pendingEvent = null;
         this.pendingCollabOffer = null;
+        this.pendingMinigame = null;
+        this.boosts = {};
         this.lastVideo = null;
         this.lastVideoResult = null;
         this.lastQuarterResult = null;
@@ -544,6 +548,16 @@ export const gameState = {
 
         this.pendingEvent = null;
 
+        if (["clip_polemico", "hate_raid", "exponen_en_vivo", "tiktok_viral", "acusacion_bots"].includes(evento.id)) {
+            this.pendingMinigame = {
+                type: "crisisTiming",
+                eventId: evento.id,
+                title: evento.title,
+                text: "La conversación sigue creciendo. Un buen timing puede convertir la crisis en una oportunidad.",
+                createdAt: Date.now()
+            };
+        }
+
         if (opcion === "a" && eventHasPositive(evento[opcion])) {
             p.stats.eventosGanados = (Number(p.stats.eventosGanados) || 0) + 1;
         }
@@ -608,7 +622,14 @@ export const gameState = {
     },
 
     puedeProponerCollab(creatorId) {
-        return Number(this.player?.relationships?.[creatorId] || 0) >= 15;
+        const creator = (this.creators || []).find(c => c.id === creatorId);
+        if (!creator) return false;
+        const relacion = Number(this.player?.relationships?.[creatorId] || 0);
+        const creatorSubs = Number(creator.seguidores || 0);
+        const playerSubs = Number(this.player?.suscriptores || 0);
+        // Podés ofrecerle a cualquiera que ya tenga relación con vos, o a
+        // cualquier creador que esté por debajo de tu tamaño.
+        return relacion >= 15 || creatorSubs <= playerSubs;
     },
 
     proponerCollab(creatorId) {
@@ -680,6 +701,24 @@ export const gameState = {
         this.player.relationships[oferta.creatorId] = Math.max(-100, Number(this.player.relationships?.[oferta.creatorId] || 0) - 8);
         this.lastCollab = { ...oferta, estado: "rechazada", fecha: Date.now() };
         this.pendingCollabOffer = null;
+        this.guardar();
+        return true;
+    },
+
+    comprarBoost(tipo) {
+        const p = this.player;
+        const catalogo = {
+            algoritmo: { nombre: "Boost de algoritmo", precio: 250, multiplicador: 1.15, turnos: 1 },
+            tendencia: { nombre: "Impulso de tendencia", precio: 600, multiplicador: 1.28, turnos: 1 },
+            alcance: { nombre: "Pack de difusión", precio: 1200, multiplicador: 1.40, turnos: 1 }
+        };
+        const item = catalogo[tipo];
+        if (!item || Number(p.dinero || 0) < item.precio) return false;
+        p.dinero -= item.precio;
+        p.boosts ||= {};
+        p.boosts.viewBoostTurns = (Number(p.boosts.viewBoostTurns) || 0) + item.turnos;
+        p.boosts.viewMultiplier = Math.max(Number(p.boosts.viewMultiplier) || 1, item.multiplicador);
+        this.agregarNotificacion({ tipo: "tienda", titulo: `🚀 ${item.nombre}`, descripcion: `El próximo trimestre tendrá un impulso de alcance.` });
         this.guardar();
         return true;
     },
@@ -835,6 +874,8 @@ export const gameState = {
                 pendingSponsorOffer: this.pendingSponsorOffer,
                 pendingEvent: this.pendingEvent,
                 pendingCollabOffer: this.pendingCollabOffer,
+                pendingMinigame: this.pendingMinigame,
+                boosts: this.boosts,
                 lastVideo: this.lastVideo,
                 lastVideoResult: this.lastVideoResult,
                 lastQuarterResult: this.lastQuarterResult,
@@ -896,6 +937,34 @@ export const gameState = {
         }
     },
 
+    generarCreadoresNuevos(año) {
+        const nombres = [
+            ["NicoRush", "Gaming"], ["MiliEnVivo", "Variedad"], ["PatoFutbol", "Fútbol"],
+            ["RamiClip", "Gaming"], ["SofiIRL", "IRL"], ["TotoStream", "Variedad"],
+            ["FakuGG", "Gaming"], ["LuliReacciona", "Variedad"], ["MateFutbol", "Fútbol"],
+            ["CandePlay", "Gaming"], ["FranEnKick", "Variedad"], ["BeniFPS", "Gaming"]
+        ];
+        const cantidad = random(2, 4);
+        const existentes = new Set(this.creators.map(c => c.nombre));
+        let creados = 0;
+        for (let i = 0; i < nombres.length && creados < cantidad; i++) {
+            const [nombre, nicho] = nombres[(i + random(0, nombres.length - 1)) % nombres.length];
+            if (existentes.has(nombre)) continue;
+            const id = `rookie_${año}_${creados}_${Math.random().toString(36).slice(2,7)}`;
+            const seguidores = random(0, 120);
+            const creator = {
+                id, nombre, nicho, pais: "Argentina", seguidores, seguidoresIniciales: seguidores,
+                popularidad: random(38, 58), crecimientoBase: randomFloat(0.12, 0.24), debutYear: año,
+                esRevelacion: true, revelacionGanada: false, relacion: 0, respeto: 0, rivalidad: 0,
+                colaboraciones: 0, activo: true, mundo: { videos: 0, vistas: 0, nuevosSeguidores: 0, virales: 0, clips: 0, enojos: 0, temporadas: 0 }
+            };
+            this.creators.push(creator);
+            existentes.add(nombre);
+            creados++;
+        }
+        return creados;
+    },
+
     prepararSiguienteAño() {
         if (this.time.trimestre !== 2) return false;
 
@@ -907,6 +976,7 @@ export const gameState = {
         }
 
         this.time = { año: nextYear, trimestre: 1 };
+        this.generarCreadoresNuevos(nextYear);
         this.player.año = nextYear;
         this.player.trimestre = 1;
         this.player.pretemporada = null;
@@ -924,6 +994,7 @@ export const gameState = {
         this.pendingSponsorOffer = null;
         this.pendingEvent = null;
         this.pendingCollabOffer = null;
+        this.pendingMinigame = null;
         this.ultimoEventoResultado = null;
 
         this.guardar();
@@ -1115,6 +1186,7 @@ export function normalizarGameState() {
     if (!("pendingSponsorOffer" in gameState)) gameState.pendingSponsorOffer = null;
     if (!("pendingEvent" in gameState)) gameState.pendingEvent = null;
     if (!("pendingCollabOffer" in gameState)) gameState.pendingCollabOffer = null;
+    if (!gameState.boosts) gameState.boosts = {};
 }
 
 normalizarGameState();

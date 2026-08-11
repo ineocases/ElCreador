@@ -8,6 +8,10 @@ const nf = n => Number(n || 0).toLocaleString();
 
 function continuarDespuesDelEvento() {
     setTimeout(() => {
+        if (gameState.pendingMinigame) {
+            window.location.hash = "#minigame";
+            return;
+        }
         if (gameState.pendingCollabOffer) {
             window.location.hash = "#collabs";
             return;

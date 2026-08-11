@@ -45,7 +45,7 @@ export function renderYearSummary(el) {
                     <div><small>Vistas ganadas</small><b>${nf(s.vistasGanadas)}</b></div>
                     <div><small>Videos publicados</small><b>${nf(s.videosPublicados)}</b></div>
                     <div><small>Videos virales</small><b>${nf(s.videosVirales)}</b></div>
-                    <div><small>Fama</small><b>${Math.round(Number(s.famaFin)||0)}/100</b></div>
+                    <div><small>Fama</small><b>${String(Math.round(Number(s.famaFin)||0))}/100</b></div>
                 </div>
             </section>
 
