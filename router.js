@@ -1,19 +1,41 @@
 // router.js - Router principal de El Creador
-// CORREGIDO: Sintaxis válida, rutas coherentes, exports compatibles
+// Router centralizado y compatible con todas las pantallas
 
 import saveManager from "./engine/saveManager.js";
 
-import * as createChannelScreen  from "./screens/createChannel.js";
-import * as dashboardScreen       from "./screens/dashboard.js";
-import * as pretemporadaScreen    from "./screens/pretemporada.js";
-import * as publishVideoScreen    from "./screens/publishVideo.js";
-import * as videoResultScreen       from "./screens/videoResult.js";
-import * as storeScreen           from "./screens/store.js";
-import * as awardsScreen          from "./screens/awards.js";
-import * as collabsScreen         from "./screens/collabs.js";
-import * as sponsorsScreen        from "./screens/sponsors.js";
-import * as pasanCosasScreen      from "./screens/pasanCosas.js";
-import * as adminDashboardScreen  from "./screens/admin/AdminDashboard.js";
+import * as createChannelScreen
+    from "./screens/createChannel.js";
+
+import * as dashboardScreen
+    from "./screens/dashboard.js";
+
+import * as pretemporadaScreen
+    from "./screens/pretemporada.js";
+
+import * as publishVideoScreen
+    from "./screens/publishVideo.js";
+
+import * as videoResultScreen
+    from "./screens/videoResult.js";
+
+import * as storeScreen
+    from "./screens/store.js";
+
+import * as awardsScreen
+    from "./screens/awards.js";
+
+import * as collabsScreen
+    from "./screens/collabs.js";
+
+import * as sponsorsScreen
+    from "./screens/sponsors.js";
+
+import * as pasanCosasScreen
+    from "./screens/pasanCosas.js";
+
+import * as adminDashboardScreen
+    from "./screens/admin/AdminDashboard.js";
+
 
 // ============================================================
 // INICIAR ROUTER
@@ -21,27 +43,43 @@ import * as adminDashboardScreen  from "./screens/admin/AdminDashboard.js";
 
 export function initRouter() {
 
-    console.log("?? Router de El Creador inicializado");
+    console.log("🎮 Router de El Creador inicializado");
+
+    /*
+     * IMPORTANTE:
+     * Primero registramos hashchange.
+     * Después decidimos a qué pantalla ir.
+     */
+    window.addEventListener(
+        "hashchange",
+        handleRoute
+    );
+
 
     let hasSave = false;
 
     try {
-        hasSave = saveManager.hasSave();
+
+        hasSave =
+            typeof saveManager.hasSave === "function"
+                ? saveManager.hasSave()
+                : false;
+
     } catch (error) {
+
         console.warn(
-            "?? No se pudo comprobar la partida:",
+            "⚠️ No se pudo comprobar la partida:",
             error
         );
 
         hasSave = false;
     }
 
+
     /*
-     * Si el usuario no tiene hash:
-     *
-     * - Con partida ? dashboard
-     * - Sin partida ? crear canal
+     * Si no existe hash, elegir pantalla inicial.
      */
+
     if (!window.location.hash) {
 
         window.location.hash =
@@ -49,16 +87,56 @@ export function initRouter() {
                 ? "#dashboard"
                 : "#createChannel";
 
-        return;
+        /*
+         * No hacemos return.
+         *
+         * También ejecutamos handleRoute()
+         * manualmente para asegurarnos de que
+         * la pantalla aparezca inmediatamente.
+         */
+
     }
 
-    window.addEventListener(
-        "hashchange",
-        handleRoute
-    );
+
+    /*
+     * Render inicial.
+     */
 
     handleRoute();
 }
+
+
+// ============================================================
+// COMPROBAR SI EXISTE PARTIDA
+// ============================================================
+
+function existePartida() {
+
+    try {
+
+        if (
+            typeof saveManager.hasSave ===
+            "function"
+        ) {
+
+            return Boolean(
+                saveManager.hasSave()
+            );
+
+        }
+
+    } catch (error) {
+
+        console.warn(
+            "⚠️ Error comprobando partida:",
+            error
+        );
+
+    }
+
+    return false;
+}
+
 
 // ============================================================
 // MANEJAR RUTA
@@ -66,44 +144,53 @@ export function initRouter() {
 
 function handleRoute() {
 
-function handleRoute() {
-
     const hash =
         window.location.hash ||
         "#createChannel";
 
-    console.log("?? Ruta:", hash);
 
-    /*
-     * ============================================
-     * PROTEGER RUTAS DEL JUEGO
-     * ============================================
-     */
+    console.log(
+        "🧭 Ruta:",
+        hash
+    );
+
+
+    // ========================================================
+    // RUTAS QUE REQUIEREN PARTIDA
+    // ========================================================
 
     const rutasQueRequierenPartida = [
+
         "#dashboard",
+
         "#pretemporada",
+
         "#publish",
+
         "#videoResult",
+
         "#pasanCosas",
+
         "#store",
+
         "#awards",
+
         "#collabs",
+
         "#sponsors",
+
         "#admin"
+
     ];
 
-    let hasSave = false;
 
-    try {
-        hasSave = saveManager.hasSave();
-    } catch (error) {
-        hasSave = false;
-    }
+    const hasSave =
+        existePartida();
+
 
     /*
-     * Si intenta entrar al juego sin una partida,
-     * mandarlo a crear canal.
+     * Si intenta entrar a una pantalla del juego
+     * pero no existe partida, volver a crear canal.
      */
 
     if (
@@ -112,35 +199,51 @@ function handleRoute() {
     ) {
 
         console.log(
-            "?? No existe partida. Volviendo a Crear Canal."
+            "⚠️ No existe partida. Volviendo a Crear Canal."
         );
 
-        if (window.location.hash !== "#createChannel") {
-            window.location.hash = "#createChannel";
+
+        if (
+            window.location.hash !==
+            "#createChannel"
+        ) {
+
+            window.location.hash =
+                "#createChannel";
+
+            return;
+
         }
 
-        return;
     }
 
-    /*
-     * ============================================
-     * OCULTAR PANTALLAS
-     * ============================================
-     */
+
+    // ========================================================
+    // OCULTAR TODAS LAS PANTALLAS
+    // ========================================================
 
     document
         .querySelectorAll(".screen")
-        .forEach(screen => {
-            screen.style.display = "none";
-        });
+        .forEach(
+            screen => {
 
-    /*
-     * ============================================
-     * RUTAS
-     * ============================================
-     */
+                screen.style.display =
+                    "none";
+
+            }
+        );
+
+
+    // ========================================================
+    // RUTAS
+    // ========================================================
 
     switch (hash) {
+
+
+        // ====================================================
+        // CREAR CANAL
+        // ====================================================
 
         case "#createChannel":
 
@@ -151,6 +254,11 @@ function handleRoute() {
 
             break;
 
+
+        // ====================================================
+        // PRETEMPORADA
+        // ====================================================
+
         case "#pretemporada":
 
             renderScreen(
@@ -159,6 +267,11 @@ function handleRoute() {
             );
 
             break;
+
+
+        // ====================================================
+        // DASHBOARD
+        // ====================================================
 
         case "#dashboard":
 
@@ -169,6 +282,11 @@ function handleRoute() {
 
             break;
 
+
+        // ====================================================
+        // PUBLICAR VIDEO
+        // ====================================================
+
         case "#publish":
 
             renderScreen(
@@ -177,6 +295,11 @@ function handleRoute() {
             );
 
             break;
+
+
+        // ====================================================
+        // RESULTADO VIDEO
+        // ====================================================
 
         case "#videoResult":
 
@@ -187,6 +310,11 @@ function handleRoute() {
 
             break;
 
+
+        // ====================================================
+        // PASAN COSAS
+        // ====================================================
+
         case "#pasanCosas":
 
             renderScreen(
@@ -195,6 +323,11 @@ function handleRoute() {
             );
 
             break;
+
+
+        // ====================================================
+        // TIENDA
+        // ====================================================
 
         case "#store":
 
@@ -205,6 +338,11 @@ function handleRoute() {
 
             break;
 
+
+        // ====================================================
+        // PREMIOS
+        // ====================================================
+
         case "#awards":
 
             renderScreen(
@@ -213,6 +351,11 @@ function handleRoute() {
             );
 
             break;
+
+
+        // ====================================================
+        // COLABORACIONES
+        // ====================================================
 
         case "#collabs":
 
@@ -223,6 +366,11 @@ function handleRoute() {
 
             break;
 
+
+        // ====================================================
+        // SPONSORS
+        // ====================================================
+
         case "#sponsors":
 
             renderScreen(
@@ -231,6 +379,11 @@ function handleRoute() {
             );
 
             break;
+
+
+        // ====================================================
+        // ADMIN
+        // ====================================================
 
         case "#admin":
 
@@ -241,7 +394,18 @@ function handleRoute() {
 
             break;
 
+
+        // ====================================================
+        // RUTA DESCONOCIDA
+        // ====================================================
+
         default:
+
+            console.warn(
+                "⚠️ Ruta desconocida:",
+                hash
+            );
+
 
             window.location.hash =
                 hasSave
@@ -249,85 +413,202 @@ function handleRoute() {
                     : "#createChannel";
 
             break;
+
     }
+
 }
+
 
 // ============================================================
 // RENDER SCREEN
 // ============================================================
 
-function renderScreen(elementId, screenModule) {
+function renderScreen(
+    elementId,
+    screenModule
+) {
 
-    const el = document.getElementById(elementId);
+    const el =
+        document.getElementById(
+            elementId
+        );
+
 
     if (!el) {
-        console.error(`? No existe el contenedor #${elementId} en index.html`);
+
+        console.error(
+            `❌ No existe el contenedor #${elementId} en index.html`
+        );
+
         return;
+
     }
+
 
     if (!screenModule) {
-        console.error(`? No existe el módulo para #${elementId}`);
+
+        console.error(
+            `❌ No existe el módulo para #${elementId}`
+        );
+
         return;
+
     }
 
-    // Mostrar el contenedor
-    el.style.display = "block";
 
-    // ====================================================================
-    // CASO 1: Export default como función
-    // ====================================================================
-    if (typeof screenModule.default === "function") {
-        const result = screenModule.default(el);
-        procesarResultado(el, result);
+    /*
+     * Mostrar contenedor.
+     */
+
+    el.style.display =
+        "block";
+
+
+    /*
+     * Limpiar contenido anterior.
+     *
+     * Esto es importante para que al volver
+     * a una pantalla no se acumulen elementos.
+     */
+
+    el.innerHTML = "";
+
+
+    // ========================================================
+    // EXPORT DEFAULT COMO FUNCIÓN
+    // ========================================================
+
+    if (
+        typeof screenModule.default ===
+        "function"
+    ) {
+
+        const result =
+            screenModule.default(el);
+
+
+        procesarResultado(
+            el,
+            result
+        );
+
         return;
+
     }
 
-    // ====================================================================
-    // CASO 2: Export default como objeto con método render
-    // ====================================================================
-    if (screenModule.default && typeof screenModule.default.render === "function") {
-        const result = screenModule.default.render(el);
-        procesarResultado(el, result);
+
+    // ========================================================
+    // EXPORT DEFAULT COMO OBJETO
+    // ========================================================
+
+    if (
+        screenModule.default &&
+        typeof screenModule.default.render ===
+        "function"
+    ) {
+
+        const result =
+            screenModule.default.render(el);
+
+
+        procesarResultado(
+            el,
+            result
+        );
+
         return;
+
     }
 
-    // ====================================================================
-    // CASO 3: Export nombrado render
-    // ====================================================================
-    if (typeof screenModule.render === "function") {
-        const result = screenModule.render(el);
-        procesarResultado(el, result);
+
+    // ========================================================
+    // EXPORT NOMBRADO render
+    // ========================================================
+
+    if (
+        typeof screenModule.render ===
+        "function"
+    ) {
+
+        const result =
+            screenModule.render(el);
+
+
+        procesarResultado(
+            el,
+            result
+        );
+
         return;
+
     }
 
-    // ====================================================================
-    // CASO 4: Buscar cualquier función que empiece con "render"
-    // ====================================================================
-    const renderFnKey = Object.keys(screenModule).find(
-        key => key.startsWith("render") && typeof screenModule[key] === "function"
-    );
+
+    // ========================================================
+    // BUSCAR CUALQUIER renderX()
+    // ========================================================
+
+    const renderFnKey =
+        Object.keys(screenModule)
+            .find(
+                key =>
+                    key.startsWith("render") &&
+                    typeof screenModule[key] ===
+                    "function"
+            );
+
 
     if (renderFnKey) {
-        const result = screenModule[renderFnKey](el);
-        procesarResultado(el, result);
+
+        const result =
+            screenModule[renderFnKey](el);
+
+
+        procesarResultado(
+            el,
+            result
+        );
+
         return;
+
     }
 
+
     console.error(
-        `? El módulo de #${elementId} no tiene una función render válida.`,
+        `❌ El módulo de #${elementId} no tiene una función render válida.`,
         screenModule
     );
+
 }
+
 
 // ============================================================
 // PROCESAR RESULTADO
 // ============================================================
 
-function procesarResultado(el, result) {
-    if (result instanceof HTMLElement && result !== el) {
+function procesarResultado(
+    el,
+    result
+) {
+
+    /*
+     * Algunas pantallas devuelven un HTMLElement.
+     *
+     * Otras escriben directamente dentro
+     * del contenedor.
+     */
+
+    if (
+        result instanceof HTMLElement &&
+        result !== el
+    ) {
+
         el.innerHTML = "";
-        el.appendChild(result);
+
+        el.appendChild(
+            result
+        );
+
     }
-    // Si result es string o el resultado fue inyectado directamente al container,
-    // no hacemos nada más
+
 }
