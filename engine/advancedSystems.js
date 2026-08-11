@@ -13,6 +13,8 @@ export function ensureAdvancedState(game) {
   p.velada ||= { tier: 0, training: 0, rival: null, eligible: false, wins: 0, losses: 0 };
   p.minigame ||= null;
   p.nicheModifiers ||= {};
+  p.negocios ||= {};
+  p.ingresosDesglose ||= { publicidad: 0, sponsors: 0, negocios: 0, afiliados: 0, donaciones: 0 };
   game.lastMinigame ||= null;
   game.lastEventCategory ||= null;
 }
@@ -36,15 +38,46 @@ export function buyStaff(game, role) {
 
 export function advanceEconomy(game) {
   ensureAdvancedState(game); const p=game.player;
-  const monthly = Object.values(STAFF).reduce((sum,cfg)=>sum,0);
-  const recurring = Object.entries(p.staff).reduce((sum,[role,s])=>sum + (s.level ? STAFF[role].costs[s.level] / 4 : 0),0);
-  p.dinero = Math.max(0, p.dinero - Math.round(recurring));
+  const recurring = Object.entries(p.staff).reduce((sum,[role,s]) => {
+    const cfg=STAFF[role]; return sum + (cfg && s.level ? cfg.costs[s.level] * 3 : 0);
+  },0);
+  const negocios = p.negocios || {};
+  const negocioCfg = BUSINESS;
+  let businessIncome=0;
+  for (const [id, data] of Object.entries(negocios)) {
+    if (!data?.owned || !negocioCfg[id]) continue;
+    businessIncome += Number(negocioCfg[id].monthly || 0) * 3;
+  }
+  const afiliados = Math.round(Math.max(0, Number(p.suscriptores)||0) * 0.012 * (1 + (Number(p.atributos?.marketing)||0)/100));
+  p.dinero = Math.max(0, Number(p.dinero||0) - Math.round(recurring) + businessIncome + afiliados);
+  p.ingresosGenerados = (Number(p.ingresosGenerados)||0) + businessIncome + afiliados;
+  p.ingresosTrimestre = (Number(p.ingresosTrimestre)||0) + businessIncome + afiliados;
+  p.ingresosDesglose ||= { publicidad:0,sponsors:0,negocios:0,afiliados:0,donaciones:0 };
+  p.ingresosDesglose.negocios = (Number(p.ingresosDesglose.negocios)||0) + businessIncome;
+  p.ingresosDesglose.afiliados = (Number(p.ingresosDesglose.afiliados)||0) + afiliados;
   const thresholds=[0,5000,25000,100000,500000];
   const names=["Casa de tus viejos","Habitación/estudio propio","Departamento con estudio","Casa con estudio profesional","Country + estudio profesional"];
   let etapa=0; thresholds.forEach((t,i)=>{if(p.suscriptores>=t) etapa=i;});
   if(etapa>p.patrimonio.etapa){p.patrimonio.etapa=etapa;p.patrimonio.nombre=names[etapa];}
-  return {recurring:Math.round(recurring), patrimonio:p.patrimonio};
+  return {recurring:Math.round(recurring), businessIncome, afiliados, patrimonio:p.patrimonio};
 }
+
+export const BUSINESS = {
+  merch: { name:'Tienda de merch', price:2000, monthly:300, minFama:0 },
+  cafe: { name:'Cafetería gamer', price:5000, monthly:600, minFama:0 },
+  energy: { name:'Bebida energética propia', price:20000, monthly:2500, minFama:30 },
+  esports: { name:'Equipo de esports', price:50000, monthly:6000, minFama:55 },
+  agency: { name:'Agencia de talentos', price:150000, monthly:15000, minFama:55 }
+};
+
+export function buyBusiness(game, id) {
+  ensureAdvancedState(game); const p=game.player, b=BUSINESS[id];
+  if(!b || p.negocios?.[id]?.owned || Number(p.dinero||0)<b.price || Number(p.fama||0)<b.minFama) return false;
+  p.dinero -= b.price; p.negocios[id]={owned:true,boughtAt:Date.now()};
+  p.ingresosDesglose ||= {publicidad:0,sponsors:0,negocios:0,afiliados:0,donaciones:0};
+  game.guardar(); return true;
+}
+
 
 export function applyBottleFlipResult(game, score, attempts = 3) {
   ensureAdvancedState(game);

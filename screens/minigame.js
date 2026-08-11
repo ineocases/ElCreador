@@ -19,7 +19,7 @@ function renderVideoSetup(container, mg) {
     if (!video) { gameState.pendingMinigame=null; window.location.hash="#publish"; return container; }
     container.innerHTML=`<div class="page-shell compact-page">${renderHeaderHud()}<section class="panel"><div class="eyebrow">🎬 MINIJUEGO · VIDEO DESTACADO</div><h1 class="page-title">Prepará: ${video.titulo}</h1><p class="page-subtitle">Elegí miniatura y horario. No existe una opción siempre correcta.</p><div class="setup-choice-block"><h3>1. Miniatura</h3><div class="mini-choice-grid">${[
         ["limpia","🧼 Limpia","+retención"],["impactante","🔥 Impactante","+click"],["personaje","😱 Expresión","+curiosidad"]
-    ].map(x=>`<button class="setup-choice" data-thumb="${x[0]}"><b>${x[1]}</b><small>${x[2]}</small></button>`).join("")}</div></div><div class="setup-choice-block"><h3>2. Horario</h3><div class="mini-choice-grid">${[["mañana","☀️ Mañana"],["tarde","🌇 Tarde"],["noche","🌙 Noche"]].map(x=>`<button class="setup-choice" data-time="${x[0]}"><b>${x[1]}</b></button>`).join("")}</div></div><button id="publishPrepared" class="btn primary big" disabled>PUBLICAR VIDEO</button><p id="setupScore" class="muted center">Elegí ambas opciones.</p></section></div>`;
+    ].map(x=>`<button class="setup-choice" data-thumb="${x[0]}"><b>${x[1]}</b><small>${x[2]}</small></button>`).join("")}</div></div><div class="setup-choice-block"><h3>2. Horario</h3><div class="mini-choice-grid">${[["mañana","☀️ Mañana"],["tarde","🌇 Tarde"],["noche","🌙 Noche"]].map(x=>`<button class="setup-choice" data-time="${x[0]}"><b>${x[1]}</b></button>`).join("")}</div></div>${(gameState.sponsors||[]).some(s=>s.estado==='aceptado') ? `<label class="sponsor-mention"><input type="checkbox" id="sponsorMention"> 💼 Incluir mención paga en este video <small>(máximo 2 por trimestre)</small></label>` : ''}<button id="publishPrepared" class="btn primary big" disabled>PUBLICAR VIDEO</button><p id="setupScore" class="muted center">Elegí ambas opciones.</p></section></div>`;
     let thumb=null,time=null;
     const update=()=>{container.querySelector('#publishPrepared').disabled=!(thumb&&time);if(thumb&&time)container.querySelector('#setupScore').textContent='Listo. Ahora publicá.'};
     container.querySelectorAll('[data-thumb]').forEach(b=>b.onclick=()=>{thumb=b.dataset.thumb;container.querySelectorAll('[data-thumb]').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');update()});
@@ -31,7 +31,7 @@ function renderVideoSetup(container, mg) {
         const costo=Number(video.costo)||0;
         if(gameState.player.dinero<costo){alert('No tenés suficiente dinero.');return;}
         gameState.player.dinero-=costo;
-        procesarPublicacionTrimestre(video.titulo,video.enfoquePrincipal,video.enfoqueSecundario,{tituloImpacto:impacto,tituloHook:video.tituloHook,thumbnail:thumb,horario:time});
+        procesarPublicacionTrimestre(video.titulo,video.enfoquePrincipal,video.enfoqueSecundario,{tituloImpacto:impacto,tituloHook:video.tituloHook,thumbnail:thumb,horario:time,sponsorMention:Boolean(container.querySelector('#sponsorMention')?.checked)});
         gameState.registrarVideoPublicado(); gameState.lastVideo=video; gameState.pendingVideoSelection=null; gameState.pendingMinigame=null; gameState.guardar(); window.location.hash='#pasanCosas';
     };
     return container;

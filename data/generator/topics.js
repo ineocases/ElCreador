@@ -1,87 +1,49 @@
-// Biblioteca ampliada de temas por nicho.
+// data/generator/topics.js
+// CORREGIDO: Agregados los nichos faltantes (Vlog, Cocina, Periodismo)
+
 export default {
     Gaming: [
-        "Roblox", "Minecraft", "Fortnite", "Valorant", "Counter-Strike",
-        "GTA VI", "EA Sports FC", "Among Us", "Fall Guys", "Only Up",
-        "Elden Ring", "RPGs", "Juegos gratis", "Indies", "Terror",
-        "Speedruns", "Mods", "Servidores", "Ranked", "Fails",
-        "Mejores jugadas", "Nuevos lanzamientos", "Juegos retro", "Steam", "PlayStation",
-        "Xbox", "Nintendo", "PC Gamer", "Setup gamer", "IA en videojuegos",
-        "El juego de moda", "El peor juego del año", "El juego que nadie conoce", "Desafío sin morir", "Reto con seguidores"
+        "Roblox", "Minecraft", "Fortnite", "Valorant", "Counter Strike",
+        "GTA VI", "EA Sports FC", "Among Us", "Fall Guys", "Only Up"
     ],
     Fútbol: [
         "Boca", "River", "Racing", "Independiente", "San Lorenzo",
-        "Champions League", "Libertadores", "Mundial", "Selección Argentina", "Mercado de Pases",
-        "Mercado de Pases de Boca", "Mercado de Pases de River", "La fecha del fútbol argentino", "Superclásico", "Goles de la fecha",
-        "Polémicas", "Árbitros", "VAR", "Ascenso", "Selección juvenil",
-        "Messi", "Cristiano Ronaldo", "Balón de Oro", "Ranking de delanteros", "Ranking de mediocampistas",
-        "Top 10 goles", "Promesas del fútbol", "Mercado europeo", "Premier League", "La Liga",
-        "Serie A", "¿Quién es el mejor?", "Predicciones", "Formaciones", "Tácticas",
-        "Historia de los clásicos", "Equipos históricos", "El jugador revelación"
+        "Champions League", "Libertadores", "Mundial", "Selección Argentina",
+        "Mercado de Pases", "Mercado de Pases de Boca", "Mercado de Pases de River",
+        "Los mejores goles de la fecha", "La fecha del fútbol argentino",
+        "Reaccionando al Superclásico", "Reaccionando a los goles de la fecha",
+        "Analizando el partido de Boca", "Analizando el partido de River",
+        "¿Quién fue el mejor de la fecha?", "El jugador que está rompiendo todo",
+        "Predicciones de la próxima fecha", "Debate: ¿quién es mejor?",
+        "Polémicas del fútbol", "El mercado de pases explicado",
+        "La Selección Argentina", "Messi", "Cristiano Ronaldo", "Balón de Oro",
+        "Ranking de delanteros", "Ranking de mediocampistas", "Top 10 goles"
     ],
     Vlog: [
-        "Viajes low cost", "Comida callejera", "Mi rutina diaria", "24 horas haciendo", "Probando lugares nuevos",
-        "Mi barrio", "Reaccionando a memes", "Haul de ropa", "Q&A con suscriptores", "Aventura urbana",
-        "Un día sin celular", "Viviendo con $10.000", "Probando trabajos", "Viaje sorpresa", "Tour de mi ciudad",
-        "Mi setup", "Mi habitación", "Un día con mi comunidad", "Cosas que nunca conté", "Expectativa vs realidad",
-        "Probando hoteles", "Comiendo durante 24 horas", "Reto de presupuesto", "Conociendo seguidores", "Mi primer viaje solo"
+        "Viajes low cost", "Comida callejera", "Mi rutina diaria",
+        "24 horas haciendo", "Probando lugares nuevos", "Mi barrio",
+        "Reaccionando a memes", "Haul de ropa", "Q&A con suscriptores", "Aventura urbana"
     ],
     Tecnología: [
         "iPhone", "Samsung", "Apple", "PC Gamer", "Setup",
-        "IA", "ChatGPT", "RTX", "PlayStation", "Nintendo",
-        "Android", "Windows", "MacBook", "Periféricos", "Monitores",
-        "Teclados", "Auriculares", "Smartphones baratos", "Tecnología del futuro", "Gadgets virales",
-        "Mejor celular del año", "PC por presupuesto", "Setup económico", "Errores al comprar tecnología", "IA para creadores",
-        "Automatización", "Cámaras", "Micrófonos", "Internet", "Wi-Fi",
-        "Apps útiles"
+        "IA", "ChatGPT", "RTX", "PlayStation", "Nintendo"
     ],
     Cocina: [
-        "Receta fácil", "Postre rápido", "Comida callejera", "Plato gourmet", "Receta económica",
-        "Reto de comida", "Comparativa de precios", "Cocina internacional", "Técnicas básicas", "Receta viral",
-        "Hamburguesas", "Pizza", "Milanesas", "Asado", "Pastas",
-        "Empanadas", "Desayunos", "Comida para estudiantes", "Cocinar con $5.000", "Probando restaurantes",
-        "Chef vs creador", "Receta de 10 minutos", "Un ingrediente, tres platos", "Cocina de supervivencia", "Comida argentina"
+        "Receta fácil", "Postre rápido", "Comida callejera", "Plato gourmet",
+        "Receta económica", "Reto de comida", "Comparativa de precios",
+        "Cocina internacional", "Técnicas básicas", "Receta viral"
     ],
     Periodismo: [
-        "Investigación local", "Entrevista política", "Análisis económico", "Caso policial", "Denuncia social",
-        "Relevamiento barrial", "Documental corto", "Análisis de medios", "Investigación de corrupción", "Reportaje en profundidad",
-        "Historias de barrio", "Fact checking", "Desinformación", "Economía cotidiana", "Trabajo y salarios",
-        "Vivienda", "Educación", "Tecnología y sociedad", "Entrevista exclusiva", "Informe especial",
-        "Detrás de una noticia", "Archivo histórico", "Crónica", "Debate público"
+        "Investigación local", "Entrevista política", "Análisis económico",
+        "Caso policial", "Denuncia social", "Relevamiento barrial",
+        "Documental corto", "Análisis de medios", "Investigación de corrupción", "Reportaje en profundidad"
     ],
-    Streaming: [
-        "Twitch", "Kick", "YouTube Live", "Coscu", "Spreen",
-        "Davoo", "La Cobra", "Ibai", "Reacts", "Charlando",
-        "IRL", "Just Chatting", "Clips", "Moderación", "Chat",
-        "Raid", "Colaboraciones", "Setup de streaming", "Cómo crecer", "Errores de principiantes",
-        "Un día haciendo stream", "Stream maratón", "Reaccionando a clips", "Historias del streaming", "La comunidad elige"
-    ],
-    Variedad: [
-        "Opiniones impopulares", "Historias de internet", "Memes", "Preguntas incómodas", "Historias de seguidores",
-        "Debates", "Retos", "Tendencias", "Noticias virales", "Experimentos sociales",
-        "Anécdotas", "Cosas que nadie te cuenta", "Probando cosas raras", "Internet de antes vs ahora", "Ranking de todo",
-        "Reaccionando a comentarios", "Verdadero o falso", "Adivinanzas", "Preguntas rápidas", "Especial de fin de año"
-    ],
-    Comedia: [
-        "Stand up", "Memes", "Personajes", "Historias absurdas", "Imitaciones",
-        "Anécdotas", "Roast", "Sketch", "Improvisación", "Reaccionando a memes",
-        "Humor argentino", "Fails", "Historias de seguidores", "Expectativa vs realidad", "Cosas de la vida cotidiana",
-        "Parodias", "Debate absurdo", "Ranking de peores ideas"
-    ],
-    Fitness: [
-        "Rutina de gimnasio", "Entrenamiento en casa", "Desafío 30 días", "Nutrición básica", "Errores entrenando",
-        "Transformación", "Fuerza", "Cardio", "Movilidad", "Running",
-        "Entrenamiento para principiantes", "Reto de resistencia", "Un día de entrenamiento", "Probando gimnasios", "Mitos del fitness",
-        "Preguntas de seguidores", "Rutina sin equipamiento"
-    ],
-    Música: [
-        "Sesión en vivo", "Nuevo tema", "Detrás de la canción", "Reaccionando a canciones", "Cover",
-        "Freestyle", "Producción musical", "Beat challenge", "Top canciones", "Historia de un álbum",
-        "Improvisación", "Colaboración musical", "Ensayo", "Vida de artista", "Preguntas de seguidores"
-    ],
-    IRL: [
-        "Un día conmigo", "Caminando por la ciudad", "Conociendo seguidores", "Viaje sorpresa", "Reto en la calle",
-        "Preguntas a desconocidos", "Comida callejera", "Evento en vivo", "24 horas IRL", "Tour nocturno",
-        "Historias de desconocidos", "Probando trabajos", "Aventura urbana"
-    ]
+    "IRL": ["Un día entero en mi ciudad", "24 horas sin celular", "Conociendo seguidores", "Mi rutina real", "Lo que nadie muestra de un creador", "Viajé sin planear nada", "Probando trabajos por un día", "Visitando lugares secretos", "Sobreviviendo con $10000", "Una semana diciendo que sí"],
+    "Comedia": ["Roast a mis amigos", "Leyendo comentarios", "Historias vergonzosas", "Cosas que me dan bronca", "Imitando a otros creadores", "No puedo reírme", "Anécdotas de mi infancia", "Preguntas incómodas", "Opiniones que nadie pidió", "El peor consejo"],
+    "Educaci\u00f3n": ["Cómo funciona", "Explicado fácil", "Errores que todos cometen", "La historia detrás de", "10 datos que no sabías", "Mitos y verdades", "Experimento en casa", "Guía para principiantes", "Lo que aprendí", "Preguntas de la comunidad"],
+    "Documental": ["La historia de", "El lado desconocido de", "Qué pasó realmente", "Investigando", "El fenómeno explicado", "La caída y el regreso", "Detrás del éxito", "La verdad sobre", "Así funciona", "Un caso que nadie cuenta"],
+    "Podcast": ["Charlando con", "Preguntas sin filtro", "Historias de mi carrera", "Debate abierto", "Invitado sorpresa", "Confesiones", "Lo que nadie pregunta", "Una charla incómoda", "Detrás de cámaras", "Especial de temporada"],
+    "Viajes": ["Viajé solo a", "El destino más barato", "48 horas en", "Comiendo por toda la ciudad", "Guía definitiva de", "El lugar más raro", "Viaje con presupuesto mínimo", "Probando hoteles", "Ruta gastronómica", "Lo mejor y lo peor de"],
+    "Fitness": ["30 días entrenando", "Transformación real", "Rutina para principiantes", "Probando un nuevo deporte", "Reto de fuerza", "Qué como en un día", "Entrenamiento en casa", "Mitos del gimnasio", "Antes y después", "Desafío de 7 días"],
+    "Streaming": ["Mi primer stream", "Reaccionando en vivo", "Charlando con el chat", "Jugando con seguidores", "Noche de retos", "Stream maratón", "IRL en vivo", "Probando juegos nuevos", "Lo mejor del stream", "Clips de la semana"]
 };

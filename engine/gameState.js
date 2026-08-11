@@ -8,6 +8,7 @@
 
 import { creatorsIniciales } from "../data/creators.js";
 import { ensureAdvancedState, advanceEconomy } from "./advancedSystems.js";
+import { EVENTOS_EXTRA } from "../data/eventsExpansion.js";
 
 const SAVE_KEY = "elCreador_saveData";
 const TRIMESTRES_POR_AÑO = 2;
@@ -91,6 +92,7 @@ function crearPlayer() {
         reputacion: 50,
         ingresosTrimestre: 0,
         ingresosGenerados: 0,
+        ingresosDesglose: { publicidad: 0, sponsors: 0, negocios: 0, afiliados: 0, donaciones: 0 },
 
         atributos: crearAtributos(),
 
@@ -478,24 +480,6 @@ export const gameState = {
             }
         ];
 
-        // Eventos ampliados: crecimiento, comunidad, carrera, oportunidades y crisis.
-        eventos.push(
-            { id:"raid_exitoso", minSubs:1000, negativo:false, title:"🚀 Una raid te dejó un chat enorme", text:"Un creador terminó su directo y mandó a su comunidad a tu canal.", a:{label:"Recibirlos con energía",desc:"+25% vistas, +14% subs, +4 comunidad",action:{comunidad:4,fama:3},cierre:{vistasPct:.25,subsPct:.14}}, b:{label:"Hacer un stream tranquilo",desc:"+10% vistas, +5 reputación",action:{reputacion:5},cierre:{vistasPct:.10}} },
-            { id:"meme_propio", minSubs:2500, negativo:false, title:"😂 Un meme tuyo se volvió parte de la comunidad", text:"La gente empezó a repetir una frase tuya. Podés convertirla en identidad o dejarla pasar.", a:{label:"Convertirlo en marca",desc:"+18% subs, +8 fama",action:{fama:8,creatividad:2},cierre:{subsPct:.18}}, b:{label:"No forzarlo",desc:"+7 reputación, +8% vistas",action:{reputacion:7},cierre:{vistasPct:.08}} },
-            { id:"noticia_inesperada", minSubs:10000, negativo:false, title:"📰 Una noticia de tu nicho explotó", text:"Todos hablan del mismo tema y tu comunidad espera una reacción rápida.", a:{label:"Publicar primero",desc:"+30% vistas, +12% subs",action:{fama:5},cierre:{vistasPct:.30,subsPct:.12}}, b:{label:"Investigar antes",desc:"+12 reputación, +10% vistas",action:{reputacion:12,edicion:2},cierre:{vistasPct:.10}} },
-            { id:"colab_pequena", minSubs:3000, negativo:false, title:"🤝 Un creador de tamaño parecido propone colaborar", text:"Sus audiencias encajan muy bien con la tuya.", a:{label:"Hacer la colaboración",desc:"+20% subs, +18% vistas, +4 networking",action:{networking:4,reputacion:3},cierre:{subsPct:.20,vistasPct:.18}}, b:{label:"Esperar una oportunidad mayor",desc:"+5 reputación",action:{reputacion:5},cierre:{}} },
-            { id:"manager_oferta", minSubs:25000, negativo:false, title:"📋 Un manager quiere representarte", text:"Promete conseguir sponsors y colaboraciones a cambio de una parte de tus ingresos.", a:{label:"Firmar por un año",desc:"+25% ingresos, -3 reputación",action:{networking:6,reputacion:-3},cierre:{dineroPct:.25}}, b:{label:"Seguir independiente",desc:"+8 reputación, +4 marketing",action:{reputacion:8,marketing:4},cierre:{}} },
-            { id:"comentario_falso", minSubs:5000, negativo:true, title:"⚠️ Circula una captura falsa sobre vos", text:"Una imagen editada está generando rumores.", a:{label:"Desmentir con pruebas",desc:"+10 reputación, -5% vistas",action:{reputacion:10},cierre:{vistasPct:-.05}}, b:{label:"No alimentar el rumor",desc:"+10% vistas, -4 reputación",action:{reputacion:-4},cierre:{vistasPct:.10}} },
-            { id:"error_en_vivo", minSubs:1000, negativo:true, title:"🔴 Un error técnico quedó grabado en vivo", text:"El stream se cayó justo en el mejor momento y el clip empieza a circular.", a:{label:"Reírme y subir el clip",desc:"+22% vistas, +4 fama",action:{fama:4},cierre:{vistasPct:.22}}, b:{label:"Borrarlo y seguir",desc:"+5 reputación, -5% vistas",action:{reputacion:5},cierre:{vistasPct:-.05}} },
-            { id:"sponsor_bueno", minSubs:10000, negativo:false, title:"💼 Una marca grande quiere trabajar con vos", text:"La campaña encaja con tu contenido y puede convertirse en una relación a largo plazo.", a:{label:"Aceptar la campaña",desc:"+$900, +8 reputación, +12% ingresos",action:{dinero:900,reputacion:8},cierre:{dineroPct:.12}}, b:{label:"Negociar más tiempo",desc:"+4 marketing, oportunidad incierta",action:{marketing:4},cierre:{dineroPct:.04}} },
-            { id:"fatiga_comunidad", minSubs:15000, negativo:true, title:"😮‍💨 Tu comunidad siente que repetís demasiado", text:"Los comentarios piden algo diferente.", a:{label:"Cambiar el formato",desc:"+8 creatividad, +10 reputación, -5% vistas",action:{creatividad:8,reputacion:10},cierre:{vistasPct:-.05}}, b:{label:"Mantener lo que funciona",desc:"+15% vistas, -6 reputación",action:{reputacion:-6},cierre:{vistasPct:.15}} },
-            { id:"gran_viral", minSubs:100000, negativo:false, title:"🌎 Tu contenido cruza fronteras", text:"Un video empezó a funcionar en otros países.", a:{label:"Apuntar al público internacional",desc:"+35% vistas, +20% subs, +8 fama",action:{fama:8,networking:5},cierre:{vistasPct:.35,subsPct:.20}}, b:{label:"Mantener el público local",desc:"+10 reputación, +12% subs",action:{reputacion:10},cierre:{subsPct:.12}} },
-            { id:"stream_maraton", minSubs:30000, negativo:false, title:"⏱️ La comunidad pide un stream maratón", text:"El público quiere verte durante muchas horas.", a:{label:"Hacer el maratón",desc:"+40% vistas, +18% subs, -4 constancia",action:{fama:6,constancia:-4},cierre:{vistasPct:.40,subsPct:.18}}, b:{label:"Hacer un especial corto",desc:"+15% vistas, +5 reputación",action:{reputacion:5},cierre:{vistasPct:.15}} },
-            { id:"critica_editorial", minSubs:75000, negativo:true, title:"🧠 Un creador respetado criticó tu contenido", text:"La crítica es dura, pero apunta a problemas que podrías mejorar.", a:{label:"Escuchar y mejorar",desc:"+8 edición, +10 reputación, -4% vistas",action:{edicion:8,reputacion:10},cierre:{vistasPct:-.04}}, b:{label:"Responder públicamente",desc:"+18% vistas, -8 reputación",action:{reputacion:-8,fama:4},cierre:{vistasPct:.18}} },
-            { id:"equipo_se_suma", minSubs:25000, negativo:false, title:"👥 Dos personas quieren sumarse a tu equipo", text:"Podés profesionalizar edición y producción, pero vas a tener nuevos costos.", a:{label:"Contratar",desc:"-$300, +20% vistas, +6 edición",action:{dinero:-300,edicion:6},cierre:{vistasPct:.20}}, b:{label:"Seguir solo",desc:"+8 constancia",action:{constancia:8},cierre:{}} },
-            { id:"regreso_viral", minSubs:1000, negativo:false, title:"✨ Un formato que abandonaste vuelve a interesar", text:"La comunidad empezó a pedir una sección vieja del canal.", a:{label:"Traerlo de vuelta",desc:"+20% vistas, +8 comunidad",action:{comunidad:8},cierre:{vistasPct:.20}}, b:{label:"Hacer una versión nueva",desc:"+12% vistas, +6 creatividad",action:{creatividad:6},cierre:{vistasPct:.12}} }
-        );
-
         // Cualquier creador del mundo puede convertirse en una interacción.
         // Los más grandes requieren más audiencia; los rookies pueden descubrirte antes.
         const dinamicos = (this.creators || [])
@@ -523,6 +507,8 @@ export const gameState = {
                 };
             });
 
+        // Base ampliada de eventos del mundo.
+        eventos.push(...EVENTOS_EXTRA);
         eventos.push(...dinamicos);
 
         const validos = eventos.filter(e => subs >= e.minSubs);
@@ -851,7 +837,27 @@ export const gameState = {
             { id: "adidas", name: "Adidas", minSubs: 300000, minFama: 30, payMin: 8000, payMax: 18000, duration: 2, prestige: 8, tipo: "premium" },
             { id: "nike", name: "Nike", minSubs: 750000, minFama: 40, payMin: 12000, payMax: 28000, duration: 2, prestige: 10, tipo: "premium" },
             { id: "cocacola", name: "Coca-Cola", minSubs: 1500000, minFama: 50, payMin: 18000, payMax: 40000, duration: 2, prestige: 12, tipo: "premium" },
-            { id: "apple", name: "Apple", minSubs: 3000000, minFama: 65, payMin: 50000, payMax: 100000, duration: 2, prestige: 15, tipo: "premium" }
+            { id: "apple", name: "Apple", minSubs: 3000000, minFama: 65, payMin: 50000, payMax: 100000, duration: 2, prestige: 15, tipo: "premium" },
+            {"id": "hyperx", "name": "HyperX", "minSubs": 8000, "minFama": 5, "payMin": 700, "payMax": 1800, "duration": 2, "prestige": 3},
+            {"id": "steelseries", "name": "SteelSeries", "minSubs": 12000, "minFama": 7, "payMin": 900, "payMax": 2200, "duration": 2, "prestige": 4},
+            {"id": "asus_rog", "name": "ASUS ROG", "minSubs": 25000, "minFama": 12, "payMin": 1500, "payMax": 4000, "duration": 2, "prestige": 5},
+            {"id": "corsair", "name": "Corsair", "minSubs": 30000, "minFama": 12, "payMin": 1800, "payMax": 4500, "duration": 2, "prestige": 5},
+            {"id": "samsung", "name": "Samsung", "minSubs": 100000, "minFama": 20, "payMin": 5000, "payMax": 12000, "duration": 2, "prestige": 7, "tipo": "premium"},
+            {"id": "mercadolibre", "name": "Mercado Libre", "minSubs": 50000, "minFama": 15, "payMin": 3000, "payMax": 8000, "duration": 2, "prestige": 6, "tipo": "premium"},
+            {"id": "uber", "name": "Uber", "minSubs": 25000, "minFama": 10, "payMin": 1200, "payMax": 3500, "duration": 1, "prestige": 4},
+            {"id": "spotify", "name": "Spotify", "minSubs": 75000, "minFama": 18, "payMin": 3000, "payMax": 7500, "duration": 2, "prestige": 6, "tipo": "premium"},
+            {"id": "disney", "name": "Disney+", "minSubs": 150000, "minFama": 25, "payMin": 6000, "payMax": 14000, "duration": 2, "prestige": 8, "tipo": "premium"},
+            {"id": "primevideo", "name": "Prime Video", "minSubs": 100000, "minFama": 22, "payMin": 4500, "payMax": 11000, "duration": 2, "prestige": 7, "tipo": "premium"},
+            {"id": "playstation", "name": "PlayStation", "minSubs": 200000, "minFama": 30, "payMin": 9000, "payMax": 22000, "duration": 2, "prestige": 9, "tipo": "premium"},
+            {"id": "xbox", "name": "Xbox", "minSubs": 150000, "minFama": 25, "payMin": 7000, "payMax": 18000, "duration": 2, "prestige": 8, "tipo": "premium"},
+            {"id": "steam", "name": "Steam", "minSubs": 250000, "minFama": 35, "payMin": 10000, "payMax": 25000, "duration": 2, "prestige": 10, "tipo": "premium"},
+            {"id": "nvidia", "name": "NVIDIA", "minSubs": 350000, "minFama": 40, "payMin": 12000, "payMax": 30000, "duration": 2, "prestige": 10, "tipo": "premium"},
+            {"id": "intel", "name": "Intel", "minSubs": 300000, "minFama": 35, "payMin": 10000, "payMax": 26000, "duration": 2, "prestige": 9, "tipo": "premium"},
+            {"id": "pepsi", "name": "Pepsi", "minSubs": 50000, "minFama": 15, "payMin": 2500, "payMax": 7000, "duration": 2, "prestige": 6, "tipo": "premium"},
+            {"id": "lays", "name": "Lay's", "minSubs": 30000, "minFama": 10, "payMin": 1500, "payMax": 4000, "duration": 1, "prestige": 4},
+            {"id": "adobe", "name": "Adobe", "minSubs": 75000, "minFama": 18, "payMin": 3500, "payMax": 9000, "duration": 2, "prestige": 7, "tipo": "premium"},
+            {"id": "canva", "name": "Canva", "minSubs": 20000, "minFama": 8, "payMin": 1200, "payMax": 3500, "duration": 2, "prestige": 4},
+            {"id": "duolingo", "name": "Duolingo", "minSubs": 15000, "minFama": 6, "payMin": 800, "payMax": 2400, "duration": 1, "prestige": 3}
         ];
 
         const p = this.player;
@@ -931,6 +937,8 @@ export const gameState = {
         this.player.dinero += pago;
         this.player.ingresosTrimestre = (Number(this.player.ingresosTrimestre) || 0) + pago;
         this.player.ingresosGenerados = (Number(this.player.ingresosGenerados) || 0) + pago;
+        this.player.ingresosDesglose ||= { publicidad:0,sponsors:0,negocios:0,afiliados:0,donaciones:0 };
+        this.player.ingresosDesglose.sponsors = (Number(this.player.ingresosDesglose.sponsors)||0) + pago;
         if (this.player.actividadTrimestre) {
             this.player.actividadTrimestre.dinero = (Number(this.player.actividadTrimestre.dinero) || 0) + pago;
         }
@@ -1111,6 +1119,7 @@ export const gameState = {
         this.player.pretemporada = null;
         this.player.videoSubidoEsteTrimestre = false;
         this.player.ingresosTrimestre = 0;
+        this.player.mencionesSponsorTrimestre = 0;
         this.player.actividadTrimestre = null;
         this.player.historialTrimestre1 = null;
         this.player.historialTrimestre2 = null;
@@ -1136,11 +1145,14 @@ export const gameState = {
             return this.prepararSiguienteAño();
         }
 
+        // Cierra el trimestre: staff, negocios y afiliados cobran/pagan antes de entrar al siguiente.
+        advanceEconomy(this);
         this.time.trimestre += 1;
         this.player.año = this.time.año;
         this.player.trimestre = this.time.trimestre;
         this.player.videoSubidoEsteTrimestre = false;
         this.player.ingresosTrimestre = 0;
+        this.player.mencionesSponsorTrimestre = 0;
         this.player.actividadTrimestre = null;
 
         this.guardar();
@@ -1311,7 +1323,9 @@ export function normalizarGameState() {
     if (typeof p.comunidad !== "number") p.comunidad = 50;
     if (typeof p.reputacion !== "number") p.reputacion = 50;
     if (typeof p.ingresosTrimestre !== "number") p.ingresosTrimestre = 0;
+    if (typeof p.mencionesSponsorTrimestre !== "number") p.mencionesSponsorTrimestre = 0;
     if (typeof p.ingresosGenerados !== "number") p.ingresosGenerados = 0;
+    if (!p.ingresosDesglose) p.ingresosDesglose = { publicidad:0,sponsors:0,negocios:0,afiliados:0,donaciones:0 };
     if (typeof p.videoSubidoEsteTrimestre !== "boolean") p.videoSubidoEsteTrimestre = false;
     if (typeof p.partidaIniciada !== "boolean") p.partidaIniciada = false;
 

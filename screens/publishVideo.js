@@ -25,12 +25,12 @@ export function renderPublishVideo(el) {
                 <span class="video-option-tag ${video.costo === 0 ? 'free' : video.costo <= 35 ? 'cheap' : 'premium'}">
                     ${video.costo === 0 ? 'GRATIS' : '$' + video.costo.toLocaleString()}
                 </span>
-                <span class="video-risk">RIESGO ${Math.max(1, Math.min(5, Math.ceil(video.riesgo / 20)))} / 5</span>
+                <span class="video-risk" title="Riesgo: posibilidad de que el concepto rinda por debajo de lo esperado. Más riesgo = mayor variación.">RIESGO ${Math.max(1, Math.min(5, Math.ceil(video.riesgo / 20)))} / 5</span>
             </div>
             <h2>${video.titulo}</h2>
             <p class="video-option-meta">${video.formato} · ${video.tema}</p>
             <div class="video-option-bottom">
-                <span>🎯 ${video.enfoquePrincipal} · ${Math.round((Number(gameState.player.atributos?.[video.enfoquePrincipal])||0)*1.5)} sinergia</span>
+                <span title="La sinergia combina el atributo principal del video con tu nivel actual.">🎯 ${video.enfoquePrincipal} · ${Math.round((Number(gameState.player.atributos?.[video.enfoquePrincipal])||0)*1.5)} sinergia · ~${Math.max(100,Math.round((Number(gameState.player.suscriptores||0)*0.35)))}+ vistas base</span>
                 <button class="select-video btn primary" data-video-id="${video.id}">PUBLICAR</button>
             </div>
         </article>

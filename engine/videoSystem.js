@@ -351,10 +351,12 @@ function calcularIngresosPorVideo(vistas, player) {
     const marketing = Number(a.marketing) || 0;
     const fama = Number(player.fama) || 0;
 
+    // Monetización tipo AdSense: se desbloquea a los 1.000 subs.
+    if (Number(player?.suscriptores || 0) < 1000) return 0;
     const rpm = clamp(
-        1.25 + marketing * 0.075 + fama * 0.014 + randomFloat(-0.18, 0.38),
-        0.85,
-        7.50
+        1.00 + marketing * 0.075 + fama * 0.014 + randomFloat(-0.10, 0.30),
+        0.80,
+        8.00
     );
 
     let ingreso = (Math.max(1, vistas) / 1000) * rpm;
@@ -441,6 +443,7 @@ function resultadoVideoManual(titulo, enfoquePrincipal, enfoqueSecundario, conte
         enfoqueSecundario,
         rpm: (Math.round(ingresos) / Math.max(1, vistas) * 1000).toFixed(3),
         multiplicadorTendencia: calcularTendencia(),
+        factorDescubrimiento: Number((1 + clamp(algoritmo / 100, 0, 1) * 0.55 + clamp(edicion / 100, 0, 1) * 0.35 + clamp(fama / 100, 0, 1) * 0.20 + (Number(p.suscriptores||0)<10000 ? 0.35 : 0)).toFixed(1)),
         multiplicadorViral
     };
 }
@@ -562,6 +565,19 @@ export function procesarPublicacionTrimestre(
         contexto
     );
 
+    if (contexto.sponsorMention) {
+        const accepted = (gameState.sponsors || []).filter(s => s.estado === "aceptado");
+        const fatigue = Number(gameState.player.mencionesSponsorTrimestre || 0);
+        if (accepted.length && fatigue < 2) {
+            const sponsor = accepted[accepted.length - 1];
+            const pago = Math.max(50, Math.round(Number(sponsor.pago || 100) * 0.12));
+            manualResult.dinero += pago;
+            manualResult.sponsorMention = sponsor.name;
+            gameState.player.mencionesSponsorTrimestre = fatigue + 1;
+            if (gameState.player.mencionesSponsorTrimestre > 2) gameState.player.comunidad = Math.max(0, Number(gameState.player.comunidad||50)-3);
+        }
+    }
+
     const constancia = Number(gameState.player.atributos?.constancia) || 0;
     const efectoConstancia = gameState.player.pretemporada?.efecto === "constancia" ? 0.18 : 0;
     const power = Math.max(0.55, 1.05 - (constancia / 100) * 0.30 - efectoConstancia);
@@ -628,6 +644,11 @@ export function procesarPublicacionTrimestre(
     p.dinero += simDineroFinal;
     p.ingresosTrimestre += simDineroFinal;
     p.ingresosGenerados = (Number(p.ingresosGenerados) || 0) + simDineroFinal;
+    p.ingresosDesglose ||= { publicidad:0, sponsors:0, negocios:0, afiliados:0, donaciones:0 };
+    p.ingresosDesglose.publicidad = (Number(p.ingresosDesglose.publicidad)||0) + simDineroFinal;
+    // Donaciones ocasionales: más probables con comunidad alta y en videos destacados.
+    const donaciones = Math.random() < (0.05 + Number(p.comunidad||0)/2000) ? Math.round((Number(p.comunidad||0)/100) * randomFloat(5,80)) : 0;
+    if (donaciones > 0) { p.dinero += donaciones; p.ingresosTrimestre += donaciones; p.ingresosGenerados += donaciones; p.ingresosDesglose.donaciones += donaciones; }
     if (simFamaEntera > 0) agregarFamaLogro(p, simFamaEntera, "virales del trimestre");
 
     p.videosSubidos += videosDelResto;

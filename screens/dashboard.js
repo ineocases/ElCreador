@@ -26,9 +26,9 @@ export function renderDashboard(el) {
 
 
     const skills = [
-        ["✂️ Edición", "edicion"], ["😎 Carisma", "carisma"], ["🤖 Algoritmo", "algoritmo"],
-        ["📈 Marketing", "marketing"], ["🔥 Constancia", "constancia"], ["😂 Humor", "humor"],
-        ["💡 Creatividad", "creatividad"], ["🤝 Networking", "networking"]
+        ["✂️ Edición", "edicion", "Mejora la retención: cada video rinde más vistas."], ["😎 Carisma", "carisma", "Convierte espectadores en suscriptores y mejora las colaboraciones."], ["🤖 Algoritmo", "algoritmo", "La plataforma te recomienda más: multiplica las vistas de todos tus videos."],
+        ["📈 Marketing", "marketing", "Mejor RPM y sponsors: más plata por vista."], ["🔥 Constancia", "constancia", "Más videos automáticos por trimestre."], ["😂 Humor", "humor", "Más chance de clips y momentos virales."],
+        ["💡 Creatividad", "creatividad", "Desbloquea videos especiales y mejores miniaturas."], ["🤝 Networking", "networking", "Más colaboraciones e invitaciones de otros canales."]
     ];
 
     container.innerHTML = `
@@ -56,6 +56,8 @@ export function renderDashboard(el) {
                 <div class="stat-tile"><span>💰 Dinero</span><strong>$${nf(p.dinero)}</strong></div>
             </div>
 
+            <section class="panel income-panel"><div class="eyebrow">💰 INGRESOS</div><div class="income-grid"><div>Publicidad <b>$${nf(p.ingresosDesglose?.publicidad||0)}</b></div><div>Sponsors <b>$${nf(p.ingresosDesglose?.sponsors||0)}</b></div><div>Negocios <b>$${nf(p.ingresosDesglose?.negocios||0)}</b></div><div>Afiliados <b>$${nf(p.ingresosDesglose?.afiliados||0)}</b></div><div>Donaciones <b>$${nf(p.ingresosDesglose?.donaciones||0)}</b></div></div>${Number(p.suscriptores||0)<1000?'<p class="muted">🔒 Publicidad: se desbloquea con 1.000 suscriptores.</p>':''}</section>
+
             ${hizoPretemporada && !p.videoSubidoEsteTrimestre && !pendingEvent && !sponsor && !collab ? `<a href="#publish" class="btn primary big pulse publish-main-cta">📹 PUBLICAR VIDEO</a>` : ""}
 
 
@@ -64,9 +66,9 @@ export function renderDashboard(el) {
                 <section class="panel">
                     <div class="eyebrow">📈 ESTADO DEL CANAL</div>
                     <div class="skill-list">
-                        ${skills.map(([label,key]) => `
+                        ${skills.map(([label,key,tip]) => `
                             <div class="skill-row ${mejorado === key ? "skill-improved" : ""}">
-                                <span>${label}</span>
+                                <span title="${tip}">${label} <small>?</small></span>
                                 <strong>${p.atributos?.[key] || 0}${mejorado === key ? " ▲" : ""}</strong>
                             </div>`).join("")}
                     </div>
