@@ -1,6 +1,6 @@
 // ===== CONFIG DE TIEMPO: 1 AÑO = 2 TRIMESTRES =====
-const BLOCKS_PER_YEAR = 2;    // trimestres por año
-const WEEKS_PER_BLOCK = 13;   // semanas simuladas por trimestre
+const BLOCKS_PER_YEAR = 2;
+const WEEKS_PER_BLOCK = 13;
 
 const NICHES={
   futbol:{nombre:"Fútbol",icon:"⚽",mult:1.2},
@@ -41,6 +41,23 @@ const VIRAL_MOMENT={titulo:"🔥 ¡UN VIDEO TUYO EXPLOTÓ!",texto:"El algoritmo 
 
 let state=null, simulating=false;
 
+// ===== UTILIDADES / CRECIMIENTO REALISTA =====
+function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+// Un mismo hit no vale igual con 100 seguidores que con 1M: escala con tu tamaño
+function scaledFollowers(base){
+  const scale=Math.max(1,Math.log10(state.followers+1));
+  return Math.floor(base*scale*(0.8+Math.random()*0.4));
+}
+function applyEffects(ef){
+  if(!ef) return;
+  if(ef.plata) state.money=Math.max(0,state.money+ef.plata);
+  if(ef.seguidores){
+    const gain=ef.seguidores>0?scaledFollowers(ef.seguidores):ef.seguidores;
+    state.followers=Math.max(0,state.followers+gain);
+  }
+  if(ef.heat) state.heat=clamp(state.heat+ef.heat,0,100);
+}
+
 // ===== CARRERA =====
 function newCareer(name,niche,origin){
   state={uid:UID,name,niche,origin,year:1,block:1,followers:0,money:500,heat:0,level:0,
@@ -74,12 +91,32 @@ async function playBlock(){
 function simWeek(w){
   return new Promise(res=>{
     const a=state.attributes;
-    const attr=a.carisma*.8+a.edicion*1.2+a.olfato+a.oratoria*.5;
-    const setupB=1+state.setup.length*.15;
-    let views=Math.floor(80*(1+attr/50)*setupB*NICHES[state.niche].mult*(0.6+Math.random()*.8));
-    state.money+=Math.floor(views*.01);
-    state.followers+=Math.floor(views*.08);
-    state.stats.videos++; state.heat=Math.max(0,state.heat-0.5);
+    const quality=(a.edicion*1.2+a.carisma*0.8+a.olfato+a.oratoria*0.5)/50;
+    const setupB=1+state.setup.length*0.1;
+    const nicheM=NICHES[state.niche].mult;
+
+    // Alcance real: te ve un % de tus seguidores + el algoritmo te descubre
+    const baseReach=state.followers*(0.25+quality*0.15);
+    let discovery=(40+quality*60)*nicheM*setupB*(0.5+Math.random());
+    let views=Math.floor(baseReach+discovery);
+
+    state.money+=Math.floor(views*0.01);
+    state.stats.videos++;
+
+    // Crecimiento orgánico con SATURACIÓN: más grande = más difícil subir
+    const saturation=1/(1+state.followers/20000);
+    let newF=Math.floor(discovery*0.15*saturation);
+
+    // Mini-viral de la semana = pico (escala con tu tamaño)
+    if(Math.random()<(a.olfato+a.edicion)/400){
+      newF+=scaledFollowers(600); state.stats.virals++; addLog("🔥 Mini-viral esta semana");
+    }
+
+    // Churn: las cuentas grandes pierden seguidores cada semana
+    const churn=Math.floor(state.followers*0.001);
+    state.followers=Math.max(0,state.followers+newF-churn);
+
+    state.heat=Math.max(0,state.heat-0.5);
     setBar("block-progress",(w/WEEKS_PER_BLOCK)*100);
     setText("count-followers",formatNum(state.followers));
     setText("count-money","$"+formatNum(state.money));
@@ -137,13 +174,13 @@ async function colabInvite(){
     opciones:[{label:"¡Dale, vamos!",efectos:{},colab:true},{label:"Esta vez paso",efectos:{heat:1}}]});
   if(op.colab){
     const win=await runTimingAsync();
-    if(win){ state.followers+=3000; state.stats.colabs++; addLog(`🤝 ¡Colab exitoso con ${n}! +3K`); }
-    else { state.followers+=800; state.heat+=2; addLog(`🤝 Colab flojo con ${n}...`); }
+    if(win){ state.followers+=scaledFollowers(1500); state.stats.colabs++; addLog(`🤝 ¡Colab exitoso con ${n}!`); }
+    else { state.followers+=scaledFollowers(400); state.heat+=2; addLog(`🤝 Colab flojo con ${n}...`); }
   }
 }
 function runTimingAsync(){ return new Promise(r=>startTimingMinigame(r)); }
 
-// ===== NIVELES / TIENDA / EVENTOS ESPECIALES =====
+// ===== NIVELES / TIENDA / ESPECIALES =====
 function updateLevel(){
   let l=0; for(let i=0;i<LEVELS.length;i++) if(state.followers>=LEVELS[i].min) l=i;
   state.level=l;
@@ -168,8 +205,8 @@ async function startParenLaMano(){
 async function startVelada(){
   if(!state.veladaUnlocked) return;
   const win=await runTimingAsync();
-  if(win){ state.followers+=50000; addLog("🥊 ¡GANASTE LA VELADA! Clip legendario, +50K."); }
-  else { state.followers+=10000; addLog("🥊 Perdiste La Velada, pero el morbo te dio +10K."); }
+  if(win){ state.followers+=scaledFollowers(15000); addLog("🥊 ¡GANASTE LA VELADA! Clip legendario."); }
+  else { state.followers+=scaledFollowers(4000); addLog("🥊 Perdiste La Velada, pero el morbo sumó."); }
   state.veladaUnlocked=false; state.parenDone=false; state.parenInvite=false; render(); saveGame();
 }
 function endOfYear(){
@@ -177,8 +214,7 @@ function endOfYear(){
 }
 function getMedia(){
   const a=state.attributes, base=(a.carisma+a.edicion+a.olfato+a.aguante+a.oratoria)/5;
-  const fame=Math.min(40,Math.log10(state.followers+1)*9);
-  return Math.min(99,Math.floor(base+fame));
+  return Math.min(99,Math.floor(40+base+Math.log10(state.followers+1)*7));
 }
 async function getEvents(){
   try{ const s=await db.collection("events").get(); if(s.empty) return STARTER_EVENTS; return s.docs.map(d=>({id:d.id,...d.data()})); }
