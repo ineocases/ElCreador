@@ -1,0 +1,1 @@
+export function eventCard(event){return `<div class="event-title">${event.title}</div><div class="event-description">${event.description}</div><div class="event-options">${event.options.map((o,i)=>`<div class="event-option" data-option-index="${i}">${o.text}</div>`).join('')}</div>`}
