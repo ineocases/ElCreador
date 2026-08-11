@@ -6,7 +6,7 @@ export function renderVideoResult(el) {
     const container = el || document.getElementById("resultScreen");
     if (!container) return;
 
-    const res = gameState.lastVideoResult;
+    const res = gameState.lastQuarterResult;
     const evento = gameState.ultimoEventoResultado;
 
     if (!res && evento) {
@@ -29,48 +29,41 @@ export function renderVideoResult(el) {
         return container;
     }
 
-    const vistas = Number(res.vistas) || 0;
-    const subs = Number(res.suscriptores) || 0;
-    const dinero = Number(res.dinero) || 0;
-    const fama = Number(res.famaGanada) || 0;
-    const viral = Boolean(res.viral);
     const esFinDeAño = gameState.time.trimestre === 2;
-
-    let titulo = "NORMAL";
-    if (res.nivelViralidad === "fenomeno") titulo = "🌎 FENÓMENO";
-    else if (res.nivelViralidad === "mega_viral") titulo = "🚀 MEGA VIRAL";
-    else if (viral) titulo = "🔥 VIRAL";
-    else if (vistas >= 10000) titulo = "📈 EXCELENTE";
-    else if (vistas >= 3000) titulo = "👍 BUENO";
 
     container.innerHTML = `
         <div style="max-width:760px;margin:0 auto;padding:20px;color:#fff;">
             ${renderHeaderHud()}
-            ${viral ? `<div style="background:rgba(255,215,0,.12);border:2px solid var(--accent-yellow);border-radius:16px;padding:20px;text-align:center;margin-bottom:18px;"><div style="font-size:2.4rem;">🔥🔥🔥</div><h2>¡EL VIDEO SE HIZO VIRAL!</h2></div>` : ""}
-
+            
             <div style="background:var(--bg-card);border:var(--border-card);border-radius:16px;padding:30px;">
-                <span style="color:var(--accent-red);font-size:.8rem;font-weight:bold;">📹 RESULTADO DEL VIDEO</span>
-                <h1 style="font-family:var(--font-heading);margin:8px 0;">${res.titulo}</h1>
-                <div style="color:var(--accent-green);font-weight:bold;margin-bottom:25px;">${titulo}</div>
+                <span style="color:var(--accent-red);font-size:.8rem;font-weight:bold;">📊 RESUMEN DEL TRIMESTRE</span>
+                <h1 style="font-family:var(--font-heading);margin:8px 0;">Trimestre terminado</h1>
 
-                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:15px;">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:15px; margin-bottom: 25px;">
                     ${[
-                        ["VISTAS", `+${vistas.toLocaleString()}`, "white"],
-                        ["SUSCRIPTORES", `+${subs.toLocaleString()}`, "#4cd137"],
-                        ["INGRESOS", `+$${dinero.toLocaleString()}`, "#fbc531"],
-                        ["FAMA", `+${fama}`, "#ffd700"]
-                    ].map(([label,value,color])=>`<div style="background:rgba(0,0,0,.5);padding:18px;border-radius:10px;"><div style="color:var(--text-muted);font-size:.75rem;">${label}</div><strong style="display:block;margin-top:5px;font-size:1.5rem;color:${color};">${value}</strong></div>`).join("")}
+                        ["VIDEOS PUBLICADOS", `${res.totalVideos}`, "white"],
+                        ["VISTAS TOTALES", `+${res.totalVistas.toLocaleString()}`, "white"],
+                        ["SUSCRIPTORES", `+${res.totalSubs.toLocaleString()}`, "#4cd137"],
+                        ["INGRESOS", `+$${res.totalDinero.toLocaleString()}`, "#fbc531"],
+                        ["FAMA", `+${res.totalFama}`, "#ffd700"]
+                    ].map(([label,value,color])=>`
+                        <div style="background:rgba(0,0,0,.5);padding:18px;border-radius:10px;">
+                            <div style="color:var(--text-muted);font-size:.75rem;">${label}</div>
+                            <strong style="display:block;margin-top:5px;font-size:1.5rem;color:${color};">${value}</strong>
+                        </div>
+                    `).join("")}
                 </div>
 
-                ${esFinDeAño ? `
-                    <div style="margin-top:22px;padding:16px;border-radius:10px;background:rgba(229,9,20,.08);border:1px solid rgba(229,9,20,.35);">
-                        🏆 Este fue tu video del <strong>Trimestre 2</strong>. Al continuar se simularán entre <strong>30 y 150 videos</strong> del resto de la plataforma y terminará el año.
+                <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:20px;">
+                    <div style="color:var(--accent-yellow);font-size:.8rem;font-weight:bold;margin-bottom:8px;">🎬 VIDEO DESTACADO DEL TRIMESTRE</div>
+                    <h3 style="margin:0 0 10px;color:#fff;">${res.manualVideo.titulo}</h3>
+                    <div style="display:flex;gap:15px;flex-wrap:wrap;color:var(--text-muted);font-size:.9rem;">
+                        <span>👁️ ${res.manualVideo.vistas.toLocaleString()} vistas</span>
+                        <span>👥 +${res.manualVideo.suscriptores.toLocaleString()} subs</span>
+                        <span>💰 +$${res.manualVideo.dinero.toLocaleString()}</span>
+                        ${res.manualVideo.viral ? '<span style="color:var(--accent-yellow);">🔥 VIRAL</span>' : ''}
                     </div>
-                ` : `
-                    <div style="margin-top:22px;padding:16px;border-radius:10px;background:rgba(76,209,55,.08);border:1px solid rgba(76,209,55,.25);">
-                        ✅ Trimestre ${gameState.time.trimestre}/2 completado. Al continuar pasarás al Trimestre ${gameState.time.trimestre + 1}/2.
-                    </div>
-                `}
+                </div>
 
                 <div style="margin-top:25px;text-align:right;">
                     <button id="continueAfterVideo" style="padding:14px 24px;background:var(--accent-red);color:#fff;border:none;border-radius:8px;font-weight:bold;font-family:var(--font-heading);">
@@ -82,12 +75,11 @@ export function renderVideoResult(el) {
     `;
 
     container.querySelector("#continueAfterVideo")?.addEventListener("click", () => {
-        if (gameState.time.trimestre === 2) {
+        if (esFinDeAño) {
             gameState.finalizarAño();
             window.location.hash = "#awards";
             return;
         }
-
         gameState.nextQuarter();
         gameState.guardar();
         window.location.hash = "#dashboard";
