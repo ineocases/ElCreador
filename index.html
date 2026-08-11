@@ -4,70 +4,90 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>El Viral 📱</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<!-- Pantalla de inicio -->
+<!-- INICIO -->
 <div id="screen-start" class="screen">
-  <h1>EL VIRAL 📱</h1>
-  <p>El modo carrera del creador de contenido argentino</p>
-  <input id="in-name" placeholder="Tu nombre de creador" />
-  <select id="in-niche"></select>
-  <select id="in-origin">
-    <option value="CABA">CABA</option>
-    <option value="Conurbano">Conurbano</option>
-    <option value="Córdoba">Córdoba</option>
-    <option value="Rosario">Rosario</option>
-    <option value="Mendoza">Mendoza</option>
-  </select>
-  <button class="btn" onclick="startNewCareer()">🚀 Empezar carrera</button>
+  <div class="logo">EL VIRAL</div>
+  <p class="tagline">El modo carrera del creador de contenido argentino</p>
+  <div class="start-card">
+    <input id="in-name" placeholder="Tu nombre de creador">
+    <select id="in-niche"></select>
+    <select id="in-origin">
+      <option value="CABA">CABA</option><option value="Conurbano">Conurbano</option>
+      <option value="Córdoba">Córdoba</option><option value="Rosario">Rosario</option>
+    </select>
+    <button class="btn btn-primary big" onclick="startNewCareer()">🚀 EMPEZAR CARRERA</button>
+  </div>
 </div>
 
-<!-- Pantalla principal del juego -->
+<!-- JUEGO -->
 <div id="screen-game" class="screen hidden">
-  <h2 id="ui-name"></h2>
-  <p><span id="ui-niche"></span> · <span id="ui-week"></span></p>
-  <div class="stats">
-    <div>👥 <span id="ui-followers"></span></div>
-    <div>💰 <span id="ui-money"></span></div>
-    <div id="ui-level"></div>
+  <div class="hud-top">
+    <span id="season-label" class="season"></span>
+    <button class="icon-btn" onclick="tryOpenAdmin()">⚙️</button>
   </div>
-  <p id="ui-attr"></p>
-  <div class="bar-label">🔥 Calor</div>
-  <div class="bar"><div id="ui-heat" class="bar-fill"></div></div>
 
-  <button class="btn big" onclick="doWeek()">📹 Crear contenido</button>
-  <button class="btn" id="btn-paren" onclick="startParenLaMano()" style="display:none">🤸 Ir a Paren la Mano</button>
-  <button class="btn" id="btn-velada" onclick="startVelada()" style="display:none">🥊 La Velada</button>
-
-  <h3>🛒 Tienda</h3>
-  <div id="shop"></div>
-
-  <h3>📜 Historial</h3>
-  <div id="ui-log" class="log"></div>
-</div>
-
-<!-- Modal de eventos -->
-<div id="event-modal" class="modal">
-  <div class="modal-box">
-    <h3 id="ev-title"></h3>
-    <p id="ev-text"></p>
-    <div id="ev-options"></div>
-  </div>
-</div>
-
-<!-- Modal de minijuego -->
-<div id="minigame-modal" class="modal">
-  <div class="modal-box">
-    <h3>🎯 ¡Clavalo en la zona verde!</h3>
-    <div class="mg-track">
-      <div id="mg-zone" class="mg-zone"></div>
-      <div id="mg-bar-fill" class="mg-fill"></div>
+  <!-- LA FIGURITA -->
+  <div class="figurita nivel-0" id="fig-card">
+    <div class="fig-inner">
+      <div class="fig-row">
+        <span id="fig-media" class="fig-media">55</span>
+        <span id="fig-level" class="fig-badge">DESCONOCIDO</span>
+      </div>
+      <div id="fig-avatar" class="fig-avatar">🎙️</div>
+      <div id="fig-name" class="fig-name">TU NOMBRE</div>
+      <div id="fig-niche" class="fig-niche">⚽ Fútbol</div>
+      <div id="fig-stats" class="fig-stats"></div>
     </div>
-    <button class="btn big" id="mg-btn">¡AHORA!</button>
   </div>
+
+  <!-- CONTADORES -->
+  <div class="counters">
+    <div class="counter main"><span class="counter-num" id="count-followers">0</span><span class="counter-label">Seguidores</span></div>
+    <div class="counter"><span class="counter-num small" id="count-money">$0</span><span class="counter-label">Plata</span></div>
+  </div>
+
+  <span class="heat-label">🔥 Calor</span>
+  <div class="bar"><div id="heat-fill" class="bar-fill heat-fill"></div></div>
+
+  <span class="heat-label">📅 Trimestre</span>
+  <div class="bar"><div id="block-progress" class="bar-fill gold-fill"></div></div>
+
+  <button class="btn btn-primary big" id="btn-play" onclick="playBlock()" style="margin-top:18px">▶ JUGAR TRIMESTRE</button>
+  <button class="btn btn-ghost" id="btn-paren" onclick="startParenLaMano()" style="display:none">🤸 IR A PAREN LA MANO</button>
+  <button class="btn btn-ghost" id="btn-velada" onclick="startVelada()" style="display:none">🥊 LA VELADA</button>
+
+  <h3>🛒 Tienda</h3><div id="shop" class="shop"></div>
+  <h3>📜 Historial</h3><div id="log" class="log"></div>
 </div>
+
+<!-- ADMIN -->
+<div id="screen-admin" class="screen hidden">
+  <h2 style="color:var(--gold)">⚙️ Panel Admin</h2>
+  <input id="ev-titulo" placeholder="Título del evento">
+  <input id="ev-texto" placeholder="Descripción">
+  <select id="ev-tipo"><option value="golpe">Golpe duro</option><option value="decision">Decisión</option><option value="colab">Colab</option></select>
+  <input id="ev-op1" placeholder="Opción 1"><input id="ev-op2" placeholder="Opción 2">
+  <button class="btn btn-primary" onclick="addEvent()">Guardar evento</button>
+  <button class="btn btn-ghost" onclick="closeAdmin()">← Volver</button>
+  <h3>📋 Eventos guardados</h3><div id="ev-list" class="log"></div>
+</div>
+
+<!-- MODAL EVENTO -->
+<div id="event-modal" class="modal"><div class="modal-box">
+  <h3 id="ev-title"></h3><p id="ev-text"></p><div id="ev-options"></div>
+</div></div>
+
+<!-- MODAL MINIJUEGO -->
+<div id="minigame-modal" class="modal"><div class="modal-box">
+  <h3>🎯 ¡Clavalo en la zona verde!</h3>
+  <div class="mg-track"><div id="mg-zone" class="mg-zone"></div><div id="mg-bar-fill" class="mg-fill"></div></div>
+  <button class="btn btn-primary big" id="mg-btn">¡AHORA!</button>
+</div></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -75,44 +95,5 @@
 <script src="js/firebase.js"></script>
 <script src="js/minigames.js"></script>
 <script src="js/game.js"></script>
-<script>
-  // Inicialización de UI
-  function startNewCareer(){
-    const name = document.getElementById("in-name").value.trim() || "Streamer";
-    const niche = document.getElementById("in-niche").value;
-    const origin = document.getElementById("in-origin").value;
-    // Esperar a que el login anónimo esté listo
-    const tryStart = () => {
-      if (UID) { newCareer(name, niche, origin); showGame(); render(); saveGame(); }
-      else setTimeout(tryStart, 300);
-    };
-    tryStart();
-  }
-  function showGame(){
-    document.getElementById("screen-start").classList.add("hidden");
-    document.getElementById("screen-game").classList.remove("hidden");
-    renderShop();
-  }
-  function renderShop(){
-    const box = document.getElementById("shop");
-    box.innerHTML = "";
-    SHOP.forEach(item=>{
-      const b = document.createElement("button");
-      b.className = "btn small";
-      b.textContent = `${item.nombre} ($${item.costo})`;
-      b.onclick = ()=>buyItem(item.id);
-      box.appendChild(b);
-    });
-  }
-  // Cargar nichos
-  window.onload = () => {
-    const sel = document.getElementById("in-niche");
-    Object.entries(NICHES).forEach(([k,v])=>{
-      const o = document.createElement("option");
-      o.value = k; o.textContent = v.nombre;
-      sel.appendChild(o);
-    });
-  };
-</script>
 </body>
 </html>
