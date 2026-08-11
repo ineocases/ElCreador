@@ -1,0 +1,8 @@
+import { gameState } from "../engine/gameState.js";
+import { renderHeaderHud } from "../components/HeaderHud.js";
+import { prepareVelada, fightVelada, canEnterVelada } from "../engine/advancedSystems.js";
+export function renderVelada(el){const c=el||document.getElementById('veladaScreen');if(!c)return;const p=gameState.player;
+ if(!p.velada?.eligible){if(!canEnterVelada(gameState)){c.innerHTML=`<div class="page-shell">${renderHeaderHud()}<div class="panel center"><h1>🥊 La Velada</h1><p class="muted">Necesitás 50.000 subs y 35 de fama para entrar al circuito.</p><a class="btn ghost" href="#dashboard">VOLVER</a></div></div>`;return c;}if(!prepareVelada(gameState)){return c;}}
+ const rival=gameState.creators.find(x=>x.id===p.velada.rival);c.innerHTML=`<div class="page-shell">${renderHeaderHud()}<div class="panel center"><div class="eyebrow">LA VELADA</div><h1 class="page-title">🥊 ${rival?.nombre||'Tu rival'} vs ${p.canal}</h1><p class="muted">Tu puntuación representa el entrenamiento y timing.</p><input id="fightScore" type="range" min="0" max="100" value="65" style="width:100%;margin:25px 0"><div><strong id="fightVal">65</strong>/100</div><button id="fight" class="btn primary big">PELEAR</button></div></div>`;
+ const s=c.querySelector('#fightScore');s.oninput=()=>c.querySelector('#fightVal').textContent=s.value;c.querySelector('#fight').onclick=()=>{const r=fightVelada(gameState,s.value);gameState.guardar();c.innerHTML=`<div class="page-shell">${renderHeaderHud()}<div class="panel center"><h1>${r.win?'🏆 GANASTE':'💥 PERDISTE'}</h1><p>${r.rival} hizo ${r.rivalScore}. Vos ${r.score}.</p><a class="btn primary" href="#dashboard">SEGUIR CARRERA</a></div></div>`};return c;}
+export const veladaScreen={render:renderVelada};export default veladaScreen;
