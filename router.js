@@ -1,5 +1,5 @@
 // router.js - Router principal de El Creador
-// CORREGIDO: Sintaxis v醠ida, rutas coherentes, exports compatibles
+// CORREGIDO: Sintaxis v谩lida, rutas coherentes, exports compatibles
 
 import saveManager from "./engine/saveManager.js";
 
@@ -23,25 +23,40 @@ export function initRouter() {
 
     console.log("?? Router de El Creador inicializado");
 
-    // Intentar cargar partida guardada
     let hasSave = false;
 
     try {
-        hasSave = !!saveManager.loadLocal();
+        hasSave = saveManager.hasSave();
     } catch (error) {
-        console.warn("?? No se pudo cargar la partida:", error);
+        console.warn(
+            "?? No se pudo comprobar la partida:",
+            error
+        );
+
         hasSave = false;
     }
 
-    // Ruta inicial
+    /*
+     * Si el usuario no tiene hash:
+     *
+     * - Con partida ? dashboard
+     * - Sin partida ? crear canal
+     */
     if (!window.location.hash) {
-        window.location.hash = hasSave ? "#dashboard" : "#createChannel";
+
+        window.location.hash =
+            hasSave
+                ? "#dashboard"
+                : "#createChannel";
+
+        return;
     }
 
-    // Escuchar cambios de hash
-    window.addEventListener("hashchange", handleRoute);
+    window.addEventListener(
+        "hashchange",
+        handleRoute
+    );
 
-    // Render inicial
     handleRoute();
 }
 
@@ -51,63 +66,188 @@ export function initRouter() {
 
 function handleRoute() {
 
-    const hash = window.location.hash || "#createChannel";
+function handleRoute() {
+
+    const hash =
+        window.location.hash ||
+        "#createChannel";
+
     console.log("?? Ruta:", hash);
 
-    // Ocultar todas las pantallas
-    document.querySelectorAll(".screen").forEach(screen => {
-        screen.style.display = "none";
-    });
+    /*
+     * ============================================
+     * PROTEGER RUTAS DEL JUEGO
+     * ============================================
+     */
+
+    const rutasQueRequierenPartida = [
+        "#dashboard",
+        "#pretemporada",
+        "#publish",
+        "#videoResult",
+        "#pasanCosas",
+        "#store",
+        "#awards",
+        "#collabs",
+        "#sponsors",
+        "#admin"
+    ];
+
+    let hasSave = false;
+
+    try {
+        hasSave = saveManager.hasSave();
+    } catch (error) {
+        hasSave = false;
+    }
+
+    /*
+     * Si intenta entrar al juego sin una partida,
+     * mandarlo a crear canal.
+     */
+
+    if (
+        rutasQueRequierenPartida.includes(hash) &&
+        !hasSave
+    ) {
+
+        console.log(
+            "?? No existe partida. Volviendo a Crear Canal."
+        );
+
+        if (window.location.hash !== "#createChannel") {
+            window.location.hash = "#createChannel";
+        }
+
+        return;
+    }
+
+    /*
+     * ============================================
+     * OCULTAR PANTALLAS
+     * ============================================
+     */
+
+    document
+        .querySelectorAll(".screen")
+        .forEach(screen => {
+            screen.style.display = "none";
+        });
+
+    /*
+     * ============================================
+     * RUTAS
+     * ============================================
+     */
 
     switch (hash) {
 
         case "#createChannel":
-            renderScreen("createChannelScreen", createChannelScreen);
+
+            renderScreen(
+                "createChannelScreen",
+                createChannelScreen
+            );
+
             break;
 
         case "#pretemporada":
-            renderScreen("pretemporadaScreen", pretemporadaScreen);
+
+            renderScreen(
+                "pretemporadaScreen",
+                pretemporadaScreen
+            );
+
             break;
 
         case "#dashboard":
-            renderScreen("dashboardScreen", dashboardScreen);
+
+            renderScreen(
+                "dashboardScreen",
+                dashboardScreen
+            );
+
             break;
 
         case "#publish":
-            renderScreen("publishScreen", publishVideoScreen);
+
+            renderScreen(
+                "publishScreen",
+                publishVideoScreen
+            );
+
             break;
 
         case "#videoResult":
-            renderScreen("resultScreen", videoResultScreen);
+
+            renderScreen(
+                "resultScreen",
+                videoResultScreen
+            );
+
             break;
 
         case "#pasanCosas":
-            renderScreen("pasanCosasScreen", pasanCosasScreen);
+
+            renderScreen(
+                "pasanCosasScreen",
+                pasanCosasScreen
+            );
+
             break;
 
         case "#store":
-            renderScreen("storeScreen", storeScreen);
+
+            renderScreen(
+                "storeScreen",
+                storeScreen
+            );
+
             break;
 
         case "#awards":
-            renderScreen("awardsScreen", awardsScreen);
+
+            renderScreen(
+                "awardsScreen",
+                awardsScreen
+            );
+
             break;
 
         case "#collabs":
-            renderScreen("collabsScreen", collabsScreen);
+
+            renderScreen(
+                "collabsScreen",
+                collabsScreen
+            );
+
             break;
 
         case "#sponsors":
-            renderScreen("sponsorsScreen", sponsorsScreen);
+
+            renderScreen(
+                "sponsorsScreen",
+                sponsorsScreen
+            );
+
             break;
 
         case "#admin":
-            renderScreen("adminContainer", adminDashboardScreen);
+
+            renderScreen(
+                "adminContainer",
+                adminDashboardScreen
+            );
+
             break;
 
         default:
-            console.warn("?? Ruta desconocida:", hash);
-            window.location.hash = "#dashboard";
+
+            window.location.hash =
+                hasSave
+                    ? "#dashboard"
+                    : "#createChannel";
+
             break;
     }
 }
@@ -126,7 +266,7 @@ function renderScreen(elementId, screenModule) {
     }
 
     if (!screenModule) {
-        console.error(`? No existe el m骴ulo para #${elementId}`);
+        console.error(`? No existe el m贸dulo para #${elementId}`);
         return;
     }
 
@@ -134,7 +274,7 @@ function renderScreen(elementId, screenModule) {
     el.style.display = "block";
 
     // ====================================================================
-    // CASO 1: Export default como funci髇
+    // CASO 1: Export default como funci贸n
     // ====================================================================
     if (typeof screenModule.default === "function") {
         const result = screenModule.default(el);
@@ -143,7 +283,7 @@ function renderScreen(elementId, screenModule) {
     }
 
     // ====================================================================
-    // CASO 2: Export default como objeto con m閠odo render
+    // CASO 2: Export default como objeto con m茅todo render
     // ====================================================================
     if (screenModule.default && typeof screenModule.default.render === "function") {
         const result = screenModule.default.render(el);
@@ -161,7 +301,7 @@ function renderScreen(elementId, screenModule) {
     }
 
     // ====================================================================
-    // CASO 4: Buscar cualquier funci髇 que empiece con "render"
+    // CASO 4: Buscar cualquier funci贸n que empiece con "render"
     // ====================================================================
     const renderFnKey = Object.keys(screenModule).find(
         key => key.startsWith("render") && typeof screenModule[key] === "function"
@@ -174,7 +314,7 @@ function renderScreen(elementId, screenModule) {
     }
 
     console.error(
-        `? El m骴ulo de #${elementId} no tiene una funci髇 render v醠ida.`,
+        `? El m贸dulo de #${elementId} no tiene una funci贸n render v谩lida.`,
         screenModule
     );
 }
@@ -189,5 +329,5 @@ function procesarResultado(el, result) {
         el.appendChild(result);
     }
     // Si result es string o el resultado fue inyectado directamente al container,
-    // no hacemos nada m醩
+    // no hacemos nada m谩s
 }
