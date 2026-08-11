@@ -46,6 +46,8 @@ function crearStats() {
 
 function crearPlayer() {
     return {
+		partidaIniciada: false,
+		
         nombre: "Creador",
         canal: "Mi Canal",
         niche: "Gaming",
@@ -121,40 +123,57 @@ export const gameState = {
 
     adminMode: false,
 
-    iniciarPartida(datos = {}) {
-        this.player = crearPlayer();
+	iniciarPartida(datos = {}) {
 
-        this.player.nombre = String(datos.nombre || "Creador").trim() || "Creador";
-        this.player.canal = String(datos.canal || "Mi Canal").trim() || "Mi Canal";
-        this.player.niche = datos.niche || "Gaming";
+		this.player = crearPlayer();
 
-        this.time = { año: 2026, trimestre: 1 };
-        this.player.año = 2026;
-        this.player.trimestre = 1;
+		this.player.partidaIniciada = true;
 
-        this.inventory = [];
-        this.notifications = [];
-        this.trends = [];
-        this.sponsors = [];
-        this.lastVideo = null;
-        this.lastVideoResult = null;
-        this.ultimoEventoResultado = null;
-        this.lastCollab = null;
-        this.ultimaSimulacionAnual = null;
-        this.creators = crearCreadores();
+		this.player.nombre =
+			String(datos.nombre || "Creador").trim() || "Creador";
 
-        this.creators.forEach(creator => {
-            this.player.relationships[creator.id] = 0;
-        });
+		this.player.canal =
+			String(datos.canal || "Mi Canal").trim() || "Mi Canal";
 
-        this.agregarNotificacion({
-            tipo: "sistema",
-            titulo: "🎬 Carrera iniciada",
-            descripcion: `Bienvenido, ${this.player.nombre}. Tu canal "${this.player.canal}" empieza con 50 suscriptores.`
-        });
+		this.player.niche =
+			datos.niche || "Gaming";
 
-        return this.player;
-    },
+		this.time = {
+			año: 2026,
+			trimestre: 1
+		};
+
+		this.player.año = 2026;
+		this.player.trimestre = 1;
+
+		this.inventory = [];
+		this.notifications = [];
+		this.trends = [];
+		this.sponsors = [];
+
+		this.lastVideo = null;
+		this.lastVideoResult = null;
+		this.ultimoEventoResultado = null;
+		this.lastCollab = null;
+		this.ultimaSimulacionAnual = null;
+
+		this.creators = crearCreadores();
+
+		this.creators.forEach(creator => {
+			this.player.relationships[creator.id] = 0;
+		});
+
+		this.agregarNotificacion({
+			tipo: "sistema",
+			titulo: "🎬 Carrera iniciada",
+			descripcion:
+				`Bienvenido, ${this.player.nombre}. Tu canal "${this.player.canal}" empieza con 50 suscriptores.`
+		});
+
+		this.guardar();
+
+		return this.player;
+	},
 
     mejorarAtributo(atributo, cantidad) {
         if (!this.player.atributos) {
@@ -332,22 +351,46 @@ export const gameState = {
         }
     },
 
-    resetPlayer() {
-        this.player = crearPlayer();
-        this.time = { año: 2026, trimestre: 1 };
-        this.inventory = [];
-        this.notifications = [];
-        this.trends = [];
-        this.sponsors = [];
-        this.creators = crearCreadores();
-        this.lastVideo = null;
-        this.lastVideoResult = null;
-        this.ultimoEventoResultado = null;
-        this.lastCollab = null;
-        this.ultimaSimulacionAnual = null;
+resetPlayer() {
+
+    this.player = crearPlayer();
+
+    this.time = {
+        año: 2026,
+        trimestre: 1
+    };
+
+    this.inventory = [];
+    this.notifications = [];
+    this.trends = [];
+    this.sponsors = [];
+
+    this.creators = crearCreadores();
+
+    this.lastVideo = null;
+    this.lastVideoResult = null;
+    this.ultimoEventoResultado = null;
+    this.lastCollab = null;
+    this.ultimaSimulacionAnual = null;
+
+    try {
         localStorage.removeItem(SAVE_KEY);
+
+        // Por compatibilidad con versiones anteriores
+        localStorage.removeItem("elCreador_save");
+        localStorage.removeItem("gameState");
+        localStorage.removeItem("elcreador_save");
+        localStorage.removeItem("ElCreadorSave");
+
+    } catch (error) {
+        console.error(
+            "❌ Error eliminando partida:",
+            error
+        );
     }
-};
+
+    window.location.hash = "#createChannel";
+},
 
 export function normalizarGameState() {
     if (!gameState.player) gameState.player = crearPlayer();
