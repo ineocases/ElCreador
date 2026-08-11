@@ -828,3 +828,17 @@ body{
 @media(max-width:700px){.game-hud-compact{grid-template-columns:1fr auto;gap:6px;padding:8px}.game-hud-compact .hud-season{grid-column:2;grid-row:1}.game-hud-compact .hud-menu{grid-column:1/-1;justify-content:space-between;overflow-x:auto;flex-wrap:nowrap}.game-hud-compact .hud-fame-level{grid-column:1}.game-hud-compact .hud-numbers{grid-column:2;grid-row:3;gap:7px}.hud-menu-btn{padding:6px 7px;font-size:.62rem}.hud-menu-btn span{display:none}.hud-menu-btn.locked span{display:inline}.career-timeline{font-size:.55rem;overflow:hidden;white-space:nowrap}.career-timeline .timeline-step{padding:2px 3px}.new-year-number{font-size:4rem}}
 
 .setup-choice-block{margin:18px 0}.mini-choice-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.setup-choice{background:#111;color:#fff;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:14px;text-align:left}.setup-choice small{display:block;color:var(--text-muted);margin-top:5px}.setup-choice.selected{border-color:var(--accent-red);background:rgba(229,9,20,.12);box-shadow:0 0 0 2px rgba(229,9,20,.08)}@media(max-width:600px){.mini-choice-grid{grid-template-columns:1fr}}
+
+/* Minijuegos reutilizables */
+.minigame-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.78);backdrop-filter:blur(8px)}
+.minigame-modal{width:min(92vw,560px);background:var(--bg-card,#151515);border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:24px;box-shadow:0 25px 80px rgba(0,0,0,.55);text-align:center}
+.minigame-eyebrow{font-size:.7rem;font-weight:800;letter-spacing:.14em;color:var(--accent-red,#e33)}
+.minigame-modal h2{margin:6px 0;font-size:1.65rem}.minigame-subtitle,.minigame-hint{color:var(--text-muted,#999)}
+.timing-track{height:42px;position:relative;margin:30px 0;border-radius:999px;background:#282828;overflow:hidden;border:1px solid rgba(255,255,255,.1)}
+.timing-zone{position:absolute;left:42%;width:16%;height:100%;background:#35d07f}.timing-track:after{content:"";position:absolute;left:50%;top:0;height:100%;width:2px;background:rgba(255,255,255,.25)}
+#timingCursor{position:absolute;top:4px;width:8px;height:34px;border-radius:5px;background:#fff;transform:translateX(-50%);z-index:2}
+.minigame-action{width:100%;padding:14px}.quick-timer{font-size:2.5rem;font-weight:900;margin:12px}.quick-options{display:grid;gap:10px}.quick-option{border:1px solid rgba(255,255,255,.1);background:#202020;color:inherit;border-radius:14px;padding:16px;font-size:1rem;cursor:pointer}.quick-option:hover{border-color:var(--accent-red,#e33)}
+.simon-board{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:24px 0}.simon-key{aspect-ratio:1;border:0;border-radius:16px;background:#252525;color:#fff;font-size:2rem;cursor:pointer;transition:.12s}.simon-key.simon-lit{transform:scale(.94);filter:brightness(1.9);box-shadow:0 0 28px rgba(255,255,255,.35)}
+.whack-board{position:relative;height:300px;margin:20px 0;border-radius:18px;background:#101010;overflow:hidden;border:1px solid rgba(255,255,255,.08)}.whack-target{position:absolute;width:54px;height:54px;border:0;border-radius:50%;background:#242424;color:#fff;font-size:1.5rem;cursor:pointer;animation:whackPop .12s ease-out}.whack-target:hover{transform:scale(1.12)}
+@keyframes whackPop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+@media(max-width:600px){.minigame-modal{padding:18px}.whack-board{height:260px}.simon-key{font-size:1.6rem}}

@@ -8,7 +8,6 @@
 
 import { creatorsIniciales } from "../data/creators.js";
 import { ensureAdvancedState, advanceEconomy } from "./advancedSystems.js";
-import { EVENTOS_EXTRA } from "../data/eventsExpansion.js";
 
 const SAVE_KEY = "elCreador_saveData";
 const TRIMESTRES_POR_AÑO = 2;
@@ -110,6 +109,7 @@ function crearPlayer() {
         inventory: [],
 
         videoSubidoEsteTrimestre: false,
+        minigameIndex: 0,
         actividadTrimestre: null,
         historialTrimestre1: null,
         historialTrimestre2: null,
@@ -231,7 +231,6 @@ export const gameState = {
     pendingSponsorOffer: null,
     pendingEvent: null,
     pendingCollabOffer: null,
-    pendingMinigame: null,
     pendingVideoSelection: null,
     boosts: {},
 
@@ -244,7 +243,6 @@ export const gameState = {
     lastCollab: null,
 
     adminMode: false,
-    lastMinigame: null,
 
     iniciarPartida(datos = {}) {
         this.player = crearPlayer();
@@ -278,7 +276,6 @@ export const gameState = {
         this.pendingSponsorOffer = null;
         this.pendingEvent = null;
         this.pendingCollabOffer = null;
-        this.pendingMinigame = null;
         this.pendingVideoSelection = null;
         this.boosts = {};
         this.lastVideo = null;
@@ -463,6 +460,29 @@ export const gameState = {
                 b: { label: "Mantener el perfil", desc: "+75% subs, +90% vistas y +8 reputación", action: { reputacion: 8 }, cierre: { subsPct: 0.75, vistasPct: 0.90 } }
             },
 
+            // ==========================================================
+            // 20 EVENTOS CULTURALES / COTIDIANOS NUEVOS
+            // ==========================================================
+            { id:"feriado", minSubs:50, title:"🇦🇷 Llegó un feriado largo", text:"Tu audiencia está conectada más horas de lo normal.", a:{label:"Subir contenido especial",desc:"+20% vistas",action:{constancia:1},cierre:{vistasPct:.20}}, b:{label:"Descansar",desc:"+6 reputación",action:{reputacion:6},cierre:{}} },
+            { id:"superclasico", minSubs:1000, title:"⚽ Se juega el Superclásico", text:"Todo el feed está hablando del partido.", a:{label:"Hacer contenido al instante",desc:"+30% vistas",action:{algoritmo:2},cierre:{vistasPct:.30}}, b:{label:"Mantener mi temática",desc:"+5 reputación",action:{reputacion:5},cierre:{}} },
+            { id:"mundial", minSubs:5000, title:"🏆 El Mundial domina internet", text:"El país está pendiente de cada partido.", a:{label:"Cubrir el Mundial",desc:"+45% vistas",action:{marketing:2},cierre:{vistasPct:.45}}, b:{label:"No subirme al tema",desc:"Sin bonus, +3 comunidad",action:{comunidad:3},cierre:{}} },
+            { id:"cadena", minSubs:50, title:"📺 Cadena nacional inesperada", text:"La programación cambió y tu audiencia está dispersa.", a:{label:"Hacer un stream especial",desc:"+10% vistas",action:{carisma:1},cierre:{vistasPct:.10}}, b:{label:"Esperar",desc:"-5% vistas",action:{},cierre:{vistasPct:-.05}} },
+            { id:"juego_masivo", minSubs:500, title:"🎮 Salió un juego masivo", text:"Todo el mundo quiere verlo.", a:{label:"Comprar y subir primero",desc:"-$20, +35% vistas",action:{dinero:-20,algoritmo:2},cierre:{vistasPct:.35}}, b:{label:"Esperar unos días",desc:"+10% ingresos",action:{marketing:1},cierre:{dineroPct:.10}} },
+            { id:"wifi", minSubs:50, negativo:true, title:"📶 Se cayó el WiFi", text:"Justo cuando ibas a publicar.", a:{label:"Pagar una solución",desc:"-$80, -3% vistas",action:{dinero:-80},cierre:{vistasPct:-.03}}, b:{label:"Improvisar",desc:"Puede salir mal",action:{reputacion:-2},cierre:{vistasPct:-.12}} },
+            { id:"equipo_roto", minSubs:1000, negativo:true, title:"🎥 Se rompió una cámara", text:"Tu equipo principal dejó de funcionar.", a:{label:"Repararla",desc:"-$150, mantiene el rendimiento",action:{dinero:-150},cierre:{vistasPct:0}}, b:{label:"Usar el celular",desc:"Gratis, -15% vistas",action:{},cierre:{vistasPct:-.15}} },
+            { id:"dolar", minSubs:1000, negativo:true, title:"💵 Subió fuerte el dólar", text:"Algunos costos de producción se dispararon.", a:{label:"Recortar producción",desc:"-10% videos",action:{},cierre:{videosPct:-.10}}, b:{label:"Invertir igual",desc:"-$100, +8% vistas",action:{dinero:-100},cierre:{vistasPct:.08}} },
+            { id:"robo_cuenta", minSubs:5000, negativo:true, title:"🔐 Intentaron robar tu cuenta", text:"Un phishing apunta a creadores de tu tamaño.", a:{label:"Pagar seguridad",desc:"-$250, +reputación",action:{dinero:-250,reputacion:6},cierre:{}}, b:{label:"Ignorarlo",desc:"10% de perder rendimiento",action:{reputacion:-5},cierre:{vistasPct:-.18}} },
+            { id:"fan_encuentro", minSubs:500, title:"❤️ Un fan te reconoce en la calle", text:"El momento termina en una foto que circula por redes.", a:{label:"Hablar con él",desc:"+8 comunidad",action:{comunidad:8},cierre:{subsPct:.04}}, b:{label:"Seguir de largo",desc:"Sin efecto",action:{},cierre:{}} },
+            { id:"podcast_clip", minSubs:2000, title:"🎙️ Una frase tuya se vuelve clip", text:"Una respuesta del podcast empezó a circular.", a:{label:"Publicarla en clips",desc:"+25% vistas",action:{humor:2},cierre:{vistasPct:.25,subsPct:.10}}, b:{label:"Dejarla orgánica",desc:"+4 reputación",action:{reputacion:4},cierre:{vistasPct:.08}} },
+            { id:"raid_bueno", minSubs:1000, title:"🤝 Un streamer chico te manda audiencia", text:"Una comunidad vecina te descubre.", a:{label:"Recibirlos",desc:"+12% subs",action:{networking:2},cierre:{subsPct:.12}}, b:{label:"No interactuar",desc:"+2 reputación",action:{reputacion:2},cierre:{}} },
+            { id:"festival", minSubs:10000, title:"🎤 Te invitan a un evento de creadores", text:"Puede ser una gran vidriera, pero cuesta tiempo.", a:{label:"Ir",desc:"-$100, +30% vistas",action:{dinero:-100,networking:3},cierre:{vistasPct:.30,subsPct:.12}}, b:{label:"Quedarme creando",desc:"+10% ingresos",action:{constancia:2},cierre:{dineroPct:.10}} },
+            { id:"noticia_futbol", minSubs:1000, title:"⚽ Explota una noticia de fútbol", text:"Tu nicho tiene una oportunidad inmediata.", a:{label:"Hacer análisis urgente",desc:"+28% vistas",action:{algoritmo:2},cierre:{vistasPct:.28}}, b:{label:"Esperar confirmación",desc:"+3 reputación",action:{reputacion:3},cierre:{}} },
+            { id:"tendencia_cocina", minSubs:500, title:"🍳 Una receta se vuelve tendencia", text:"Todo TikTok está intentando cocinar lo mismo.", a:{label:"Hacer mi versión",desc:"+24% vistas",action:{creatividad:2},cierre:{vistasPct:.24,subsPct:.08}}, b:{label:"No copiar tendencias",desc:"+5 reputación",action:{reputacion:5},cierre:{}} },
+            { id:"nuevo_telefono", minSubs:10000, title:"📱 Sale un teléfono muy esperado", text:"La audiencia quiere ver pruebas reales.", a:{label:"Comprar y probarlo",desc:"-$300, +35% vistas",action:{dinero:-300,marketing:2},cierre:{vistasPct:.35}}, b:{label:"Esperar sponsor",desc:"Sin gasto, menor impacto",action:{},cierre:{vistasPct:.08}} },
+            { id:"premiere", minSubs:5000, title:"🎬 Te invitan a una premiere", text:"Un evento puede acercarte a otros creadores.", a:{label:"Ir y cubrirla",desc:"+15% vistas, +networking",action:{networking:3},cierre:{vistasPct:.15,subsPct:.05}}, b:{label:"Quedarme en casa",desc:"+4 comunidad",action:{comunidad:4},cierre:{}} },
+            { id:"lluvia", minSubs:50, title:"🌧️ Lluvia y ciudad vacía", text:"La gente se queda en casa y consume más contenido.", a:{label:"Aprovechar la noche",desc:"+18% vistas",action:{constancia:1},cierre:{vistasPct:.18}}, b:{label:"Descansar",desc:"+3 reputación",action:{reputacion:3},cierre:{}} },
+            { id:"internet_trend", minSubs:100, title:"🌐 Un meme domina internet", text:"Tenés pocas horas para reaccionar antes de que muera.", a:{label:"Subir contenido ya",desc:"+32% vistas, riesgo",action:{algoritmo:1},cierre:{vistasPct:.32}}, b:{label:"Esperar",desc:"+5 reputación",action:{reputacion:5},cierre:{vistasPct:.03}} },
+
             // Eventos neutros para que no todo sea drama.
             {
                 id: "trend", minSubs: 50, negativo: false,
@@ -507,8 +527,6 @@ export const gameState = {
                 };
             });
 
-        // Base ampliada de eventos del mundo.
-        eventos.push(...EVENTOS_EXTRA);
         eventos.push(...dinamicos);
 
         const validos = eventos.filter(e => subs >= e.minSubs);
@@ -648,16 +666,6 @@ export const gameState = {
         };
 
         this.pendingEvent = null;
-
-        if (["clip_polemico", "hate_raid", "exponen_en_vivo", "tiktok_viral", "acusacion_bots"].includes(evento.id)) {
-            this.pendingMinigame = {
-                type: "crisisTiming",
-                eventId: evento.id,
-                title: evento.title,
-                text: "La conversación sigue creciendo. Un buen timing puede convertir la crisis en una oportunidad.",
-                createdAt: Date.now()
-            };
-        }
 
         if (opcion === "a" && eventHasPositive(evento[opcion])) {
             p.stats.eventosGanados = (Number(p.stats.eventosGanados) || 0) + 1;
@@ -838,26 +846,12 @@ export const gameState = {
             { id: "nike", name: "Nike", minSubs: 750000, minFama: 40, payMin: 12000, payMax: 28000, duration: 2, prestige: 10, tipo: "premium" },
             { id: "cocacola", name: "Coca-Cola", minSubs: 1500000, minFama: 50, payMin: 18000, payMax: 40000, duration: 2, prestige: 12, tipo: "premium" },
             { id: "apple", name: "Apple", minSubs: 3000000, minFama: 65, payMin: 50000, payMax: 100000, duration: 2, prestige: 15, tipo: "premium" },
-            {"id": "hyperx", "name": "HyperX", "minSubs": 8000, "minFama": 5, "payMin": 700, "payMax": 1800, "duration": 2, "prestige": 3},
-            {"id": "steelseries", "name": "SteelSeries", "minSubs": 12000, "minFama": 7, "payMin": 900, "payMax": 2200, "duration": 2, "prestige": 4},
-            {"id": "asus_rog", "name": "ASUS ROG", "minSubs": 25000, "minFama": 12, "payMin": 1500, "payMax": 4000, "duration": 2, "prestige": 5},
-            {"id": "corsair", "name": "Corsair", "minSubs": 30000, "minFama": 12, "payMin": 1800, "payMax": 4500, "duration": 2, "prestige": 5},
-            {"id": "samsung", "name": "Samsung", "minSubs": 100000, "minFama": 20, "payMin": 5000, "payMax": 12000, "duration": 2, "prestige": 7, "tipo": "premium"},
-            {"id": "mercadolibre", "name": "Mercado Libre", "minSubs": 50000, "minFama": 15, "payMin": 3000, "payMax": 8000, "duration": 2, "prestige": 6, "tipo": "premium"},
-            {"id": "uber", "name": "Uber", "minSubs": 25000, "minFama": 10, "payMin": 1200, "payMax": 3500, "duration": 1, "prestige": 4},
-            {"id": "spotify", "name": "Spotify", "minSubs": 75000, "minFama": 18, "payMin": 3000, "payMax": 7500, "duration": 2, "prestige": 6, "tipo": "premium"},
-            {"id": "disney", "name": "Disney+", "minSubs": 150000, "minFama": 25, "payMin": 6000, "payMax": 14000, "duration": 2, "prestige": 8, "tipo": "premium"},
-            {"id": "primevideo", "name": "Prime Video", "minSubs": 100000, "minFama": 22, "payMin": 4500, "payMax": 11000, "duration": 2, "prestige": 7, "tipo": "premium"},
-            {"id": "playstation", "name": "PlayStation", "minSubs": 200000, "minFama": 30, "payMin": 9000, "payMax": 22000, "duration": 2, "prestige": 9, "tipo": "premium"},
-            {"id": "xbox", "name": "Xbox", "minSubs": 150000, "minFama": 25, "payMin": 7000, "payMax": 18000, "duration": 2, "prestige": 8, "tipo": "premium"},
-            {"id": "steam", "name": "Steam", "minSubs": 250000, "minFama": 35, "payMin": 10000, "payMax": 25000, "duration": 2, "prestige": 10, "tipo": "premium"},
-            {"id": "nvidia", "name": "NVIDIA", "minSubs": 350000, "minFama": 40, "payMin": 12000, "payMax": 30000, "duration": 2, "prestige": 10, "tipo": "premium"},
-            {"id": "intel", "name": "Intel", "minSubs": 300000, "minFama": 35, "payMin": 10000, "payMax": 26000, "duration": 2, "prestige": 9, "tipo": "premium"},
-            {"id": "pepsi", "name": "Pepsi", "minSubs": 50000, "minFama": 15, "payMin": 2500, "payMax": 7000, "duration": 2, "prestige": 6, "tipo": "premium"},
-            {"id": "lays", "name": "Lay's", "minSubs": 30000, "minFama": 10, "payMin": 1500, "payMax": 4000, "duration": 1, "prestige": 4},
-            {"id": "adobe", "name": "Adobe", "minSubs": 75000, "minFama": 18, "payMin": 3500, "payMax": 9000, "duration": 2, "prestige": 7, "tipo": "premium"},
-            {"id": "canva", "name": "Canva", "minSubs": 20000, "minFama": 8, "payMin": 1200, "payMax": 3500, "duration": 2, "prestige": 4},
-            {"id": "duolingo", "name": "Duolingo", "minSubs": 15000, "minFama": 6, "payMin": 800, "payMax": 2400, "duration": 1, "prestige": 3}
+            { id: "samsung", name: "Samsung", minSubs: 120000, minFama: 20, payMin: 7000, payMax: 16000, duration: 2, prestige: 7, tipo: "premium" },
+            { id: "spotify", name: "Spotify", minSubs: 250000, minFama: 28, payMin: 9000, payMax: 22000, duration: 2, prestige: 8, tipo: "premium" },
+            { id: "logitech_pro", name: "Logitech", minSubs: 50000, minFama: 14, payMin: 2500, payMax: 6500, duration: 2, prestige: 5, tipo: "premium" },
+            { id: "speed", name: "Speed Unlimited", minSubs: 75000, minFama: 16, payMin: 3000, payMax: 8000, duration: 2, prestige: 5, tipo: "premium" },
+            { id: "mercadolibre", name: "Mercado Libre", minSubs: 200000, minFama: 24, payMin: 8000, payMax: 20000, duration: 2, prestige: 8, tipo: "premium" },
+            { id: "adobe", name: "Adobe", minSubs: 100000, minFama: 18, payMin: 4500, payMax: 11000, duration: 2, prestige: 6, tipo: "premium" }
         ];
 
         const p = this.player;
@@ -1003,7 +997,6 @@ export const gameState = {
                 pendingSponsorOffer: this.pendingSponsorOffer,
                 pendingEvent: this.pendingEvent,
                 pendingCollabOffer: this.pendingCollabOffer,
-                pendingMinigame: this.pendingMinigame,
                 pendingVideoSelection: this.pendingVideoSelection,
                 boosts: this.boosts,
                 lastVideo: this.lastVideo,
@@ -1013,7 +1006,6 @@ export const gameState = {
                 lastAwardsResults: this.lastAwardsResults,
                 ultimoEventoResultado: this.ultimoEventoResultado,
                 lastCollab: this.lastCollab,
-                lastMinigame: this.lastMinigame,
                 savedAt: Date.now()
             }));
             return true;
@@ -1059,7 +1051,6 @@ export const gameState = {
             this.lastAwardsResults = data.lastAwardsResults || null;
             this.ultimoEventoResultado = data.ultimoEventoResultado || null;
             this.lastCollab = data.lastCollab || null;
-            this.lastMinigame = data.lastMinigame || null;
             this.pendingVideoSelection = data.pendingVideoSelection || null;
 
             normalizarGameState();
@@ -1133,7 +1124,6 @@ export const gameState = {
         this.pendingSponsorOffer = null;
         this.pendingEvent = null;
         this.pendingCollabOffer = null;
-        this.pendingMinigame = null;
         this.ultimoEventoResultado = null;
 
         this.guardar();
@@ -1274,7 +1264,6 @@ export const gameState = {
         this.lastAwardsResults = null;
         this.ultimoEventoResultado = null;
         this.lastCollab = null;
-        this.lastMinigame = null;
         this.pendingVideoSelection = null;
 
         try {
@@ -1327,6 +1316,7 @@ export function normalizarGameState() {
     if (typeof p.ingresosGenerados !== "number") p.ingresosGenerados = 0;
     if (!p.ingresosDesglose) p.ingresosDesglose = { publicidad:0,sponsors:0,negocios:0,afiliados:0,donaciones:0 };
     if (typeof p.videoSubidoEsteTrimestre !== "boolean") p.videoSubidoEsteTrimestre = false;
+    if (typeof p.minigameIndex !== "number" || p.minigameIndex < 0) p.minigameIndex = 0;
     if (typeof p.partidaIniciada !== "boolean") p.partidaIniciada = false;
 
     if (!p.atributos) p.atributos = crearAtributos();
@@ -1383,7 +1373,6 @@ export function normalizarGameState() {
     if (!Array.isArray(gameState.worldYearNews)) gameState.worldYearNews = [];
     if (!Array.isArray(gameState.worldDramaHistory)) gameState.worldDramaHistory = [];
     ensureAdvancedState(gameState);
-    if (!("lastMinigame" in gameState)) gameState.lastMinigame = null;
     if (!("pendingSponsorOffer" in gameState)) gameState.pendingSponsorOffer = null;
     if (!("pendingEvent" in gameState)) gameState.pendingEvent = null;
     if (!("pendingCollabOffer" in gameState)) gameState.pendingCollabOffer = null;

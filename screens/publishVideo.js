@@ -2,6 +2,7 @@
 import { renderHeaderHud } from "../components/HeaderHud.js";
 import { gameState } from "../engine/gameState.js";
 import { generarVideos, procesarPublicacionTrimestre } from "../engine/videoSystem.js";
+import { runMinigame } from "../engine/minigames.js";
 
 export function renderPublishVideo(el) {
     const container = el || document.getElementById("publishScreen");
@@ -51,7 +52,7 @@ export function renderPublishVideo(el) {
     `;
 
     container.querySelectorAll(".select-video").forEach(button => {
-        button.addEventListener("click", () => {
+        button.addEventListener("click", async () => {
             if (!gameState.puedeSubirVideo()) return;
 
             const video = videos.find(item => item.id === button.dataset.videoId);
@@ -62,10 +63,28 @@ export function renderPublishVideo(el) {
                 return;
             }
 
-            gameState.pendingVideoSelection = { ...video };
-            gameState.pendingMinigame = { type: "videoSetup", title: video.titulo, text: "Elegí cómo presentar tu video: una buena miniatura y el horario correcto pueden cambiar su rendimiento.", createdAt: Date.now() };
+            button.disabled = true;
+            button.textContent = "PREPARANDO...";
+            const miniType = Number(gameState.player.minigameIndex || 0) % 4;
+            const miniScore = await runMinigame(miniType);
+            gameState.player.minigameIndex = (miniType + 1) % 4;
+
+            const miniFactor = 0.82 + (miniScore / 100) * 0.43;
+            const resultado = procesarPublicacionTrimestre(
+                video.titulo,
+                video.enfoquePrincipal,
+                video.enfoqueSecundario,
+                {
+                    costo: video.costo,
+                    tituloImpacto: (Number(video.tituloImpacto) || 1) * miniFactor,
+                    minigameScore: miniScore
+                }
+            );
+            resultado.minigameScore = miniScore;
+            gameState.lastVideoResult.minigameScore = miniScore;
+            gameState.registrarVideoPublicado();
             gameState.guardar();
-            window.location.hash = "#minigame";
+            window.location.hash = "#videoResult";
         });
     });
 

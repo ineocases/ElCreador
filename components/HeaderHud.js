@@ -16,7 +16,7 @@ export function fameLevel(fame) {
 function currentStep() {
     const h = window.location.hash;
     if (h === "#pretemporada" || h === "#newYear") return "pre";
-    if (h === "#publish" || h === "#videoResult" || h === "#pasanCosas" || h === "#minigame") return gameState.time.trimestre === 1 ? "t1" : "t2";
+    if (h === "#publish" || h === "#videoResult" || h === "#pasanCosas") return gameState.time.trimestre === 1 ? "t1" : "t2";
     if (h === "#yearSummary" || h === "#awards") return "awards";
     if (h === "#careerEnd") return "fin";
     return gameState.time.trimestre === 1 ? "t1" : "t2";

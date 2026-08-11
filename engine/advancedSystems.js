@@ -11,11 +11,9 @@ export function ensureAdvancedState(game) {
   p.patrimonio ||= { etapa: 0, nombre: "Casa de tus viejos", activos: [] };
   p.awardsHistory ||= [];
   p.velada ||= { tier: 0, training: 0, rival: null, eligible: false, wins: 0, losses: 0 };
-  p.minigame ||= null;
   p.nicheModifiers ||= {};
   p.negocios ||= {};
   p.ingresosDesglose ||= { publicidad: 0, sponsors: 0, negocios: 0, afiliados: 0, donaciones: 0 };
-  game.lastMinigame ||= null;
   game.lastEventCategory ||= null;
 }
 
@@ -78,79 +76,6 @@ export function buyBusiness(game, id) {
   game.guardar(); return true;
 }
 
-
-export function applyBottleFlipResult(game, score, attempts = 3) {
-  ensureAdvancedState(game);
-  const p = game.player;
-  const s = Math.max(0, Math.min(100, Number(score) || 0));
-  const q = p.actividadTrimestre;
-  const mult = 0.85 + (s / 100) * 0.45;
-
-  p.minigame = { type: "bottleFlip", score: s, attempts, label: "Bottle Flip Challenge" };
-  game.lastMinigame = p.minigame;
-
-  if (!q) return p.minigame;
-
-  const oldViews = Number(q.vistas) || 0;
-  const oldSubs = Number(q.suscriptores) || 0;
-  const oldMoney = Number(q.dinero) || 0;
-  const bonusViews = Math.round(oldViews * Math.max(0, mult - 1));
-  const bonusSubs = Math.max(0, Math.round(oldSubs * Math.max(0, mult - 1) * 0.9));
-  const bonusMoney = Math.max(0, Math.round(oldMoney * Math.max(0, mult - 1) * 0.8));
-
-  q.vistas += bonusViews;
-  q.suscriptores += bonusSubs;
-  q.dinero += bonusMoney;
-  q.minigameBonus = { views: bonusViews, subs: bonusSubs, money: bonusMoney, score: s };
-
-  p.vistasTotales += bonusViews;
-  p.suscriptores += bonusSubs;
-  p.dinero += bonusMoney;
-  p.ingresosTrimestre += bonusMoney;
-  p.ingresosGenerados = (Number(p.ingresosGenerados) || 0) + bonusMoney;
-  if (s >= 85) p.fama = Math.min(100, (Number(p.fama) || 0) + 1);
-
-  if (game.lastQuarterResult) {
-    game.lastQuarterResult.totalVistas += bonusViews;
-    game.lastQuarterResult.totalSubs += bonusSubs;
-    game.lastQuarterResult.totalDinero += bonusMoney;
-    game.lastQuarterResult.minigameBonus = { views: bonusViews, subs: bonusSubs, money: bonusMoney };
-  }
-
-  return p.minigame;
-}
-
-
-export function applyCrisisTimingResult(game, score) {
-  ensureAdvancedState(game);
-  const p = game.player;
-  const s = Math.max(0, Math.min(100, Number(score) || 0));
-  const activity = p.actividadTrimestre;
-  const result = game.lastQuarterResult;
-  if (!activity || !result) { game.pendingMinigame = null; return; }
-
-  // El timing modifica el resultado ya calculado del trimestre.
-  const viewsPct = s >= 90 ? 0.45 : s >= 65 ? 0.22 : s >= 40 ? 0.06 : -0.12;
-  const subsPct = s >= 90 ? 0.32 : s >= 65 ? 0.14 : s >= 40 ? 0.03 : -0.08;
-  const moneyPct = s >= 90 ? 0.28 : s >= 65 ? 0.10 : s >= 40 ? 0.02 : -0.05;
-  const views = Math.round(activity.vistas * viewsPct);
-  const subs = Math.round(activity.suscriptores * subsPct);
-  const money = Math.max(0, Math.round(activity.dinero * moneyPct));
-
-  p.vistasTotales = Math.max(0, p.vistasTotales + views);
-  p.suscriptores = Math.max(0, p.suscriptores + subs);
-  p.dinero = Math.max(0, p.dinero + money);
-  p.ingresosTrimestre += money;
-  p.ingresosGenerados = (Number(p.ingresosGenerados) || 0) + money;
-  if (s >= 90) p.fama = Math.min(100, Number(p.fama || 0) + 2);
-
-  activity.vistas += views; activity.suscriptores += subs; activity.dinero += money;
-  result.totalVistas += views; result.totalSubs += subs; result.totalDinero += money;
-  result.minigameBonus = { views, subs, money, score: s };
-  game.pendingMinigame = null;
-  game.lastMinigame = { type: "crisisTiming", score: s, views, subs, money, fecha: Date.now() };
-  return game.lastMinigame;
-}
 
 export function nicheProfile(game){
  const p=game.player; const n=p.niche;
