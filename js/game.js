@@ -1,303 +1,252 @@
-// js/game.js
-// ============ ESTADO DEL JUEGO ============
-const NICHES = {
-  futbol:  { nombre:"⚽ Fútbol", mult:1.2, volatilidad:"alta" },
-  gaming:  { nombre:"🎮 Gaming", mult:1.0, volatilidad:"media" },
-  reacts:  { nombre:"🍿 Reacts", mult:1.3, volatilidad:"muy alta" },
-  humor:   { nombre:"😂 Humor", mult:1.1, volatilidad:"alta" },
-  cocina:  { nombre:"🍳 Cocina", mult:0.9, volatilidad:"baja" },
-  gym:     { nombre:"🏋️ Gym", mult:1.0, volatilidad:"media" }
+// ===== CONFIG DE TIEMPO: 1 AÑO = 2 TRIMESTRES =====
+const BLOCKS_PER_YEAR = 2;    // trimestres por año
+const WEEKS_PER_BLOCK = 13;   // semanas simuladas por trimestre
+
+const NICHES={
+  futbol:{nombre:"Fútbol",icon:"⚽",mult:1.2},
+  gaming:{nombre:"Gaming",icon:"🎮",mult:1.0},
+  reacts:{nombre:"Reacts",icon:"🍿",mult:1.3},
+  humor:{nombre:"Humor",icon:"😂",mult:1.1},
+  cocina:{nombre:"Cocina",icon:"🍳",mult:.9},
+  gym:{nombre:"Gym",icon:"🏋️",mult:1.0}
 };
+const LEVELS=[{min:0,n:"Desconocido"},{min:1e3,n:"Subs"},{min:1e4,n:"Referente"},{min:1e5,n:"Ídolo"},{min:1e6,n:"Leyenda"}];
 
-const COMMUNITY_LEVELS = [
-  { min:0,      nombre:"Desconocido", emoji:"▫️" },
-  { min:1000,   nombre:"Subs",        emoji:"👥" },
-  { min:10000,  nombre:"Referente",   emoji:"💙" },
-  { min:100000, nombre:"Ídolo",       emoji:"⭐" },
-  { min:1000000,nombre:"Leyenda",     emoji:"🗿" }
+const STARTER_EVENTS=[
+ {titulo:"Corte de luz en pleno directo",nichos:["*"],texto:"Se fue la luz justo en el mejor momento del stream.",opciones:[{label:"Seguir con datos del celu",efectos:{heat:3,seguidores:300}},{label:"Levantar el stream",efectos:{heat:-2,seguidores:-150}}]},
+ {titulo:"Canje cripto dudoso",nichos:["*"],texto:"Te ofrecen mucha plata por una marca de cripto que no parece seria.",opciones:[{label:"Aceptar la guita",efectos:{plata:5000,heat:20}},{label:"Rechazar",efectos:{heat:-4}}]},
+ {titulo:"Te roban un clip",nichos:["*"],texto:"Una cuenta grande subió tu clip sin darte crédito y se hizo viral.",opciones:[{label:"Reclamar públicamente",efectos:{seguidores:1200,heat:6}},{label:"Dejarlo, igual suma",efectos:{seguidores:2000,heat:-2}}]},
+ {titulo:"Un hater te dedica un video",nichos:["*"],texto:"Un canal grande hizo un video criticándote.",opciones:[{label:"Responder con un video",efectos:{seguidores:1800,heat:10}},{label:"Ignorarlo",efectos:{heat:-5}}]},
+ {titulo:"Te ofrecen ir a la tele",nichos:["*"],texto:"Un programa de TV quiere que vayas de invitado.",opciones:[{label:"Ir, exposición masiva",efectos:{seguidores:4000,heat:8}},{label:"Quedarte en tu plataforma",efectos:{seguidores:500,heat:-3}}]},
+ {titulo:"Tu editor renuncia",nichos:["*"],texto:"Te quedaste sin editor justo antes de una semana clave.",opciones:[{label:"Editar vos (cansa)",efectos:{seguidores:600,heat:5}},{label:"Contratar uno nuevo",efectos:{plata:-1200,seguidores:900}}]},
+ {titulo:"Polémica por un tweet viejo",nichos:["*"],texto:"Resucitaron un tweet tuyo de hace 3 años.",opciones:[{label:"Disculpas en blanco y negro",efectos:{heat:-15,seguidores:-300}},{label:"Bancarla con un chiste",efectos:{heat:12,seguidores:1500}}]},
+ {titulo:"El algoritmo te castiga",nichos:["*"],texto:"Tus últimos videos tuvieron menos alcance sin razón.",opciones:[{label:"Cambiar de formato",efectos:{seguidores:800,heat:3}},{label:"Seguir igual",efectos:{seguidores:-400,heat:-3}}]},
+ {titulo:"¿Fue penal?",nichos:["futbol"],texto:"Todo el país discute una jugada polémica. Tenés que opinar.",opciones:[{label:"Decir que SÍ fue penal",efectos:{seguidores:1500,heat:8}},{label:"Decir que NO fue penal",efectos:{seguidores:1500,heat:8}},{label:"Esquivar el bulto",efectos:{heat:-4}}]},
+ {titulo:"Se te crashea el juego en ranked",nichos:["gaming"],texto:"En plena partida competitiva se te cierra el juego.",opciones:[{label:"Reírte y clippearlo",efectos:{seguidores:1000,heat:-2}},{label:"Ragear en vivo",efectos:{seguidores:600,heat:9}}]}
 ];
 
-// Starter content (para que sea jugable YA, sin depender del panel)
-const STARTER_EVENTS = [
-  {
-    titulo:"Corte de luz en pleno directo", tipo:"golpe", nichos:["*"],
-    texto:"Se fue la luz de Edenor justo cuando estabas en el mejor momento del stream.",
-    opciones:[
-      { label:"Seguir desde el celu con datos", efectos:{heat:+5, aguante:-1, seguidores:+200} },
-      { label:"Levantar y pedir disculpas", efectos:{heat:-2, seguidores:-100} }
-    ]
-  },
-  {
-    titulo:"Oferta de canje dudosa", tipo:"decision", nichos:["*"],
-    texto:"Una marca de cripto te ofrece mucha plata por promocionarlos, pero no parecen muy serios...",
-    opciones:[
-      { label:"Aceptar la guita 💸", efectos:{plata:+5000, heat:+25} },
-      { label:"Rechazar por tu imagen", efectos:{heat:-5} }
-    ]
-  },
-  {
-    titulo:"Te invita un streamer grande", tipo:"colab", nichos:["*"],
-    texto:"¡Te llegó un MD! Un streamer grande quiere que vayas a su stream.",
-    opciones:[
-      { label:"Aceptar el colab", efectos:{seguidores:+1500} },
-      { label:"Rechazar, estás enfocado", efectos:{seguidores:+100, heat:+2} }
-    ]
-  },
-  {
-    titulo:"Polémica en Twitter", tipo:"decision", nichos:["reacts","futbol"],
-    texto:"Un tweet tuyo de hace 3 años se hizo viral y te están criticando.",
-    opciones:[
-      { label:"Video de disculpas en blanco y negro", efectos:{heat:-15, seguidores:-200} },
-      { label:"Hacer un chiste y bancarla", efectos:{heat:+10, seguidores:+800} }
-    ]
-  }
+const SHOP=[
+ {id:"micro",nombre:"🎙️ Micrófono",costo:800,tipo:"setup",ef:"edicion",bonus:3},
+ {id:"camara",nombre:"📷 Cámara",costo:1200,tipo:"setup",ef:"edicion",bonus:3},
+ {id:"silla",nombre:"🪑 Silla Gamer",costo:600,tipo:"setup",ef:"aguante",bonus:3},
+ {id:"pc",nombre:"🖥️ PC RTX",costo:3000,tipo:"setup",ef:"edicion",bonus:5},
+ {id:"editor",nombre:"✂️ Editor",costo:1500,tipo:"staff",ef:"carisma",bonus:2},
+ {id:"psico",nombre:"🧠 Psicólogo",costo:1000,tipo:"staff",ef:"aguante",bonus:2}
 ];
 
-// Estado del jugador
-let state = null;
+const VIRAL_MOMENT={titulo:"🔥 ¡UN VIDEO TUYO EXPLOTÓ!",texto:"El algoritmo te eligió. Está en todos lados.",
+ opciones:[{label:"Monetizarlo con sponsor",efectos:{plata:3000,heat:5,seguidores:2000}},
+           {label:"Hacer una parte 2",efectos:{seguidores:5000,heat:3}},
+           {label:"Dejarlo morir",efectos:{seguidores:1000,heat:-5}}]};
 
-function newCareer(name, niche, origin) {
-  state = {
-    uid: UID,
-    name, niche, origin,
-    week: 1, year: 1,
-    followers: 0, money: 500, heat: 0, form: 0,
-    attributes: { carisma:10, edicion:10, olfato:10, aguante:10, oratoria:10 },
-    points: 10,
-    staff: [], setup: [],
-    stats: { videos:0, virals:0, colabs:0, awards:0 },
-    veladaUnlocked:false, parenDone:false,
-    rival:null, gameOver:false, log:[]
-  };
+let state=null, simulating=false;
+
+// ===== CARRERA =====
+function newCareer(name,niche,origin){
+  state={uid:UID,name,niche,origin,year:1,block:1,followers:0,money:500,heat:0,level:0,
+    attributes:{carisma:10,edicion:10,olfato:10,aguante:10,oratoria:10},
+    staff:[],setup:[],stats:{videos:0,virals:0,colabs:0,awards:0},
+    veladaUnlocked:false,parenDone:false,parenInvite:false,log:[]};
+}
+function startNewCareer(){
+  const name=document.getElementById("in-name").value.trim()||"Streamer";
+  const niche=document.getElementById("in-niche").value, origin=document.getElementById("in-origin").value;
+  const t=()=>{ if(UID){ newCareer(name,niche,origin); showScreen("screen-game"); renderShop(); render(); saveGame(); } else setTimeout(t,300); };
+  t();
 }
 
-// ============ LOOP PRINCIPAL ============
-function doWeek() {
-  if (!state || state.gameOver) return;
-  state.week++;
-  if (state.week % 52 === 0) { state.year++; endOfYear(); }
-
-  // Calcular performance del contenido
-  const a = state.attributes;
-  const attrScore = a.carisma*0.8 + a.edicion*1.2 + a.olfato*1.0 + a.oratoria*0.5;
-  const setupBonus = 1 + state.setup.length * 0.15;
-  const nicheMult = NICHES[state.niche].mult;
-  let views = Math.floor(
-    80 * (1 + attrScore/50) * setupBonus * nicheMult * (0.6 + Math.random()*0.8)
-  );
-
-  // Ganancia por ads
-  const earn = Math.floor(views * 0.01);
-  state.money += earn;
-  state.stats.videos++;
-
-  // Probabilidad de viral
-  const viralChance = (a.olfato + a.edicion) / 300;
-  let isViral = Math.random() < viralChance;
-  if (isViral) {
-    views *= 8;
-    state.stats.virals++;
-    addLog(`🔥 ¡SE VIRALIZÓ! ${formatNum(views)} reproducciones`);
+// ===== SIMULACIÓN DEL TRIMESTRE =====
+async function playBlock(){
+  if(simulating||!state) return;
+  simulating=true; setPlayBtn();
+  const interruptions=generateInterruptions(WEEKS_PER_BLOCK);
+  for(let w=1;w<=WEEKS_PER_BLOCK;w++){
+    await simWeek(w);
+    if(interruptions[w]) await resolveInterruption(interruptions[w]);
   }
-
-  state.followers += Math.floor(views * 0.08);
-
-  // Calor se disipa un poco cada semana
-  state.heat = Math.max(0, state.heat - 1);
-
-  // Chance de evento
-  if (Math.random() < 0.35) triggerRandomEvent();
-
-  updateLevel();
-  checkFunado();
-  render();
-  saveGame();
+  addLog(`✅ Cerraste el Trimestre ${state.block} del Año ${state.year}`);
+  state.block++;
+  if(state.block>BLOCKS_PER_YEAR){ state.block=1; state.year++; endOfYear(); }
+  updateLevel(); checkFunado();
+  simulating=false; render(); saveGame();
 }
 
-// ============ EVENTOS ============
-async function getEvents() {
-  try {
-    const snap = await db.collection("events").get();
-    if (snap.empty) return STARTER_EVENTS;
-    return snap.docs.map(d => ({ id:d.id, ...d.data() }));
-  } catch(e) { return STARTER_EVENTS; }
-}
-
-async function triggerRandomEvent() {
-  const events = await getEvents();
-  const valid = events.filter(ev =>
-    ev.nichos.includes("*") || ev.nichos.includes(state.niche)
-  );
-  if (valid.length === 0) return;
-  const ev = valid[Math.floor(Math.random()*valid.length)];
-  showEvent(ev);
-}
-
-function showEvent(ev) {
-  currentEvent = ev;
-  const modal = document.getElementById("event-modal");
-  document.getElementById("ev-title").textContent = ev.titulo;
-  document.getElementById("ev-text").textContent = ev.texto;
-  const box = document.getElementById("ev-options");
-  box.innerHTML = "";
-  ev.opciones.forEach((op,i) => {
-    const b = document.createElement("button");
-    b.className = "btn";
-    b.textContent = op.label;
-    b.onclick = () => chooseOption(i);
-    box.appendChild(b);
+function simWeek(w){
+  return new Promise(res=>{
+    const a=state.attributes;
+    const attr=a.carisma*.8+a.edicion*1.2+a.olfato+a.oratoria*.5;
+    const setupB=1+state.setup.length*.15;
+    let views=Math.floor(80*(1+attr/50)*setupB*NICHES[state.niche].mult*(0.6+Math.random()*.8));
+    state.money+=Math.floor(views*.01);
+    state.followers+=Math.floor(views*.08);
+    state.stats.videos++; state.heat=Math.max(0,state.heat-0.5);
+    setBar("block-progress",(w/WEEKS_PER_BLOCK)*100);
+    setText("count-followers",formatNum(state.followers));
+    setText("count-money","$"+formatNum(state.money));
+    setTimeout(res,120);
   });
-  modal.classList.add("show");
 }
 
-function chooseOption(i) {
-  const op = currentEvent.opciones[i];
-  applyEffects(op.efectos);
-  document.getElementById("event-modal").classList.remove("show");
-  addLog(`📌 ${currentEvent.titulo}: ${op.label}`);
-  render();
-  saveGame();
+function generateInterruptions(total){
+  const map={},types=["evento","evento","viral","sponsor","colab","evento"];
+  const count=3+Math.floor(Math.random()*3), used=new Set();
+  for(let i=0;i<count;i++){
+    let w=2+Math.floor(Math.random()*(total-3));
+    while(used.has(w)) w=2+Math.floor(Math.random()*(total-3));
+    used.add(w); map[w]=types[Math.floor(Math.random()*types.length)];
+  }
+  return map;
 }
 
-function applyEffects(ef) {
-  if (!ef) return;
-  if (ef.plata) state.money = Math.max(0, state.money + ef.plata);
-  if (ef.seguidores) state.followers = Math.max(0, state.followers + ef.seguidores);
-  if (ef.heat) state.heat = clamp(state.heat + ef.heat, 0, 100);
-  if (ef.form) state.form = clamp(state.form + ef.form, 0, 100);
+async function resolveInterruption(type){
+  if(type==="evento"){
+    const evs=await getEvents();
+    const v=evs.filter(e=>!e.nichos||e.nichos.includes("*")||e.nichos.includes(state.niche));
+    if(v.length) await waitForChoice(v[Math.floor(Math.random()*v.length)]);
+  } else if(type==="viral"){ state.stats.virals++; await waitForChoice(VIRAL_MOMENT); }
+  else if(type==="sponsor") await sponsorOffer();
+  else if(type==="colab") await colabInvite();
 }
 
-// ============ COMUNIDAD / NIVELES ============
-function updateLevel() {
-  let lvl = 0;
-  for (let i=0;i<COMMUNITY_LEVELS.length;i++)
-    if (state.followers >= COMMUNITY_LEVELS[i].min) lvl = i;
-  state.level = lvl;
-  // Desbloquear Paren la Mano al ser grande
-  if (lvl >= 2 && !state.parenDone && !state.veladaUnlocked) {
-    state.parenInvite = true;
+function waitForChoice(ev){
+  return new Promise(res=>{
+    setText("ev-title",ev.titulo); setText("ev-text",ev.texto);
+    const box=document.getElementById("ev-options"); box.innerHTML="";
+    ev.opciones.forEach(op=>{
+      const b=document.createElement("button"); b.className="btn btn-ghost"; b.textContent=op.label;
+      b.onclick=()=>{ applyEffects(op.efectos); addLog(`📌 ${ev.titulo}`); hideModal("event-modal"); res(op); };
+      box.appendChild(b);
+    });
+    showModal("event-modal");
+  });
+}
+
+function sponsorOffer(){
+  const marcas=[["Yerba El Gauchito",800],["Energy Max",1500],["Silla GamerPro",2200],["App Delivery",3000]];
+  const [m,pay]=marcas[Math.floor(Math.random()*marcas.length)];
+  const negoWin=Math.random()<0.5;
+  const opciones=[{label:`Aceptar $${pay}`,efectos:{plata:pay,heat:3}},{label:"Rechazar",efectos:{heat:-2}}];
+  if(negoWin) opciones.push({label:`Negociar → $${pay*2}`,efectos:{plata:pay*2,heat:2}});
+  return waitForChoice({titulo:`💸 Sponsor: ${m}`,texto:`Te ofrecen $${pay} por mencionarlos este trimestre.`,opciones});
+}
+
+async function colabInvite(){
+  const npcs=["La Víbora","El Davito","Agus la Neta","El Jefe del Army","Momo Peludo"];
+  const n=npcs[Math.floor(Math.random()*npcs.length)];
+  const op=await waitForChoice({titulo:`🤝 Colab con ${n}`,texto:`${n} te invita a su stream. ¿Vas?`,
+    opciones:[{label:"¡Dale, vamos!",efectos:{},colab:true},{label:"Esta vez paso",efectos:{heat:1}}]});
+  if(op.colab){
+    const win=await runTimingAsync();
+    if(win){ state.followers+=3000; state.stats.colabs++; addLog(`🤝 ¡Colab exitoso con ${n}! +3K`); }
+    else { state.followers+=800; state.heat+=2; addLog(`🤝 Colab flojo con ${n}...`); }
   }
 }
+function runTimingAsync(){ return new Promise(r=>startTimingMinigame(r)); }
 
-function checkFunado() {
-  if (state.heat >= 100) {
-    state.heat = 50;
-    state.followers = Math.floor(state.followers * 0.7);
-    addLog("💀 TE FUNARON. Perdiste un 30% de tu comunidad.");
-  }
+// ===== NIVELES / TIENDA / EVENTOS ESPECIALES =====
+function updateLevel(){
+  let l=0; for(let i=0;i<LEVELS.length;i++) if(state.followers>=LEVELS[i].min) l=i;
+  state.level=l;
+  if(l>=2&&!state.parenDone&&!state.veladaUnlocked) state.parenInvite=true;
 }
-
-// ============ TIENDA ============
-const SHOP = [
-  { id:"micro", nombre:"🎙️ Micrófono Shure", costo:800, tipo:"setup", efecto:"edicion", bonus:3 },
-  { id:"camara", nombre:"📷 Cámara HD", costo:1200, tipo:"setup", efecto:"edicion", bonus:3 },
-  { id:"silla", nombre:"🪑 Silla Gamer", costo:600, tipo:"setup", efecto:"aguante", bonus:3 },
-  { id:"pc", nombre:"🖥️ PC con RTX", costo:3000, tipo:"setup", efecto:"edicion", bonus:5 },
-  { id:"editor", nombre:"✂️ Editor", costo:1500, tipo:"staff", efecto:"videos", bonus:1 },
-  { id:"manager", nombre:"🤝 Manager", costo:2000, tipo:"staff", efecto:"plata", bonus:1 },
-  { id:"psico", nombre:"🧠 Psicólogo", costo:1000, tipo:"staff", efecto:"heat", bonus:1 }
-];
-
-function buyItem(id) {
-  const item = SHOP.find(s => s.id === id);
-  if (!item || state.money < item.costo) return;
-  const list = item.tipo === "setup" ? state.setup : state.staff;
-  if (list.includes(id)) return;
-  state.money -= item.costo;
-  list.push(id);
-  if (item.efecto in state.attributes) state.attributes[item.efecto] += item.bonus;
-  addLog(`🛒 Compraste ${item.nombre}`);
+function checkFunado(){
+  if(state.heat>=100){ state.heat=50; state.followers=Math.floor(state.followers*.7); addLog("💀 TE FUNARON. Perdiste 30% de tu comunidad."); }
+}
+function buyItem(id){
+  const it=SHOP.find(s=>s.id===id); if(!it||state.money<it.costo) return;
+  const list=it.tipo==="setup"?state.setup:state.staff; if(list.includes(id)) return;
+  state.money-=it.costo; list.push(id);
+  if(state.attributes[it.ef]!==undefined) state.attributes[it.ef]+=it.bonus;
+  addLog(`🛒 Compraste ${it.nombre}`); render(); saveGame();
+}
+async function startParenLaMano(){
+  const ok=await runTimingAsync();
+  if(ok){ state.parenDone=true; state.veladaUnlocked=true; state.parenInvite=false; addLog("🤸 ¡Superaste Paren la Mano! Tenés tu lugar en La Velada."); }
+  else { state.heat+=10; addLog("🤸 Te caíste en Paren la Mano... la gente se rió."); }
   render(); saveGame();
 }
+async function startVelada(){
+  if(!state.veladaUnlocked) return;
+  const win=await runTimingAsync();
+  if(win){ state.followers+=50000; addLog("🥊 ¡GANASTE LA VELADA! Clip legendario, +50K."); }
+  else { state.followers+=10000; addLog("🥊 Perdiste La Velada, pero el morbo te dio +10K."); }
+  state.veladaUnlocked=false; state.parenDone=false; state.parenInvite=false; render(); saveGame();
+}
+function endOfYear(){
+  if(state.followers>10000){ state.stats.awards++; addLog(`🏆 ¡Nominación en los Coscu Army Awards del Año ${state.year-1}!`); }
+}
+function getMedia(){
+  const a=state.attributes, base=(a.carisma+a.edicion+a.olfato+a.aguante+a.oratoria)/5;
+  const fame=Math.min(40,Math.log10(state.followers+1)*9);
+  return Math.min(99,Math.floor(base+fame));
+}
+async function getEvents(){
+  try{ const s=await db.collection("events").get(); if(s.empty) return STARTER_EVENTS; return s.docs.map(d=>({id:d.id,...d.data()})); }
+  catch(e){ return STARTER_EVENTS; }
+}
 
-// ============ PAREN LA MANO / LA VELADA ============
-function startParenLaMano() {
-  // Usa el minijuego de equilibrio (timing bar)
-  startTimingMinigame(success => {
-    if (success) {
-      state.form += 30;
-      state.parenDone = true;
-      state.veladaUnlocked = true;
-      addLog("🤸 ¡Superaste Paren la Mano! Tenés tu lugar en La Velada.");
-    } else {
-      state.heat += 10;
-      addLog("🤸 Te caíste en Paren la Mano... la gente se rió.");
-    }
-    render(); saveGame();
+// ===== GUARDADO / ADMIN =====
+async function saveGame(){
+  if(!UID||!state) return;
+  try{ const cid=state.careerId||db.collection("careers").doc().id; state.careerId=cid;
+    await db.collection("careers").doc(cid).set(state,{merge:true}); }catch(e){ console.error(e); }
+}
+async function tryOpenAdmin(){
+  auth.onAuthStateChanged(async u=>{
+    if(!u) return;
+    const d=await db.collection("users").doc(u.uid).get();
+    if(d.exists&&d.data().admin){ showScreen("screen-admin"); loadAdminEvents(); }
+    else alert("❌ No sos admin. En Firestore ponete admin:true en users/"+u.uid);
   });
 }
-
-function startVelada() {
-  if (!state.veladaUnlocked) return;
-  startTimingMinigame(win => {
-    if (win) {
-      state.stats.awards++;
-      state.followers += 50000;
-      addLog("🥊 ¡GANASTE LA VELADA! Clip legendario, +50K seguidores.");
-    } else {
-      state.followers += 10000;
-      addLog("🥊 Perdiste La Velada, pero el morbo te dio +10K.");
-    }
-    state.veladaUnlocked = false; state.parenDone = false;
-    render(); saveGame();
-  });
+function closeAdmin(){ showScreen(state?"screen-game":"screen-start"); }
+async function addEvent(){
+  await db.collection("events").add({titulo:document.getElementById("ev-titulo").value,
+    texto:document.getElementById("ev-texto").value,tipo:document.getElementById("ev-tipo").value,nichos:["*"],
+    opciones:[{label:document.getElementById("ev-op1").value,efectos:{heat:5}},{label:document.getElementById("ev-op2").value,efectos:{heat:-5}}]});
+  alert("✅ Guardado"); loadAdminEvents();
+}
+async function loadAdminEvents(){
+  const s=await db.collection("events").get();
+  document.getElementById("ev-list").innerHTML=s.docs.map(d=>`<div>📌 ${d.data().titulo}</div>`).join("")||"Sin eventos todavía.";
 }
 
-function endOfYear() {
-  // Lógica simplificada de los Coscu Army Awards
-  if (state.followers > 10000) {
-    state.stats.awards++;
-    addLog("🏆 ¡Estuviste nominado en los Coscu Army Awards!");
-  }
+// ===== UI =====
+function showScreen(id){ ["screen-start","screen-game","screen-admin"].forEach(s=>document.getElementById(s).classList.add("hidden")); document.getElementById(id).classList.remove("hidden"); }
+function showModal(id){ document.getElementById(id).classList.add("show"); }
+function hideModal(id){ document.getElementById(id).classList.remove("show"); }
+function setPlayBtn(){ const b=document.getElementById("btn-play"); b.disabled=simulating; b.textContent=simulating?"⏳ SIMULANDO...":"▶ JUGAR TRIMESTRE"; }
+function render(){
+  if(!state) return;
+  const lv=LEVELS[state.level], n=NICHES[state.niche];
+  setText("season-label",`AÑO ${state.year} · TRIMESTRE ${state.block}`);
+  setText("count-followers",formatNum(state.followers));
+  setText("count-money","$"+formatNum(state.money));
+  setBar("heat-fill",state.heat);
+  setText("fig-name",state.name.toUpperCase());
+  setText("fig-niche",`${n.icon} ${n.nombre}`);
+  setText("fig-avatar",n.icon);
+  setText("fig-level",lv.n.toUpperCase());
+  setText("fig-media",getMedia());
+  document.getElementById("fig-card").className="figurita nivel-"+state.level;
+  const a=state.attributes;
+  setText("fig-stats",`CAR ${a.carisma} · EDI ${a.edicion} · OLF ${a.olfato} · AGU ${a.aguante} · ORA ${a.oratoria}`);
+  document.getElementById("log").innerHTML=state.log.map(l=>`<div>${l}</div>`).join("");
+  document.getElementById("btn-paren").style.display=(state.parenInvite&&!state.parenDone)?"block":"none";
+  document.getElementById("btn-velada").style.display=state.veladaUnlocked?"block":"none";
+  setPlayBtn();
 }
-
-// ============ GUARDADO FIREBASE ============
-async function saveGame() {
-  if (!UID || !state) return;
-  try {
-    const cid = state.careerId || db.collection("careers").doc().id;
-    state.careerId = cid;
-    await db.collection("careers").doc(cid).set(state, { merge:true });
-  } catch(e){ console.error("save", e); }
-}
-
-async function loadGames() {
-  if (!UID) return [];
-  const snap = await db.collection("careers").where("uid","==",UID).get();
-  return snap.docs.map(d => ({ id:d.id, ...d.data() }));
-}
-
-// ============ UTILIDADES / UI ============
-let currentEvent = null;
-function clamp(v,min,max){ return Math.max(min, Math.min(max,v)); }
-function formatNum(n){
-  if (n>=1e6) return (n/1e6).toFixed(1)+"M";
-  if (n>=1e3) return (n/1e3).toFixed(1)+"K";
-  return Math.floor(n);
-}
-function addLog(msg){
-  state.log.unshift(`S${state.week} ${msg}`);
-  state.log = state.log.slice(0,30);
-}
-
-function render() {
-  if (!state) return;
-  const lvl = COMMUNITY_LEVELS[state.level];
-  setText("ui-name", state.name);
-  setText("ui-niche", NICHES[state.niche].nombre);
-  setText("ui-followers", formatNum(state.followers));
-  setText("ui-money", "$" + formatNum(state.money));
-  setText("ui-week", `Semana ${state.week} · Año ${state.year}`);
-  setText("ui-level", `${lvl.emoji} ${lvl.nombre}`);
-  setBar("ui-heat", state.heat);
-  const a = state.attributes;
-  setText("ui-attr", `Carisma ${a.carisma} · Edición ${a.edicion} · Olfato ${a.olfato} · Aguante ${a.aguante} · Oratoria ${a.oratoria}`);
-  const log = document.getElementById("ui-log");
-  log.innerHTML = state.log.map(l=>`<div>${l}</div>`).join("");
-  // Botones condicionales
-  toggle("btn-paren", state.parenInvite && !state.parenDone);
-  toggle("btn-velada", state.veladaUnlocked);
+function renderShop(){
+  const box=document.getElementById("shop"); box.innerHTML="";
+  SHOP.forEach(it=>{ const b=document.createElement("button"); b.className="btn btn-ghost";
+    b.textContent=`${it.nombre} $${it.costo}`; b.onclick=()=>buyItem(it.id); box.appendChild(b); });
 }
 function setText(id,v){ const el=document.getElementById(id); if(el) el.textContent=v; }
 function setBar(id,v){ const el=document.getElementById(id); if(el) el.style.width=v+"%"; }
-function toggle(id,show){ const el=document.getElementById(id); if(el) el.style.display=show?"block":"none"; }
+function addLog(m){ state.log.unshift(`A${state.year}T${state.block} · ${m}`); state.log=state.log.slice(0,30); }
+function formatNum(n){ if(n>=1e6)return(n/1e6).toFixed(1)+"M"; if(n>=1e3)return(n/1e3).toFixed(1)+"K"; return Math.floor(n); }
+
+window.onload=()=>{
+  const sel=document.getElementById("in-niche");
+  Object.entries(NICHES).forEach(([k,v])=>{ const o=document.createElement("option"); o.value=k; o.textContent=`${v.icon} ${v.nombre}`; sel.appendChild(o); });
+};
