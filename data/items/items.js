@@ -128,8 +128,7 @@ editing:25,
 audio:0,
 unlock:["4k","stream"],
 icon:"🖥️"
-}
-
+},
 
 {id:"mirrorless",name:"Sony A6400",slot:"camera",price:42000,tier:3,quality:32,editing:0,audio:0,unlock:["irl","vlog"],icon:"📷"},
 {id:"iphone_pro",name:"iPhone Pro para IRL",slot:"camera",price:60000,tier:3,quality:38,editing:0,audio:0,unlock:["irl","vlog"],icon:"📱"},

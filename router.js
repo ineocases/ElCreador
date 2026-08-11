@@ -44,7 +44,7 @@ function handleRoute() {
     const hash = window.location.hash || "#createChannel";
     const protectedRoutes = [
         "#dashboard", "#pretemporada", "#publish", "#videoResult",
-        #yearSummary", "#newYear", "#careerEnd", "#velada", "#pasanCosas", "#store", "#awards",
+        "#yearSummary", "#newYear", "#careerEnd", "#velada", "#pasanCosas", "#store", "#awards",
         "#collabs", "#sponsors", "#admin"
     ];
 
