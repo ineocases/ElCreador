@@ -5,6 +5,14 @@ import { icon } from "../components/Icon.js";
 const nf = n => Number(n || 0).toLocaleString("es-AR");
 const money = n => `$${nf(n)}`;
 
+function continuarDespuesDeMonetizacion() {
+    setTimeout(() => {
+        if (gameState.pendingEvent) { window.location.hash = "#pasanCosas"; return; }
+        if (gameState.pendingCollabOffer) { window.location.hash = "#collabs"; return; }
+        window.location.hash = "#videoResult";
+    }, 120);
+}
+
 function renderHistory(history) {
     if (!history.length) return `<p class="muted">Todavía no cerraste acuerdos con marcas.</p>`;
     return `<div class="mini-list">${history.map(s => {
@@ -36,6 +44,13 @@ export function renderSponsors(el) {
     const activeCampaigns = (gameState.campaigns || []).filter(c => c.estado === "activo");
     const rpm = gameState.calcularRPMEstimado ? gameState.calcularRPMEstimado() : Number(p.monetizacion?.rpmEstimado || 0);
     const adsUnlocked = Number(p.suscriptores || 0) >= 1000;
+
+    // Esta pantalla solo existe como bandeja de una oportunidad pendiente.
+    // Si no hay oferta fija ni campaña, no debe aparecer durante el loop trimestral.
+    if (!offer && !campaign) {
+        continuarDespuesDeMonetizacion();
+        return container;
+    }
 
     container.innerHTML = `
         <div class="page-shell compact-page monetization-page">
@@ -111,16 +126,16 @@ export function renderSponsors(el) {
         renderSponsors(container);
     });
     container.querySelector("#acceptSponsor")?.addEventListener("click", () => {
-        if (gameState.aceptarSponsor()) renderSponsors(container);
+        if (gameState.aceptarSponsor()) continuarDespuesDeMonetizacion();
     });
     container.querySelector("#rejectSponsor")?.addEventListener("click", () => {
-        if (gameState.rechazarSponsor()) renderSponsors(container);
+        if (gameState.rechazarSponsor()) continuarDespuesDeMonetizacion();
     });
     container.querySelector("#acceptCampaign")?.addEventListener("click", () => {
-        if (gameState.aceptarCampaign()) renderSponsors(container);
+        if (gameState.aceptarCampaign()) continuarDespuesDeMonetizacion();
     });
     container.querySelector("#rejectCampaign")?.addEventListener("click", () => {
-        if (gameState.rechazarCampaign()) renderSponsors(container);
+        if (gameState.rechazarCampaign()) continuarDespuesDeMonetizacion();
     });
 
     return container;

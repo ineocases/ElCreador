@@ -13,7 +13,7 @@ function continuarDespuesDelEvento() {
             return;
         }
 
-        if (gameState.pendingSponsorOffer) {
+        if (gameState.pendingSponsorOffer || gameState.pendingCampaignOffer) {
             window.location.hash = "#sponsors";
             return;
         }

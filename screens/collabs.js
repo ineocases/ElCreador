@@ -8,8 +8,8 @@ const nf = n => Number(n || 0).toLocaleString("es-AR");
 function continuar() {
     setTimeout(() => {
         if (gameState.pendingEvent) { window.location.hash = "#pasanCosas"; return; }
-        if (gameState.pendingSponsorOffer) { window.location.hash = "#sponsors"; return; }
-        window.location.hash = "#dashboard";
+        if (gameState.pendingSponsorOffer || gameState.pendingCampaignOffer) { window.location.hash = "#sponsors"; return; }
+        window.location.hash = "#videoResult";
     }, 120);
 }
 

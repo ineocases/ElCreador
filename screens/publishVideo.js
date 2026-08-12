@@ -109,7 +109,7 @@ export function renderPublishVideo(el) {
                     window.location.hash = "#pasanCosas";
                 } else if (gameState.pendingCollabOffer) {
                     window.location.hash = "#collabs";
-                } else if (gameState.pendingSponsorOffer) {
+                } else if (gameState.pendingSponsorOffer || gameState.pendingCampaignOffer) {
                     window.location.hash = "#sponsors";
                 } else {
                     window.location.hash = "#videoResult";
