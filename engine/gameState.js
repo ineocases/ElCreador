@@ -353,8 +353,8 @@ export const gameState = {
         const p = this.player;
         if (!p || this.pendingEvent) return null;
 
-        // No pasa algo extraordinario todos los trimestres.
-        if (Math.random() > 0.72) return null;
+        // Aumentar probabilidad de eventos: ahora 85% (era 72%)
+        if (Math.random() > 0.85) return null;
 
         const subs = Number(p.suscriptores) || 0;
         const reputacion = Number(p.reputacion) || 50;
@@ -701,8 +701,8 @@ export const gameState = {
 
         const hayRookie = candidatos.some(c => Number(c.seguidores || 0) <= 25000 && Number.isInteger(c.debutYear));
         const chance = subs < 1000
-            ? (hayRookie ? 0.78 : 0.58)
-            : Math.min(0.48, 0.12 + networking * 0.004 + fama * 0.0015 + Math.min(0.08, (subs / 250000) * 0.08));
+            ? (hayRookie ? 0.88 : 0.72)
+            : Math.min(0.65, 0.22 + networking * 0.006 + fama * 0.0025 + Math.min(0.12, (subs / 250000) * 0.12));
 
         if (Math.random() > chance) return null;
 
@@ -891,9 +891,9 @@ export const gameState = {
             }
         }
         const probabilidad =
-            marca.minSubs >= 750000 ? 0.60 :
-            marca.minSubs >= 300000 ? 0.52 :
-            0.68;
+            marca.minSubs >= 750000 ? 0.75 :
+            marca.minSubs >= 300000 ? 0.72 :
+            0.85;
 
         if (Math.random() > probabilidad) return null;
 

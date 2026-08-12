@@ -41,7 +41,6 @@ export function renderDashboard(el) {
                     <div class="channel-title-row">
                         <h1 class="page-title">${p.canal}</h1>
                     </div>
-                    <p class="page-subtitle">${p.niche}</p>
                 </div>
             </div>
 

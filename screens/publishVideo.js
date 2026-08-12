@@ -105,6 +105,8 @@ export function renderPublishVideo(el) {
 
             gameState.registrarVideoPublicado();
             gameState.guardar();
+            
+            // Mostrar pantalla de resultado del minijuego antes de continuar
             window.location.hash = "#videoResult";
         });
     });
