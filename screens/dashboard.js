@@ -41,12 +41,11 @@ export function renderDashboard(el) {
                     <div class="channel-title-row">
                         <h1 class="page-title">${p.canal}</h1>
                     </div>
-                    <p class="page-subtitle">${p.niche}</p>
                 </div>
             </div>
 
             ${pendingEvent ? `<div class="callout event-callout dramatic-callout"><div class="callout-icon">⚡</div><div><b>${pendingEvent.title}</b><span>${pendingEvent.text}</span></div><a class="btn primary" href="#pasanCosas">TOMAR DECISIÓN</a></div>` : ""}
-            ${collab ? `<div class="callout sponsor-callout dramatic-callout"><div class="callout-icon">🤝</div><div><b>${collab.creatorName} quiere colaborar con vos.</b><span>La invitación apareció sola.</span></div><a class="btn gold" href="#collabs">VER INVITACIÓN</a></div>` : ""}
+            ${collab ? `<div class="callout collab-callout dramatic-callout"><div class="callout-icon">🤝</div><div><b>${collab.creatorName} quiere colaborar con vos.</b><span>¡Te apareció una propuesta inesperada!</span></div><a class="btn primary" href="#collabs">VER INVITACIÓN</a></div>` : ""}
             ${sponsor && !collab ? `<div class="callout sponsor-callout dramatic-callout"><div class="callout-icon">💼</div><div><b>${sponsor.name} quiere trabajar con vos.</b><span>La propuesta apareció sola.</span></div><a class="btn gold" href="#sponsors">ABRIR PROPUESTA</a></div>` : ""}
 
             <div class="stat-grid four">

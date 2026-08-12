@@ -2,7 +2,7 @@
 import { renderHeaderHud } from "../components/HeaderHud.js";
 import { gameState } from "../engine/gameState.js";
 const nf = n => Number(n || 0).toLocaleString();
-function continuar(){ setTimeout(()=>{ if(gameState.time.trimestre===2){gameState.finalizarAño();window.location.hash="#yearSummary";} else window.location.hash="#videoResult"; },180); }
+function continuar(){ setTimeout(()=>{ window.location.hash="#videoResult"; },180); }
 export function renderSponsors(el){
  const container=el||document.getElementById("sponsorsScreen"); if(!container)return;
  const offer=gameState.pendingSponsorOffer; const history=(gameState.sponsors||[]).slice().reverse().slice(0,12);

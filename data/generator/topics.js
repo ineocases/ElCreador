@@ -38,15 +38,12 @@ export default {
         "Caso policial", "Denuncia social", "Relevamiento barrial",
         "Documental corto", "Análisis de medios", "Investigación de corrupción", "Reportaje en profundidad"
     ],
-    Comedia: ["situaciones argentinas", "historias del colegio", "anécdotas de internet", "memes de la semana", "imitaciones", "retos absurdos", "humor de barrio", "historias incómodas"],
-    Educación: ["cómo funciona internet", "economía explicada", "historia argentina", "ciencia cotidiana", "psicología en redes", "tecnología explicada", "datos curiosos", "mitos y verdades"],
-    Documentales: ["historias de internet", "lugares abandonados", "fenómenos argentinos", "historias del fútbol", "casos misteriosos", "creadores que cambiaron internet", "la historia de un barrio", "cómo nació una tendencia"],
-    Podcasts: ["historias de seguidores", "debate sin filtro", "anécdotas de internet", "preguntas incómodas", "historias de creadores", "charla de madrugada", "debate de fútbol", "confesiones"],
-    Fitness: ["rutina para principiantes", "desafío de 30 días", "comida pre entrenamiento", "mitos del gimnasio", "transformación", "entrenamiento en casa", "fuerza vs hipertrofia", "día de entrenamiento"],
-    IRL: ["un día conmigo", "recorriendo Buenos Aires", "24 horas sin celular", "conociendo seguidores", "probando trabajos", "viaje improvisado", "día con amigos", "situación inesperada"],
-    Cocina: ["asado argentino", "milanesas", "empanadas", "hamburguesas caseras", "postres argentinos", "cocina barata", "receta de TikTok", "reto de picante"],
-    Streaming: [
-        "Twitch", "Kick", "Coscu", "Spreen", "Davoo",
-        "La Cobra", "Ibai", "Reacts", "Charlando", "IRL"
-    ]
+    "IRL": ["Un día entero en mi ciudad", "24 horas sin celular", "Conociendo seguidores", "Mi rutina real", "Lo que nadie muestra de un creador", "Viajé sin planear nada", "Probando trabajos por un día", "Visitando lugares secretos", "Sobreviviendo con $10000", "Una semana diciendo que sí"],
+    "Comedia": ["Roast a mis amigos", "Leyendo comentarios", "Historias vergonzosas", "Cosas que me dan bronca", "Imitando a otros creadores", "No puedo reírme", "Anécdotas de mi infancia", "Preguntas incómodas", "Opiniones que nadie pidió", "El peor consejo"],
+    "Educaci\u00f3n": ["Cómo funciona", "Explicado fácil", "Errores que todos cometen", "La historia detrás de", "10 datos que no sabías", "Mitos y verdades", "Experimento en casa", "Guía para principiantes", "Lo que aprendí", "Preguntas de la comunidad"],
+    "Documental": ["La historia de", "El lado desconocido de", "Qué pasó realmente", "Investigando", "El fenómeno explicado", "La caída y el regreso", "Detrás del éxito", "La verdad sobre", "Así funciona", "Un caso que nadie cuenta"],
+    "Podcast": ["Charlando con", "Preguntas sin filtro", "Historias de mi carrera", "Debate abierto", "Invitado sorpresa", "Confesiones", "Lo que nadie pregunta", "Una charla incómoda", "Detrás de cámaras", "Especial de temporada"],
+    "Viajes": ["Viajé solo a", "El destino más barato", "48 horas en", "Comiendo por toda la ciudad", "Guía definitiva de", "El lugar más raro", "Viaje con presupuesto mínimo", "Probando hoteles", "Ruta gastronómica", "Lo mejor y lo peor de"],
+    "Fitness": ["30 días entrenando", "Transformación real", "Rutina para principiantes", "Probando un nuevo deporte", "Reto de fuerza", "Qué como en un día", "Entrenamiento en casa", "Mitos del gimnasio", "Antes y después", "Desafío de 7 días"],
+    "Streaming": ["Mi primer stream", "Reaccionando en vivo", "Charlando con el chat", "Jugando con seguidores", "Noche de retos", "Stream maratón", "IRL en vivo", "Probando juegos nuevos", "Lo mejor del stream", "Clips de la semana"]
 };

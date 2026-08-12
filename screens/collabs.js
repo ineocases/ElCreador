@@ -11,11 +11,7 @@ function continuar() {
             window.location.hash = "#sponsors";
             return;
         }
-        if (gameState.time.trimestre === 2) {
-            gameState.finalizarAño();
-            window.location.hash = "#yearSummary";
-            return;
-        }
+        // El resultado trimestral siempre se ve antes de pasar de trimestre/año.
         window.location.hash = "#videoResult";
     }, 160);
 }
@@ -29,6 +25,7 @@ export function renderCollabs(el) {
     const creators = (gameState.creators || [])
         .filter(c => c.activo !== false)
         .filter(c => c.id !== "player")
+        .filter(c => gameState.puedeProponerCollab(c.id))
         .slice()
         .sort((a, b) => Number(b.seguidores || 0) - Number(a.seguidores || 0))
         .slice(0, 14);
@@ -69,15 +66,18 @@ export function renderCollabs(el) {
                 </section>
             `}
 
-            <section class="panel">
+            <section class="panel collab-propose-panel">
                 <div class="eyebrow">📨 PROPONER COLABORACIÓN</div>
-                <p class="muted">Podés ofrecerle una colaboración a alguien con quien ya tenés relación o a cualquier creador que tenga menos seguidores que vos.</p>
+                <h2>Creadores disponibles</h2>
+                <p class="muted">Solo aparecen personas a las que realmente podés enviarles una propuesta ahora.</p>
                 <div class="collab-directory">
-                    ${creators.slice(0, 14).map(c => {
-                        const rel = Number(gameState.player.relationships?.[c.id] || 0);
-                        const can = gameState.puedeProponerCollab(c.id);
-                        return `<div class="collab-directory-row"><div><b>${c.nombre}</b><span>${nf(c.seguidores)} subs · relación ${rel}</span></div>${can ? `<button class="btn ghost propose-collab" data-id="${c.id}">OFRECER COLAB</button>` : `<small class="muted">Necesitás relación o ser más grande</small>`}</div>`;
-                    }).join("")}
+                    ${creators.length
+                        ? creators.map(c => {
+                            const rel = Number(gameState.player.relationships?.[c.id] || 0);
+                            return `<div class="collab-directory-row"><div><b>${c.nombre}</b><span>${nf(c.seguidores)} subs · relación ${rel}</span></div><button class="btn primary propose-collab" data-id="${c.id}">PROPONER COLAB</button></div>`;
+                        }).join("")
+                        : `<div class="empty-opportunity"><div class="empty-icon">🔒</div><h3>No hay una propuesta que puedas enviar todavía.</h3><p>Seguí creciendo y construyendo relaciones. La lista se actualiza sola.</p></div>`
+                    }
                 </div>
             </section>
 

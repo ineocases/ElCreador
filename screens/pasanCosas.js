@@ -18,13 +18,9 @@ function continuarDespuesDelEvento() {
             return;
         }
 
-        if (gameState.time.trimestre === 2) {
-            gameState.finalizarAño();
-            window.location.hash = "#yearSummary";
-            return;
-        }
-
         // El cierre del trimestre se muestra DESPUÉS de resolver el evento.
+        // En T2, videoResult se encarga de llevar al resumen anual con el botón
+        // siguiente, así el jugador siempre ve primero cuánto rindió el canal.
         window.location.hash = "#videoResult";
     }, 180);
 }

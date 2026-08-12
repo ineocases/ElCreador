@@ -353,9 +353,9 @@ export const gameState = {
         const p = this.player;
         if (!p || this.pendingEvent) return null;
 
-        // No pasa algo extraordinario todos los trimestres.
-        if (Math.random() > 0.72) return null;
-
+        // "Pasan cosas" es una parte central del loop: al cerrar un trimestre
+        // siempre debe existir una oportunidad/evento elegible. La variedad
+        // sigue viniendo de la selección aleatoria de eventos.
         const subs = Number(p.suscriptores) || 0;
         const reputacion = Number(p.reputacion) || 50;
         const fama = Number(p.fama) || 0;
@@ -700,9 +700,11 @@ export const gameState = {
         if (!candidatos.length) return null;
 
         const hayRookie = candidatos.some(c => Number(c.seguidores || 0) <= 25000 && Number.isInteger(c.debutYear));
+        // Las invitaciones deben sentirse como parte del mundo, no como
+        // contenido que el jugador tiene que perseguir desde un menú.
         const chance = subs < 1000
-            ? (hayRookie ? 0.78 : 0.58)
-            : Math.min(0.48, 0.12 + networking * 0.004 + fama * 0.0015 + Math.min(0.08, (subs / 250000) * 0.08));
+            ? (hayRookie ? 0.96 : 0.88)
+            : Math.min(0.88, 0.42 + networking * 0.008 + fama * 0.003 + Math.min(0.16, (subs / 250000) * 0.16));
 
         if (Math.random() > chance) return null;
 
@@ -891,9 +893,9 @@ export const gameState = {
             }
         }
         const probabilidad =
-            marca.minSubs >= 750000 ? 0.60 :
-            marca.minSubs >= 300000 ? 0.52 :
-            0.68;
+            marca.minSubs >= 750000 ? 0.75 :
+            marca.minSubs >= 300000 ? 0.72 :
+            0.85;
 
         if (Math.random() > probabilidad) return null;
 

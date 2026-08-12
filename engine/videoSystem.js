@@ -686,20 +686,15 @@ export function procesarPublicacionTrimestre(
         simDinero += jackpotMoney;
         simFama += random(8, 20);
     }
-    // El video destacado concentra entre 20% y 40% de las vistas del trimestre.
-    // Los demás videos siguen existiendo y suman volumen, pero no compiten con el destacado.
-    const featuredShare = randomFloat(0.22, 0.38);
-    const manualViews = Math.max(1, Number(manualResult.vistas) || 1);
-    const rawSimViews = Math.max(0, simVistas);
-    if (rawSimViews > 0) {
-        const targetTotal = manualViews / featuredShare;
-        const targetSim = Math.max(0, targetTotal - manualViews);
-        const scale = targetSim / rawSimViews;
-        simVistas = Math.round(rawSimViews * scale);
-        simSubs = Math.max(videosDelResto * 15, Math.round(simSubs * scale));
-        simDinero = Math.max(0, Math.round(simDinero * scale));
-    }
-
+    // IMPORTANTE: los videos secundarios son publicaciones reales del canal.
+    // Antes se normalizaban para que el video destacado representara 22%-38%
+    // del trimestre. Eso hacía que 100+ videos pudieran terminar con apenas
+    // 30k-40k vistas aunque el canal tuviera miles de suscriptores.
+    //
+    // Ahora cada publicación conserva su rendimiento independiente y el total
+    // escala naturalmente con la audiencia del canal, sus atributos y el
+    // descubrimiento. El video destacado sigue siendo especial por su propio
+    // resultado, no porque comprima artificialmente al resto.
     const simSubsFinal = Math.max(0, Math.round(simSubs));
     const simDineroFinal = Math.max(0, Math.round(simDinero));
     const simFamaEntera = Math.min(3, simFama);

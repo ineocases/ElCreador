@@ -40,6 +40,57 @@ export function runMinigame(type) {
     ]).catch(error => {
         console.error("Error en minijuego:", error);
         return 0;
+    }).then(score => {
+        // Mostrar resultado del minijuego por 2 segundos antes de continuar
+        return new Promise(resolve => {
+            mostrarResultadoMinijuego(score).then(() => {
+                resolve(score);
+            });
+        });
+    });
+}
+
+function mostrarResultadoMinijuego(score) {
+    return new Promise(resolve => {
+        const old = document.getElementById("minigameResultOverlay");
+        if (old) old.remove();
+        
+        const el = document.createElement("div");
+        el.id = "minigameResultOverlay";
+        el.className = "minigame-overlay";
+        
+        let icono, texto, clase;
+        if (score >= 90) {
+            icono = "🔥";
+            texto = "¡EXCELENTE!";
+            clase = "excelente";
+        } else if (score >= 65) {
+            icono = "✅";
+            texto = "¡BIEN HECHO!";
+            clase = "bueno";
+        } else if (score >= 35) {
+            icono = "😐";
+            texto = "REGULAR";
+            clase = "regular";
+        } else {
+            icono = "❌";
+            texto = "MAL";
+            clase = "fallo";
+        }
+        
+        el.innerHTML = `
+          <div class="minigame-modal">
+            <div class="minigame-eyebrow">RESULTADO DEL MINIJUEGO</div>
+            <h2>${icono} ${texto}</h2>
+            <p class="minigame-subtitle">Puntaje: ${score}/100</p>
+            <div style="font-size: 3rem; margin: 20px 0;">${score}%</div>
+          </div>`;
+        document.body.appendChild(el);
+        
+        setTimeout(() => {
+            if (el && el.isConnected) el.remove();
+            resolve();
+        }, 2000);
     });
 }
 
