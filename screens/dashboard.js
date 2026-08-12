@@ -20,8 +20,8 @@ export function renderDashboard(el) {
     const sponsor = gameState.pendingSponsorOffer;
     const pendingEvent = gameState.pendingEvent;
     const collab = gameState.pendingCollabOffer;
+    const campaign = gameState.pendingCampaignOffer;
 
-    const progresoAño = p.trimestre === 1 ? 50 : 100;
     const mejorado = p.pretemporada?.atributo;
 
 
@@ -38,7 +38,9 @@ export function renderDashboard(el) {
             ${pendingEvent ? `<div class="callout event-callout dramatic-callout"><div class="callout-icon">⚡</div><div><b>${pendingEvent.title}</b><span>${pendingEvent.text}</span></div><a class="btn primary" href="#pasanCosas">TOMAR DECISIÓN</a></div>` : ""}
             ${collab ? `<div class="callout collab-callout dramatic-callout"><div class="callout-icon">🤝</div><div><b>${collab.creatorName} quiere colaborar con vos.</b><span>¡Te apareció una propuesta inesperada!</span></div><a class="btn primary" href="#collabs">VER INVITACIÓN</a></div>` : ""}
             ${sponsor && !collab ? `<div class="callout sponsor-callout dramatic-callout"><div class="callout-icon">💼</div><div><b>${sponsor.name} quiere trabajar con vos.</b><span>La propuesta apareció sola.</span></div><a class="btn gold" href="#sponsors">ABRIR PROPUESTA</a></div>` : ""}
+            ${campaign && !collab && !sponsor ? `<div class="callout sponsor-callout dramatic-callout"><div class="callout-icon">📊</div><div><b>${campaign.name} propone una campaña por visitas.</b><span>$${nf(campaign.cpm)} cada 1.000 vistas verificadas.</span></div><a class="btn gold" href="#sponsors">VER CAMPAÑA</a></div>` : ""}
 
+            <!-- La identidad, año y trimestre ya están en el HUD superior. No se repiten aquí. -->
             <div class="stat-grid four">
                 <div class="stat-tile"><span>👥 Suscriptores</span><strong>${nf(p.suscriptores)}</strong></div>
                 <div class="stat-tile"><span>👁️ Vistas</span><strong>${nf(p.vistasTotales)}</strong></div>
@@ -50,12 +52,7 @@ export function renderDashboard(el) {
 
             ${hizoPretemporada && !p.videoSubidoEsteTrimestre && !pendingEvent && !sponsor && !collab ? `<a href="#publish" class="btn primary big pulse publish-main-cta">📹 PUBLICAR VIDEO</a>` : ""}
 
-            <div class="quick-actions dashboard-quick-actions">
-                <a href="#monetizacion" class="quick-action-card"><span>💰</span><b>Monetización</b><small>Campañas y acuerdos</small></a>
-                <a href="#sponsors" class="quick-action-card"><span>🤝</span><b>Sponsors</b><small>Propuestas de marcas</small></a>
-                <a href="#collabs" class="quick-action-card"><span>🎬</span><b>Colabs</b><small>Creadores disponibles</small></a>
-                <a href="#store" class="quick-action-card"><span>🛒</span><b>Tienda</b><small>Equipo y negocios</small></a>
-            </div>
+
 
             <div class="dashboard-grid">
                 <section class="panel">

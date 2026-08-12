@@ -94,7 +94,7 @@ export function renderCollabs(el) {
                                     <span>${nf(c.seguidores)} subs · ${c.nicho || "Variedad"} · Relación ${rel >= 0 ? "+" : ""}${rel}</span>
                                     ${disabled ? `<small class="collab-requirement">🔒 ${info.motivo}</small>` : `<small class="collab-requirement">${info.motivo}</small>`}
                                 </div>
-                                <button class="btn ${disabled ? "ghost" : "collab-red"} propose-collab" data-id="${c.id}" ${disabled ? "disabled title="Todavía no tenés el alcance para esta colaboración"" : ""}>${disabled ? "NO DISPONIBLE" : "PROPONER COLAB"}</button>
+                                <button class="btn ${disabled ? "ghost" : "collab-red"} propose-collab" data-id="${c.id}" ${disabled ? 'disabled title="Todavía no tenés el alcance para esta colaboración"' : ""}>${disabled ? "NO DISPONIBLE" : "PROPONER COLAB"}</button>
                             </div>`;
                     }).join("")}
                 </div>

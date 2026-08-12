@@ -51,7 +51,6 @@ export function renderHeaderHud() {
                 <a href="#store" class="hud-menu-btn">${icon("store",16)} <span>Tienda</span></a>
                 <a href="#collabs" class="hud-menu-btn">${icon("group",16)} <span>Colabs</span></a>
                 <a href="#sponsors" class="hud-menu-btn">${icon("briefcase",16)} <span>Sponsors</span></a>
-                <a href="#monetizacion" class="hud-menu-btn">💰 <span>Monetización</span></a>
                 <a href="#awards" class="hud-menu-btn ${awardAccess ? "" : "locked"}">${icon("trophy",16)} <span>Awards</span>${awardAccess ? "" : " 🔒"}</a>
                 <a href="#velada" class="hud-menu-btn ${canVelada ? "" : "locked"}">${icon("sports_mma",16)} <span>Velada</span>${canVelada ? "" : " 🔒"}</a>
                 <button type="button" class="hud-menu-btn hud-career-btn" id="retireCareerBtn">☰</button>

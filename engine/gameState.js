@@ -135,6 +135,7 @@ function crearPlayer() {
         ingresosTrimestre: 0,
         ingresosGenerados: 0,
         ingresosDesglose: { publicidad: 0, sponsors: 0, negocios: 0, afiliados: 0, donaciones: 0 },
+        monetizacion: { adsActivos: false, rpmEstimado: 0, acuerdosFirmados: 0, campañasCompletadas: 0 },
 
         atributos: crearAtributos(),
 
@@ -160,7 +161,6 @@ function crearPlayer() {
         historialTrimestre4: null,
         historialAños: [],
         awardsHistory: [],
-        monetizacion: { acuerdos: [], campaniasActivas: [], historial: [] },
         yearStartSnapshot: null
     };
 }
@@ -409,6 +409,8 @@ export const gameState = {
     creators: crearCreadores(),
     trends: [],
     sponsors: [],
+    campaigns: [],
+    pendingCampaignOffer: null,
     worldNews: [],
     worldYearNews: [],
     worldDramaHistory: [],
@@ -426,55 +428,6 @@ export const gameState = {
     lastAwardsResults: null,
     ultimoEventoResultado: null,
     lastCollab: null,
-
-    monetizacionCatalogo() {
-        const p = this.player;
-        const subs = Number(p.suscriptores || 0);
-        const fama = Number(p.fama || 0);
-        const nicho = p.niche || "Gaming";
-        const base = Math.max(1, subs / 1000);
-        const opciones = [
-            { id:"afiliado", marca:"Programa de afiliados", tipo:"Afiliado", minSubs:1000, pagoPorMil:0.55, maxPago:3500, objetivo:Math.round(base*900), descripcion:"Cobrás por las visitas que llegan desde tus enlaces o códigos." },
-            { id:"campania_cpm", marca:"Campaña por visitas", tipo:"CPM", minSubs:5000, pagoPorMil:1.8, maxPago:12000, objetivo:Math.round(base*2200), descripcion:"La marca paga por cada mil visualizaciones válidas del contenido acordado." },
-            { id:"integracion", marca:"Integración de marca", tipo:"Integración", minSubs:15000, pagoPorMil:3.2, maxPago:22000, objetivo:Math.round(base*1800), descripcion:"Mención integrada dentro de un video. Más pago, pero exige cumplir condiciones." },
-            { id:"campania_lanzamiento", marca:"Campaña de lanzamiento", tipo:"Campaña", minSubs:50000, pagoPorMil:4.8, maxPago:50000, objetivo:Math.round(base*2600), descripcion:"Acuerdo trimestral para impulsar un lanzamiento. Requiere constancia y alcance." },
-            { id:"premium", marca:"Campaña premium", tipo:"Premium", minSubs:250000, pagoPorMil:7.5, maxPago:120000, objetivo:Math.round(base*3000), descripcion:"Acuerdo de alto nivel con objetivos de alcance y presencia de marca." }
-        ];
-        return opciones.filter(o => subs >= o.minSubs && (o.id !== "premium" || fama >= 35)).map(o => ({...o, objetivo:Math.max(1000,o.objetivo)}));
-    },
-
-    firmarCampania(id) {
-        const p = this.player;
-        p.monetizacion ||= { acuerdos: [], campaniasActivas: [], historial: [] };
-        if (p.monetizacion.campaniasActivas.length >= 2) return {ok:false, motivo:"Ya tenés dos campañas activas."};
-        const oferta = this.monetizacionCatalogo().find(x => x.id === id);
-        if (!oferta) return {ok:false, motivo:"No cumplís los requisitos de esta campaña."};
-        if (p.monetizacion.campaniasActivas.some(x => x.id === id)) return {ok:false, motivo:"Ya firmaste esta campaña."};
-        const acuerdo = {...oferta, firmadoEn:{año:this.time.año,trimestre:this.time.trimestre}, vistasInicio:Number(p.vistasTotales||0), estado:"activo", pagoAcumulado:0};
-        p.monetizacion.campaniasActivas.push(acuerdo);
-        p.monetizacion.acuerdos.push({...acuerdo});
-        this.agregarNotificacion({tipo:"monetizacion",titulo:`💼 Firmaste con ${oferta.marca}`,descripcion:`El pago depende del alcance real de tus contenidos.`});
-        this.guardar();
-        return {ok:true, acuerdo};
-    },
-
-    liquidarCampaniasTrimestre() {
-        const p = this.player; p.monetizacion ||= { acuerdos: [], campaniasActivas: [], historial: [] };
-        const vistasActuales = Number(p.vistasTotales || 0);
-        let total = 0;
-        for (const camp of [...p.monetizacion.campaniasActivas]) {
-            const vistas = Math.max(0, vistasActuales - Number(camp.vistasInicio || 0));
-            const pago = Math.min(Number(camp.maxPago||0), Math.round((vistas/1000) * Number(camp.pagoPorMil||0)));
-            camp.pagoAcumulado = pago; camp.vistasGeneradas = vistas; camp.cerradaEn={año:this.time.año,trimestre:this.time.trimestre};
-            total += pago;
-            p.monetizacion.historial.push({...camp, estado:"liquidado"});
-            p.ingresosDesglose ||= {publicidad:0,sponsors:0,negocios:0,afiliados:0,donaciones:0};
-            p.ingresosDesglose.sponsors = (Number(p.ingresosDesglose.sponsors)||0) + pago;
-        }
-        if (total > 0) { p.dinero += total; p.ingresosTrimestre += total; p.ingresosGenerados += total; }
-        p.monetizacion.campaniasActivas = [];
-        return total;
-    },
 
     adminMode: false,
 
@@ -504,10 +457,13 @@ export const gameState = {
         this.notifications = [];
         this.trends = [];
         this.sponsors = [];
+        this.campaigns = [];
+        this.pendingCampaignOffer = null;
         this.worldNews = [];
         this.worldYearNews = [];
         this.worldDramaHistory = [];
         this.pendingSponsorOffer = null;
+        this.pendingCampaignOffer = null;
         this.pendingEvent = null;
         this.pendingCollabOffer = null;
         this.pendingVideoSelection = null;
@@ -1108,6 +1064,123 @@ export const gameState = {
         return true;
     },
 
+    // ---------------------------------------------------------------------
+    // MONETIZACIÓN COMERCIAL: acuerdos por vistas / entregables
+    // ---------------------------------------------------------------------
+    calcularRPMEstimado() {
+        const p = this.player;
+        const niche = p?.niche || "Gaming";
+        const base = {
+            Gaming: 2.8, "Streaming": 3.2, "Tecnología": 5.5, "Educación": 6.0,
+            Cocina: 4.2, "Fútbol": 3.0, "Comedia": 2.5, IRL: 3.0, Vlog: 3.1,
+            Podcast: 4.8, Documental: 6.5, "Periodismo": 5.8, Fitness: 4.0
+        }[niche] || 3.0;
+        const audiencia = Math.min(1.45, 0.85 + Math.log10(Math.max(100, Number(p.suscriptores)||100)) * 0.10);
+        const reputacion = 0.75 + Math.max(0, Math.min(0.35, Number(p.reputacion||50)/140));
+        return Math.round(base * audiencia * reputacion * 100) / 100;
+    },
+
+    generarOfertaCampaign() {
+        const p = this.player;
+        if (!p || this.pendingCampaignOffer) return null;
+        const subs = Number(p.suscriptores)||0;
+        if (subs < 3000) return null;
+        const avgViews = Number(p.actividadTrimestre?.vistas || 0) || Math.max(500, Math.round(subs * 0.45));
+        const brands = [
+            { id:"campaign_local", name:"Marca Local", minSubs:3000, cpmMin:3.5, cpmMax:7, target:0.8, max:3500, duration:1, deliverables:1 },
+            { id:"campaign_hardware", name:"Hardware Partner", minSubs:10000, cpmMin:5, cpmMax:9, target:1.0, max:9000, duration:1, deliverables:2 },
+            { id:"campaign_food", name:"Food & Lifestyle", minSubs:25000, cpmMin:4.5, cpmMax:8, target:1.0, max:12000, duration:1, deliverables:2 },
+            { id:"campaign_app", name:"App de Entretenimiento", minSubs:50000, cpmMin:5.5, cpmMax:10, target:1.15, max:22000, duration:1, deliverables:3 },
+            { id:"campaign_tech", name:"Tech Partner", minSubs:150000, cpmMin:7, cpmMax:13, target:1.2, max:50000, duration:2, deliverables:3 },
+            { id:"campaign_global", name:"Marca Internacional", minSubs:500000, cpmMin:9, cpmMax:18, target:1.35, max:120000, duration:2, deliverables:4 }
+        ];
+        const eligible = brands.filter(b => subs >= b.minSubs && !this.campaigns.some(c => c.id===b.id && c.estado==="activo"));
+        if (!eligible.length || Math.random() > 0.48) return null;
+        const brand = eligible[Math.floor(Math.random()*Math.min(3, eligible.length))];
+        const cpm = Math.round(randomFloat(brand.cpmMin, brand.cpmMax)*100)/100;
+        const targetViews = Math.max(1000, Math.round(avgViews * brand.target));
+        this.pendingCampaignOffer = {
+            id: `${brand.id}_${this.time.año}_${this.time.trimestre}_${Date.now()}`,
+            brandId: brand.id, name: brand.name, type:"cpm", cpm,
+            targetViews, maxPayout: brand.max, duration: brand.duration,
+            deliverables: brand.deliverables, minSubs: brand.minSubs,
+            añoOferta:this.time.año, trimestreOferta:this.time.trimestre,
+            estado:"pendiente"
+        };
+        this.agregarNotificacion({tipo:"campaign", titulo:`📊 ${brand.name} propone una campaña por visitas`, descripcion:`Te ofrecen $${cpm.toFixed(2)} cada 1.000 vistas verificadas.`});
+        this.guardar();
+        return this.pendingCampaignOffer;
+    },
+
+    aceptarCampaign() {
+        const offer = this.pendingCampaignOffer;
+        if (!offer) return false;
+        const campaign = {
+            ...offer,
+            estado:"activo",
+            firmadoEn:Date.now(),
+            inicioAño:this.time.año,
+            inicioTrimestre:this.time.trimestre,
+            trimestresRestantes:Number(offer.duration)||1,
+            vistasAcumuladas:0,
+            pagoAcumulado:0
+        };
+        this.campaigns.push(campaign);
+        this.player.monetizacion ||= {adsActivos:false,rpmEstimado:0,acuerdosFirmados:0,campañasCompletadas:0};
+        this.player.monetizacion.acuerdosFirmados = Number(this.player.monetizacion.acuerdosFirmados||0)+1;
+        this.pendingCampaignOffer = null;
+        this.guardar();
+        return true;
+    },
+
+    rechazarCampaign() {
+        if (!this.pendingCampaignOffer) return false;
+        this.campaigns.push({...this.pendingCampaignOffer, estado:"rechazado", rechazadoEn:Date.now()});
+        this.pendingCampaignOffer = null;
+        this.guardar();
+        return true;
+    },
+
+    liquidarCampañasTrimestre() {
+        const p=this.player;
+        const vistas=Number(p.actividadTrimestre?.vistas)||0;
+        const año=this.time.año, trimestre=this.time.trimestre;
+        let total=0;
+        for (const campaign of this.campaigns.filter(c=>c.estado==="activo")) {
+            const inicioVal = Number(campaign.inicioAño)*4 + Number(campaign.inicioTrimestre);
+            const actualVal = año*4 + trimestre;
+            if (actualVal <= inicioVal) continue; // firmada al cierre del trimestre: empieza en el siguiente
+            const videos = Math.max(1, Number(p.actividadTrimestre?.videos || 0));
+            const entregables = Math.max(1, Number(campaign.deliverables || 1));
+            // Solo una parte de las vistas del trimestre corresponde a los
+            // contenidos patrocinados. La estimamos según los entregables
+            // acordados, en vez de pagar el CPM sobre todo el canal.
+            const cuotaPatrocinada = Math.min(0.75, Math.max(0.10, entregables / videos));
+            const vistasElegibles = Math.round(vistas * cuotaPatrocinada);
+            const payout = Math.min(Number(campaign.maxPayout)||0, Math.round((vistasElegibles/1000)*Number(campaign.cpm||0)));
+            campaign.vistasAcumuladas = Number(campaign.vistasAcumuladas||0)+vistasElegibles;
+            campaign.pagoAcumulado = Number(campaign.pagoAcumulado||0)+payout;
+            campaign.ultimoTrimestre={año,trimestre,vistasTotales:vistas,vistasElegibles,pago:payout};
+            if (payout>0) {
+                p.dinero += payout;
+                p.ingresosTrimestre += payout;
+                p.ingresosGenerados += payout;
+                p.ingresosDesglose ||= {publicidad:0,sponsors:0,negocios:0,afiliados:0,donaciones:0};
+                p.ingresosDesglose.sponsors += payout;
+                total += payout;
+            }
+            campaign.trimestresRestantes = Number(campaign.trimestresRestantes||1)-1;
+            if (campaign.trimestresRestantes<=0 || campaign.pagoAcumulado>=Number(campaign.maxPayout||0)) {
+                campaign.estado="completado";
+                campaign.completadoEn=Date.now();
+                p.monetizacion ||= {adsActivos:false,rpmEstimado:0,acuerdosFirmados:0,campañasCompletadas:0};
+                p.monetizacion.campañasCompletadas = Number(p.monetizacion.campañasCompletadas||0)+1;
+            }
+        }
+        if (total>0) this.agregarNotificacion({tipo:"campaign",titulo:`💰 Liquidación de campañas: +$${total.toLocaleString("es-AR")}`,descripcion:`Tus acuerdos por visitas se liquidaron según las vistas verificadas del trimestre.`});
+        return total;
+    },
+
     // Las marcas aparecen solas. El botón "Contratos" solamente sirve para
     // abrir la bandeja/historial, no para generar ofertas.
     generarOfertaSponsor() {
@@ -1267,6 +1340,8 @@ export const gameState = {
                 creators: this.creators,
                 trends: this.trends,
                 sponsors: this.sponsors,
+                campaigns: this.campaigns,
+                pendingCampaignOffer: this.pendingCampaignOffer,
                 worldNews: this.worldNews,
                 worldYearNews: this.worldYearNews,
                 worldDramaHistory: this.worldDramaHistory,
@@ -1313,6 +1388,8 @@ export const gameState = {
             catalogoActual.forEach(c => { if (!idsGuardados.has(c.id)) this.creators.push(c); });
             this.trends = Array.isArray(data.trends) ? data.trends : [];
             this.sponsors = Array.isArray(data.sponsors) ? data.sponsors : [];
+            this.campaigns = Array.isArray(data.campaigns) ? data.campaigns : [];
+            this.pendingCampaignOffer = data.pendingCampaignOffer || null;
             this.worldNews = Array.isArray(data.worldNews) ? data.worldNews : [];
             this.worldYearNews = Array.isArray(data.worldYearNews) ? data.worldYearNews : [];
             this.worldDramaHistory = Array.isArray(data.worldDramaHistory) ? data.worldDramaHistory : [];
@@ -1413,9 +1490,9 @@ export const gameState = {
             return this.prepararSiguienteAño();
         }
 
-        // Primero se liquidan campañas según las visitas reales del trimestre.
-        this.liquidarCampaniasTrimestre();
-        // Cierra el trimestre: staff, negocios y afiliados cobran/pagan antes de entrar al siguiente.
+        // Cierra el trimestre: primero se liquidan campañas por vistas y luego
+        // staff, negocios y afiliados cobran/pagan antes de entrar al siguiente.
+        this.liquidarCampañasTrimestre();
         advanceEconomy(this);
         this.time.trimestre += 1;
         this.player.año = this.time.año;
@@ -1599,8 +1676,8 @@ export function normalizarGameState() {
     if (typeof p.mencionesSponsorTrimestre !== "number") p.mencionesSponsorTrimestre = 0;
     if (typeof p.ingresosGenerados !== "number") p.ingresosGenerados = 0;
     if (!p.ingresosDesglose) p.ingresosDesglose = { publicidad:0,sponsors:0,negocios:0,afiliados:0,donaciones:0 };
-    p.monetizacion ||= { acuerdos: [], campaniasActivas: [], historial: [] };
-    p.monetizacion.acuerdos ||= []; p.monetizacion.campaniasActivas ||= []; p.monetizacion.historial ||= [];
+    if (!p.monetizacion) p.monetizacion = { adsActivos:false, rpmEstimado:0, acuerdosFirmados:0, campañasCompletadas:0 };
+    p.monetizacion.rpmEstimado = gameState.calcularRPMEstimado ? gameState.calcularRPMEstimado() : Number(p.monetizacion.rpmEstimado||0);
     if (typeof p.videoSubidoEsteTrimestre !== "boolean") p.videoSubidoEsteTrimestre = false;
     if (typeof p.minigameIndex !== "number" || p.minigameIndex < 0) p.minigameIndex = 0;
     if (typeof p.partidaIniciada !== "boolean") p.partidaIniciada = false;
@@ -1657,6 +1734,8 @@ export function normalizarGameState() {
     if (!Array.isArray(gameState.creators)) gameState.creators = crearCreadores();
     if (!Array.isArray(gameState.trends)) gameState.trends = [];
     if (!Array.isArray(gameState.sponsors)) gameState.sponsors = [];
+    if (!Array.isArray(gameState.campaigns)) gameState.campaigns = [];
+    if (!("pendingCampaignOffer" in gameState)) gameState.pendingCampaignOffer = null;
     if (!Array.isArray(gameState.worldNews)) gameState.worldNews = [];
     if (!Array.isArray(gameState.worldYearNews)) gameState.worldYearNews = [];
     if (!Array.isArray(gameState.worldDramaHistory)) gameState.worldDramaHistory = [];

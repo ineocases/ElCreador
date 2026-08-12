@@ -22,6 +22,8 @@ const saveManager = {
                 creators: gameState.creators,
                 trends: gameState.trends,
                 sponsors: gameState.sponsors,
+                campaigns: gameState.campaigns,
+                pendingCampaignOffer: gameState.pendingCampaignOffer,
                 worldNews: gameState.worldNews,
                 worldYearNews: gameState.worldYearNews,
                 pendingSponsorOffer: gameState.pendingSponsorOffer,
@@ -103,6 +105,8 @@ const saveManager = {
             } else {
                 gameState.sponsors = [];
             }
+            gameState.campaigns = Array.isArray(parsedData.campaigns) ? parsedData.campaigns : [];
+            gameState.pendingCampaignOffer = parsedData.pendingCampaignOffer || null;
 
             gameState.worldNews = Array.isArray(parsedData.worldNews) ? parsedData.worldNews : [];
             gameState.worldYearNews = Array.isArray(parsedData.worldYearNews) ? parsedData.worldYearNews : [];
