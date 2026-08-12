@@ -39,6 +39,49 @@ function costoVuelo(pais) {
     return costos[pais] ?? 900;
 }
 
+// Alcance realista de colaboraciones. Un creador enorme no queda disponible
+// solo porque exista en la base: el tamaño, la relación y el networking
+// determinan hasta dónde tiene sentido intentar llegar.
+function calcularAlcanceCollab(player, creator) {
+    const subs = Math.max(1, Number(player?.suscriptores) || 0);
+    const creatorSubs = Math.max(1, Number(creator?.seguidores) || 0);
+    const relacion = Number(player?.relationships?.[creator?.id] || 0);
+    const networking = Number(player?.atributos?.networking || 0);
+    const fama = Number(player?.fama || 0);
+    const mismoNicho = player?.niche && creator?.nicho && player.niche === creator.nicho;
+
+    // Base: a comienzos de carrera, las colabs razonables son con cuentas
+    // del mismo tamaño o algo mayores. Las relaciones pueden abrir puertas,
+    // pero nunca convierten una cuenta de 3K en una candidata natural para
+    // una megaestrella de 50M.
+    let multiplicador = 2;
+    if (relacion >= 15 || networking >= 15 || mismoNicho) multiplicador = 3;
+    if (relacion >= 35 && networking >= 25) multiplicador = 5;
+    if (relacion >= 60 && networking >= 45 && fama >= 20 && subs >= 25000) multiplicador = 8;
+    if (relacion >= 80 && networking >= 60 && fama >= 45 && subs >= 100000) multiplicador = 12;
+    if (relacion >= 90 && networking >= 75 && fama >= 65 && subs >= 500000) multiplicador = 20;
+
+    // Una cuenta muy chica puede colaborar con otra muy chica aunque el
+    // multiplicador sea conservador. El techo absoluto evita saltos absurdos.
+    const techo = Math.max(subs * multiplicador, subs + 5000);
+    const ratio = creatorSubs / subs;
+    const diferencia = creatorSubs - subs;
+    const dentroDeAlcance = creatorSubs <= techo;
+
+    let motivo = "Dentro de tu rango natural";
+    if (creatorSubs > techo) {
+        motivo = subs < 10000
+            ? "Todavía es demasiado grande para tu etapa"
+            : "Necesitás más audiencia, relación o networking";
+    } else if (ratio > 5) {
+        motivo = "Colaboración ambiciosa";
+    } else if (ratio > 2) {
+        motivo = "Un poco por encima de tu tamaño";
+    }
+
+    return { dentroDeAlcance, techo, ratio, motivo, relacion, networking, fama, mismoNicho };
+}
+
 function crearAtributos() {
     return {
         edicion: 10,
@@ -117,6 +160,7 @@ function crearPlayer() {
         historialTrimestre4: null,
         historialAños: [],
         awardsHistory: [],
+        monetizacion: { acuerdos: [], campaniasActivas: [], historial: [] },
         yearStartSnapshot: null
     };
 }
@@ -382,6 +426,55 @@ export const gameState = {
     lastAwardsResults: null,
     ultimoEventoResultado: null,
     lastCollab: null,
+
+    monetizacionCatalogo() {
+        const p = this.player;
+        const subs = Number(p.suscriptores || 0);
+        const fama = Number(p.fama || 0);
+        const nicho = p.niche || "Gaming";
+        const base = Math.max(1, subs / 1000);
+        const opciones = [
+            { id:"afiliado", marca:"Programa de afiliados", tipo:"Afiliado", minSubs:1000, pagoPorMil:0.55, maxPago:3500, objetivo:Math.round(base*900), descripcion:"Cobrás por las visitas que llegan desde tus enlaces o códigos." },
+            { id:"campania_cpm", marca:"Campaña por visitas", tipo:"CPM", minSubs:5000, pagoPorMil:1.8, maxPago:12000, objetivo:Math.round(base*2200), descripcion:"La marca paga por cada mil visualizaciones válidas del contenido acordado." },
+            { id:"integracion", marca:"Integración de marca", tipo:"Integración", minSubs:15000, pagoPorMil:3.2, maxPago:22000, objetivo:Math.round(base*1800), descripcion:"Mención integrada dentro de un video. Más pago, pero exige cumplir condiciones." },
+            { id:"campania_lanzamiento", marca:"Campaña de lanzamiento", tipo:"Campaña", minSubs:50000, pagoPorMil:4.8, maxPago:50000, objetivo:Math.round(base*2600), descripcion:"Acuerdo trimestral para impulsar un lanzamiento. Requiere constancia y alcance." },
+            { id:"premium", marca:"Campaña premium", tipo:"Premium", minSubs:250000, pagoPorMil:7.5, maxPago:120000, objetivo:Math.round(base*3000), descripcion:"Acuerdo de alto nivel con objetivos de alcance y presencia de marca." }
+        ];
+        return opciones.filter(o => subs >= o.minSubs && (o.id !== "premium" || fama >= 35)).map(o => ({...o, objetivo:Math.max(1000,o.objetivo)}));
+    },
+
+    firmarCampania(id) {
+        const p = this.player;
+        p.monetizacion ||= { acuerdos: [], campaniasActivas: [], historial: [] };
+        if (p.monetizacion.campaniasActivas.length >= 2) return {ok:false, motivo:"Ya tenés dos campañas activas."};
+        const oferta = this.monetizacionCatalogo().find(x => x.id === id);
+        if (!oferta) return {ok:false, motivo:"No cumplís los requisitos de esta campaña."};
+        if (p.monetizacion.campaniasActivas.some(x => x.id === id)) return {ok:false, motivo:"Ya firmaste esta campaña."};
+        const acuerdo = {...oferta, firmadoEn:{año:this.time.año,trimestre:this.time.trimestre}, vistasInicio:Number(p.vistasTotales||0), estado:"activo", pagoAcumulado:0};
+        p.monetizacion.campaniasActivas.push(acuerdo);
+        p.monetizacion.acuerdos.push({...acuerdo});
+        this.agregarNotificacion({tipo:"monetizacion",titulo:`💼 Firmaste con ${oferta.marca}`,descripcion:`El pago depende del alcance real de tus contenidos.`});
+        this.guardar();
+        return {ok:true, acuerdo};
+    },
+
+    liquidarCampaniasTrimestre() {
+        const p = this.player; p.monetizacion ||= { acuerdos: [], campaniasActivas: [], historial: [] };
+        const vistasActuales = Number(p.vistasTotales || 0);
+        let total = 0;
+        for (const camp of [...p.monetizacion.campaniasActivas]) {
+            const vistas = Math.max(0, vistasActuales - Number(camp.vistasInicio || 0));
+            const pago = Math.min(Number(camp.maxPago||0), Math.round((vistas/1000) * Number(camp.pagoPorMil||0)));
+            camp.pagoAcumulado = pago; camp.vistasGeneradas = vistas; camp.cerradaEn={año:this.time.año,trimestre:this.time.trimestre};
+            total += pago;
+            p.monetizacion.historial.push({...camp, estado:"liquidado"});
+            p.ingresosDesglose ||= {publicidad:0,sponsors:0,negocios:0,afiliados:0,donaciones:0};
+            p.ingresosDesglose.sponsors = (Number(p.ingresosDesglose.sponsors)||0) + pago;
+        }
+        if (total > 0) { p.dinero += total; p.ingresosTrimestre += total; p.ingresosGenerados += total; }
+        p.monetizacion.campaniasActivas = [];
+        return total;
+    },
 
     adminMode: false,
 
@@ -833,9 +926,12 @@ export const gameState = {
         const candidatos = (this.creators || [])
             .filter(c => c.activo !== false && c.id !== "player")
             .filter(c => !Number.isInteger(c.debutYear) || c.debutYear <= Number(this.time.año || 2026))
-            .filter(c => Number(c.seguidores || 0) >= 1000)
-            .filter(c => Number(c.seguidores || 0) <= (subs < 1000 ? 25000 : Math.max(25000, Math.floor(subs * (subs < 50000 ? 8 : subs < 250000 ? 5 : 3)))))
-            .filter(c => c.nicho === niche || Math.random() < 0.50)
+            .filter(c => Number(c.seguidores || 0) >= 100)
+            .filter(c => {
+                const info = calcularAlcanceCollab(this.player, c);
+                return Number(c.seguidores || 0) <= subs || (info.ratio <= 2.5 && (info.mismoNicho || Number(this.player.relationships?.[c.id] || 0) >= 20));
+            })
+            .filter(c => c.nicho === niche || Math.random() < 0.45)
             .filter(c => Number(this.player.relationships?.[c.id] || 0) > -40);
 
         if (!candidatos.length) return null;
@@ -844,11 +940,13 @@ export const gameState = {
         // Las invitaciones deben sentirse como parte del mundo, no como
         // contenido que el jugador tiene que perseguir desde un menú.
         const colaboracionesPrevias = Number(p.stats?.colaboraciones || 0);
-        const chance = subs < 1000
-            ? (hayRookie ? 0.96 : 0.88)
-            : colaboracionesPrevias === 0
-                ? 1.00
-                : Math.min(0.94, 0.62 + networking * 0.008 + fama * 0.003 + Math.min(0.16, (subs / 250000) * 0.16));
+        const chance = Math.min(0.55,
+            0.16
+            + (hayRookie ? 0.12 : 0)
+            + Math.min(0.10, networking * 0.002)
+            + Math.min(0.08, fama * 0.001)
+            + Math.min(0.08, colaboracionesPrevias * 0.01)
+        );
 
         if (Math.random() > chance) return null;
 
@@ -879,15 +977,18 @@ export const gameState = {
         return this.generarOfertaColaboracionAutomatica();
     },
 
+    obtenerInfoCollab(creatorId) {
+        const creator = (this.creators || []).find(c => c.id === creatorId);
+        if (!creator) return null;
+        return calcularAlcanceCollab(this.player, creator);
+    },
+
     puedeProponerCollab(creatorId) {
         const creator = (this.creators || []).find(c => c.id === creatorId);
         if (!creator || creator.activo === false || creator.id === "player") return false;
         const debut = Number(creator.debutYear);
         if (Number.isFinite(debut) && debut > Number(this.time?.año || 2026)) return false;
-        // La propuesta ahora está disponible para cualquier creador activo.
-        // La dificultad real la determina la probabilidad de aceptación,
-        // que considera tamaño, relación, fama y networking.
-        return true;
+        return calcularAlcanceCollab(this.player, creator).dentroDeAlcance;
     },
 
     proponerCollab(creatorId) {
@@ -899,21 +1000,37 @@ export const gameState = {
         const creador = (this.creators || []).find(c => c.id === creatorId);
         if (!creador || creador.activo === false) return false;
 
-        const relacion = Number(p.relationships?.[creatorId] || 0);
-        const diferencia = Number(creador.seguidores || 0) / Math.max(1, Number(p.suscriptores || 1));
-        const fama = Number(p.fama || 0);
-        const networking = Number(p.atributos?.networking || 0);
-        // La puerta está abierta para todos, pero una colab con alguien mucho
-        // más grande sigue siendo difícil de conseguir.
-        const relacionFactor = Math.max(-0.18, Math.min(0.18, relacion / 220));
-        const tamañoFactor = diferencia <= 1 ? 0.12 : diferencia <= 3 ? 0.02 : diferencia <= 8 ? -0.10 : -0.24;
-        const habilidadFactor = Math.min(0.16, networking / 250 + fama / 500);
-        const prob = Math.max(0.12, Math.min(0.88, 0.46 + relacionFactor + tamañoFactor + habilidadFactor));
+        const info = calcularAlcanceCollab(p, creador);
+        if (!info.dentroDeAlcance) return "fuera_de_alcance";
+
+        const relacion = info.relacion;
+        const diferencia = info.ratio;
+        const fama = info.fama;
+        const networking = info.networking;
+        const mismoNicho = info.mismoNicho;
+
+        // Probabilidad de aceptación basada en una situación plausible:
+        // cuentas pequeñas aceptan más fácilmente a pares; una cuenta grande
+        // tiene menos incentivos para aceptar a alguien muy chico.
+        let prob;
+        if (diferencia <= 0.75) prob = 0.78;
+        else if (diferencia <= 1.5) prob = 0.64;
+        else if (diferencia <= 2.5) prob = 0.48;
+        else if (diferencia <= 5) prob = 0.27;
+        else if (diferencia <= 8) prob = 0.12;
+        else if (diferencia <= 12) prob = 0.055;
+        else prob = 0.02;
+
+        prob += Math.max(-0.12, Math.min(0.16, relacion / 450));
+        prob += Math.min(0.12, networking / 500);
+        prob += Math.min(0.08, fama / 1000);
+        if (mismoNicho) prob += 0.10;
+        prob = Math.max(0.02, Math.min(0.88, prob));
 
         if (Math.random() > prob) {
-            p.relationships[creatorId] = Math.max(-100, relacion - 2);
+            p.relationships[creatorId] = Math.max(-100, relacion - 1);
             this.lastCollab = { creatorId, creatorName: creador.nombre, estado: "rechazada_por_creador", fecha: Date.now() };
-            this.agregarNotificacion({ tipo: "collab", titulo: `↩️ ${creador.nombre} no pudo sumarse`, descripcion: "La relación sigue abierta para otra oportunidad." });
+            this.agregarNotificacion({ tipo: "collab", titulo: `↩️ ${creador.nombre} no aceptó`, descripcion: "Por ahora la diferencia de tamaño o la falta de relación hizo difícil cerrar la colaboración." });
             this.guardar();
             return "rechazada";
         }
@@ -925,9 +1042,9 @@ export const gameState = {
             creatorFollowers: Number(creador.seguidores) || 0, año: this.time.año,
             trimestre: this.time.trimestre, niche: creador.nicho, pais: creador.pais || "Argentina",
             costoVuelo: costoVuelo(creador.pais || "Argentina"), direction: "outgoing",
-            reward: { vistas, subs }, estado: "pendiente"
+            reward: { vistas, subs }, estado: "pendiente", ratio: diferencia
         };
-        this.agregarNotificacion({ tipo: "collab", titulo: `📨 ${creador.nombre} aceptó tu propuesta`, descripcion: "La relación que construiste habilitó una nueva colaboración." });
+        this.agregarNotificacion({ tipo: "collab", titulo: `📨 ${creador.nombre} aceptó tu propuesta`, descripcion: `La colaboración tiene sentido para ambos canales (${Number(creador.seguidores || 0).toLocaleString("es-AR")} vs. ${Number(p.suscriptores || 0).toLocaleString("es-AR")} seguidores).` });
         this.guardar();
         return "aceptada";
     },
@@ -1296,6 +1413,8 @@ export const gameState = {
             return this.prepararSiguienteAño();
         }
 
+        // Primero se liquidan campañas según las visitas reales del trimestre.
+        this.liquidarCampaniasTrimestre();
         // Cierra el trimestre: staff, negocios y afiliados cobran/pagan antes de entrar al siguiente.
         advanceEconomy(this);
         this.time.trimestre += 1;
@@ -1480,6 +1599,8 @@ export function normalizarGameState() {
     if (typeof p.mencionesSponsorTrimestre !== "number") p.mencionesSponsorTrimestre = 0;
     if (typeof p.ingresosGenerados !== "number") p.ingresosGenerados = 0;
     if (!p.ingresosDesglose) p.ingresosDesglose = { publicidad:0,sponsors:0,negocios:0,afiliados:0,donaciones:0 };
+    p.monetizacion ||= { acuerdos: [], campaniasActivas: [], historial: [] };
+    p.monetizacion.acuerdos ||= []; p.monetizacion.campaniasActivas ||= []; p.monetizacion.historial ||= [];
     if (typeof p.videoSubidoEsteTrimestre !== "boolean") p.videoSubidoEsteTrimestre = false;
     if (typeof p.minigameIndex !== "number" || p.minigameIndex < 0) p.minigameIndex = 0;
     if (typeof p.partidaIniciada !== "boolean") p.partidaIniciada = false;

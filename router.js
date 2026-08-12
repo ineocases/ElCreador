@@ -13,6 +13,7 @@ import * as storeScreen from "./screens/store.js";
 import * as awardsScreen from "./screens/awards.js";
 import * as collabsScreen from "./screens/collabs.js";
 import * as sponsorsScreen from "./screens/sponsors.js";
+import * as monetizacionScreen from "./screens/monetizacion.js";
 import * as pasanCosasScreen from "./screens/pasanCosas.js";
 import * as adminDashboardScreen from "./screens/admin/AdminDashboard.js";
 import { renderOpportunityOverlay } from "./components/OpportunityOverlay.js";
@@ -46,7 +47,7 @@ function handleRoute() {
     const protectedRoutes = [
         "#dashboard", "#pretemporada", "#publish", "#videoResult",
         "#yearSummary", "#newYear", "#careerEnd", "#velada", "#pasanCosas", "#store", "#awards",
-        "#collabs", "#sponsors", "#admin"
+        "#collabs", "#sponsors", "#monetizacion", "#admin"
     ];
 
     if (protectedRoutes.includes(hash) && !hasSave()) {
@@ -73,6 +74,7 @@ function handleRoute() {
         "#awards": ["awardsScreen", awardsScreen],
         "#collabs": ["collabsScreen", collabsScreen],
         "#sponsors": ["sponsorsScreen", sponsorsScreen],
+        "#monetizacion": ["monetizacionScreen", monetizacionScreen],
         "#admin": ["adminContainer", adminDashboardScreen]
     };
 

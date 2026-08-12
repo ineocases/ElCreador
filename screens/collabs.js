@@ -8,8 +8,15 @@ function continuar() {
     setTimeout(() => {
         if (gameState.pendingEvent) { window.location.hash = "#pasanCosas"; return; }
         if (gameState.pendingSponsorOffer) { window.location.hash = "#sponsors"; return; }
-        window.location.hash = "#collabs";
+        window.location.hash = "#dashboard";
     }, 120);
+}
+
+function normalizarTexto(valor = "") {
+    return String(valor)
+        .toLocaleLowerCase("es-AR")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
 }
 
 export function renderCollabs(el) {
@@ -77,14 +84,17 @@ export function renderCollabs(el) {
                     ${creators.map(c => {
                         const rel = Number(gameState.player.relationships?.[c.id] || 0);
                         const ratio = Number(c.seguidores || 0) / Math.max(1, Number(gameState.player.suscriptores || 1));
-                        const difficulty = ratio > 8 ? "Muy difícil" : ratio > 3 ? "Difícil" : ratio > 1 ? "Competitiva" : "Accesible";
+                        const info = gameState.obtenerInfoCollab(c.id) || { dentroDeAlcance: false, motivo: "No disponible" };
+                        const difficulty = !info.dentroDeAlcance ? "Fuera de alcance" : ratio > 5 ? "Ambiciosa" : ratio > 2 ? "Difícil" : ratio > 1 ? "Posible" : "Natural";
+                        const disabled = !info.dentroDeAlcance;
                         return `
-                            <div class="collab-simple-row" data-name="${String(c.nombre).toLowerCase()}" data-niche="${c.nicho || ""}">
+                            <div class="collab-simple-row ${disabled ? "collab-locked" : ""}" data-name="${String(c.nombre).toLowerCase()}" data-niche="${c.nicho || ""}">
                                 <div class="collab-person">
                                     <div class="collab-name-line"><strong>${c.nombre}</strong><span class="collab-difficulty">${difficulty}</span></div>
                                     <span>${nf(c.seguidores)} subs · ${c.nicho || "Variedad"} · Relación ${rel >= 0 ? "+" : ""}${rel}</span>
+                                    ${disabled ? `<small class="collab-requirement">🔒 ${info.motivo}</small>` : `<small class="collab-requirement">${info.motivo}</small>`}
                                 </div>
-                                <button class="btn collab-red propose-collab" data-id="${c.id}">PROPONER COLAB</button>
+                                <button class="btn ${disabled ? "ghost" : "collab-red"} propose-collab" data-id="${c.id}" ${disabled ? "disabled title="Todavía no tenés el alcance para esta colaboración"" : ""}>${disabled ? "NO DISPONIBLE" : "PROPONER COLAB"}</button>
                             </div>`;
                     }).join("")}
                 </div>
@@ -102,51 +112,141 @@ export function renderCollabs(el) {
     const rows = [...container.querySelectorAll(".collab-simple-row")];
 
     const filterRows = () => {
-        const q = (search?.value || "").trim().toLowerCase();
+        const q = normalizarTexto(search?.value || "").trim();
         const n = niche?.value || "";
         let visible = 0;
+
         rows.forEach(row => {
-            const ok = (!q || row.dataset.name.includes(q)) && (!n || row.dataset.niche === n);
+            const name = normalizarTexto(row.getAttribute("data-name") || "");
+            const nicheValue = row.getAttribute("data-niche") || "";
+            const ok = (!q || name.includes(q)) && (!n || nicheValue === n);
             row.hidden = !ok;
+            row.style.display = ok ? "" : "none";
             if (ok) visible++;
         });
-        if (empty) empty.hidden = visible > 0;
+
+        if (empty) empty.hidden = visible !== 0;
+        const count = container.querySelector(".directory-count");
+        if (count) count.textContent = `${visible} perfiles`;
     };
+
+    // El buscador usa delegación y doble evento para que funcione también
+    // después de que la pantalla se vuelva a renderizar.
     search?.addEventListener("input", filterRows);
+    search?.addEventListener("keyup", filterRows);
     niche?.addEventListener("change", filterRows);
+    filterRows();
 
-    container.querySelector("#acceptCollab")?.addEventListener("click", () => {
-        const ok = gameState.aceptarCollab();
-        if (ok) {
-            continuar();
+    // Un único listener de clicks para toda la pantalla evita que los
+    // botones pierdan el evento cuando el DOM se vuelve a renderizar.
+    container.addEventListener("click", async (event) => {
+        const acceptButton = event.target.closest("#acceptCollab");
+        const rejectButton = event.target.closest("#rejectCollab");
+        const proposeButton = event.target.closest(".propose-collab");
+
+        if (acceptButton) {
+            event.preventDefault();
+            if (acceptButton.disabled) return;
+
+            acceptButton.disabled = true;
+            acceptButton.textContent = "PROCESANDO...";
+
+            try {
+                const ok = gameState.aceptarCollab();
+                if (ok) {
+                    acceptButton.textContent = "✓ COLABORACIÓN ACEPTADA";
+                    continuar();
+                } else {
+                    acceptButton.disabled = false;
+                    acceptButton.textContent = "ACEPTAR COLAB";
+                    const toast = document.createElement("div");
+                    toast.className = "collab-toast";
+                    toast.innerHTML = "<b>No se pudo aceptar</b><span>Revisá el dinero disponible y el estado de la propuesta.</span>";
+                    container.appendChild(toast);
+                    setTimeout(() => toast.remove(), 3500);
+                }
+            } catch (error) {
+                console.error("Error aceptando colaboración:", error);
+                acceptButton.disabled = false;
+                acceptButton.textContent = "ACEPTAR COLAB";
+            }
+            return;
         }
-    });
 
-    container.querySelector("#rejectCollab")?.addEventListener("click", () => {
-        if (gameState.rechazarCollab()) continuar();
-    });
+        if (rejectButton) {
+            event.preventDefault();
+            if (rejectButton.disabled) return;
+            rejectButton.disabled = true;
+            rejectButton.textContent = "PROCESANDO...";
 
-    container.querySelectorAll(".propose-collab").forEach(button => {
-        button.addEventListener("click", () => {
-            button.disabled = true;
-            const result = gameState.proponerCollab(button.dataset.id);
-            if (result === "aceptada") {
-                renderCollabs(container);
-                return;
+            try {
+                if (gameState.rechazarCollab()) {
+                    continuar();
+                } else {
+                    rejectButton.disabled = false;
+                    rejectButton.textContent = "RECHAZAR";
+                }
+            } catch (error) {
+                console.error("Error rechazando colaboración:", error);
+                rejectButton.disabled = false;
+                rejectButton.textContent = "RECHAZAR";
             }
-            if (result === "rechazada") {
-                const creator = creators.find(c => c.id === button.dataset.id);
-                const name = creator?.nombre || "El creador";
-                const toast = document.createElement("div");
-                toast.className = "collab-toast";
-                toast.innerHTML = `<b>Respuesta negativa</b><span>${name} no está interesado en colaborar ahora. La relación sigue abierta.</span>`;
-                container.appendChild(toast);
-                setTimeout(() => toast.remove(), 3200);
-                button.disabled = false;
-                return;
+            return;
+        }
+
+        if (proposeButton) {
+            event.preventDefault();
+            if (proposeButton.disabled) return;
+
+            const creatorId = proposeButton.dataset.id;
+            proposeButton.disabled = true;
+            const originalText = proposeButton.textContent;
+            proposeButton.textContent = "ENVIANDO...";
+
+            try {
+                const result = gameState.proponerCollab(creatorId);
+
+                if (result === "aceptada") {
+                    // La propuesta aceptada pasa a la bandeja superior.
+                    // El jugador todavía debe confirmar el viaje/colaboración.
+                    renderCollabs(container);
+                    const offerCard = container.querySelector(".collab-offer-card");
+                    offerCard?.scrollIntoView({ behavior: "smooth", block: "center" });
+                    return;
+                }
+
+                if (result === "fuera_de_alcance") {
+                    proposeButton.disabled = false;
+                    proposeButton.textContent = originalText;
+                    const toast = document.createElement("div");
+                    toast.className = "collab-toast";
+                    toast.innerHTML = "<b>Colaboración fuera de alcance</b><span>Primero necesitás crecer, mejorar tu networking o construir una relación con ese creador.</span>";
+                    container.appendChild(toast);
+                    setTimeout(() => toast.remove(), 3200);
+                    return;
+                }
+
+                if (result === "rechazada") {
+                    const creator = creators.find(c => c.id === creatorId);
+                    const name = creator?.nombre || "El creador";
+                    const toast = document.createElement("div");
+                    toast.className = "collab-toast";
+                    toast.innerHTML = `<b>Respuesta negativa</b><span>${name} no está interesado en colaborar ahora. Podés volver a intentarlo más adelante.</span>`;
+                    container.appendChild(toast);
+                    setTimeout(() => toast.remove(), 3200);
+                    proposeButton.disabled = false;
+                    proposeButton.textContent = originalText;
+                    return;
+                }
+
+                proposeButton.disabled = false;
+                proposeButton.textContent = originalText;
+            } catch (error) {
+                console.error("Error proponiendo colaboración:", error);
+                proposeButton.disabled = false;
+                proposeButton.textContent = originalText;
             }
-            button.disabled = false;
-        });
+        }
     });
 
     return container;
