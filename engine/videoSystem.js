@@ -386,6 +386,7 @@ function resultadoVideoManual(titulo, enfoquePrincipal, enfoqueSecundario, conte
     const creatividad = Number(a.creatividad) || 0;
     const algoritmo = Number(a.algoritmo) || 0;
     const carisma = Number(a.carisma) || 0;
+    const edicion = Number(a.edicion) || 0;
 
     // Entre el año 1 y 2 existe un primer gran momento guionado:
     // no ocurre siempre en el mismo trimestre, pero evita carreras estancadas.
