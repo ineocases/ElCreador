@@ -64,12 +64,20 @@ export function renderPublishVideo(el) {
             }
 
             button.disabled = true;
-            button.textContent = "PREPARANDO...";
+            button.textContent = "JUGANDO...";
             const miniType = Number(gameState.player.minigameIndex || 0) % 4;
-            const miniScore = await runMinigame(miniType);
+            let miniScore = 0;
+            try {
+                miniScore = await runMinigame(miniType);
+            } catch (error) {
+                console.error("No se pudo completar el minijuego:", error);
+                miniScore = 0;
+            }
             gameState.player.minigameIndex = (miniType + 1) % 4;
 
-            const miniFactor = 0.82 + (miniScore / 100) * 0.43;
+            // El resultado del minijuego es parte real del rendimiento del video.
+            // Un fallo no rompe la publicación: simplemente publica peor.
+            const miniFactor = 0.72 + (miniScore / 100) * 0.53;
             const resultado = procesarPublicacionTrimestre(
                 video.titulo,
                 video.enfoquePrincipal,
@@ -82,6 +90,19 @@ export function renderPublishVideo(el) {
             );
             resultado.minigameScore = miniScore;
             gameState.lastVideoResult.minigameScore = miniScore;
+            // Feedback inmediato: un minijuego malo puede hacer que el video falle.
+            // La publicación igualmente cuenta y el jugador puede continuar.
+            if (miniScore < 35) {
+                resultado.miniResultado = "fallo";
+                resultado.miniPenalizacion = true;
+            } else if (miniScore < 65) {
+                resultado.miniResultado = "regular";
+            } else if (miniScore < 90) {
+                resultado.miniResultado = "bueno";
+            } else {
+                resultado.miniResultado = "excelente";
+            }
+
             gameState.registrarVideoPublicado();
             gameState.guardar();
             window.location.hash = "#videoResult";

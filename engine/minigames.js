@@ -25,13 +25,22 @@ function overlayBase(title, subtitle) {
 
 function finish(overlay, score) {
     const final = clamp(Math.round(score), 0, 100);
-    overlay.remove();
+    if (overlay && overlay.isConnected) overlay.remove();
     return final;
 }
 
 export function runMinigame(type) {
     const runners = [runTiming, runQuickChoice, runSimon, runWhack];
-    return (runners[type % runners.length] || runTiming)();
+    const runner = runners[((Number(type) || 0) % runners.length + runners.length) % runners.length] || runTiming;
+
+    // Failsafe: ningún minijuego puede dejar la publicación bloqueada para siempre.
+    return Promise.race([
+        Promise.resolve().then(() => runner()),
+        new Promise(resolve => setTimeout(() => resolve(0), 15000))
+    ]).catch(error => {
+        console.error("Error en minijuego:", error);
+        return 0;
+    });
 }
 
 function runTiming() {
