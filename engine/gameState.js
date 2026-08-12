@@ -671,10 +671,8 @@ export const gameState = {
             p.stats.eventosGanados = (Number(p.stats.eventosGanados) || 0) + 1;
         }
 
-        // Después de la decisión, primero puede aparecer una colaboración y
-        // recién después una propuesta comercial.
-        this.generarOfertaColaboracionAutomatica();
-        if (!this.pendingCollabOffer) this.generarOfertaSponsor();
+        // Después de la decisión, el flujo continúa automáticamente.
+        // Los sponsors y colaboraciones se manejan en su propio momento.
         this.guardar();
         return true;
     },
@@ -728,6 +726,11 @@ export const gameState = {
         this.agregarNotificacion({ tipo: "collab", titulo: `🤝 ${creador.nombre} quiere colaborar con vos`, descripcion: "Una colaboración surgió de forma orgánica en el mundo." });
         this.guardar();
         return this.pendingCollabOffer;
+    },
+
+    // Alias para llamar desde videoSystem.js
+    generarCollabOfertaAleatoria() {
+        return this.generarOfertaColaboracionAutomatica();
     },
 
     puedeProponerCollab(creatorId) {

@@ -14,6 +14,7 @@ export function renderYearSummary(el) {
     }
 
     const awardsResults = obtenerOResolverAwards(s);
+    // El premio Revelación SÍ cuenta como victoria en el resumen del año.
     const awardsGanados = awardsResults.filter(r => r.ganador?.isPlayer);
     const ranking = s.rankingNicho || gameState.calcularRankingNicho?.() || {posicion:1,total:1,subio:0};
     const premiosTexto = awardsResults.map(r => `${r.nombre}: ${r.ganador?.nombre || "—"}`).join(" · ");

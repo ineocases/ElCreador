@@ -126,13 +126,7 @@ const CATEGORIAS = [
     { id:"clip", nombre:"Clip del Año", icono:"🎬", desc:"El momento que más circuló durante la temporada." },
     { id:"revelacion", nombre:"Streamer Revelación", icono:"🚀", desc:"Un creador dentro de sus primeros cinco años que realmente dio el salto." },
     { id:"streamer", nombre:"Streamer del Año", icono:"🏆", desc:"La temporada más completa entre audiencia, impacto y crecimiento." },
-    { id:"enojo", nombre:"Mejor Enojo", icono:"😡", desc:"La reacción que más quedó en la memoria de la comunidad." },
-    { id:"edicion", nombre:"Mejor Edición", icono:"✂️", desc:"Calidad y volumen de contenido editado." },
-    { id:"colab", nombre:"Mejor Colab", icono:"🤝", desc:"La colaboración que más movió comunidades." },
-    { id:"querido", nombre:"El Más Querido", icono:"❤️", desc:"Comunidad, reputación y cercanía con la audiencia." },
-    { id:"trayectoria", nombre:"Trayectoria", icono:"🏛️", desc:"Impacto acumulado y constancia en el mundo." },
-    { id:"crecimiento", nombre:"Crecimiento del Año", icono:"📈", desc:"El salto más grande de la temporada." },
-    { id:"comunidad", nombre:"Comunidad del Año", icono:"🌐", desc:"La comunidad más activa y fiel." }
+    { id:"enojo", nombre:"Mejor Enojo", icono:"😡", desc:"La reacción que más quedó en la memoria de la comunidad." }
 ]
 
 export function obtenerResultados(summary) {
@@ -164,15 +158,17 @@ export function renderAwards(container) {
     const resultados = obtenerResultados(summary);
     const nominacionesJugador = resultados.filter(r => r.nominados.some(n => n.isPlayer)).length;
     const victoriasJugador = resultados.filter(r => r.ganador?.isPlayer).length;
+    // El premio Revelación SÍ cuenta como victoria para el resumen y la estadística.
+    const victoriasCount = resultados.filter(r => r.ganador?.isPlayer).length;
     const premiosJugador = resultados.filter(r => r.ganador?.isPlayer).map(r => r.nombre);
     gameState.player.awardsHistory ||= [];
     const alreadyRecorded = gameState.player.awardsHistory.some(a => Number(a.año) === Number(summary.año));
     if (!alreadyRecorded) gameState.player.awardsHistory.push(...premiosJugador.map(nombre => ({ año: summary.año, nombre })));
     gameState.lastYearSummary.premiosGanados = premiosJugador;
-    gameState.lastYearSummary.premiosGanadosCount = premiosJugador.length;
+    gameState.lastYearSummary.premiosGanadosCount = victoriasCount;
 
     // El premio Revelación solo puede ganarse una vez.
-    if (victoriasJugador > 0 && resultados.some(r => r.id === "revelacion" && r.ganador?.isPlayer)) {
+    if (resultados.some(r => r.id === "revelacion" && r.ganador?.isPlayer)) {
         gameState.player.revelacionGanada = true;
     }
     gameState.player.awardsStats = gameState.player.awardsStats || { clips: 0, enojos: 0, reacciones: 0 };
@@ -182,9 +178,9 @@ export function renderAwards(container) {
             ${renderHeaderHud()}
             <div class="awards-hero-compact">
                 <div class="eyebrow">🏆 COSCU ARMY AWARDS · ${summary.año}</div>
-                <h1>${victoriasJugador ? "Hay una estatuilla para vos." : "La temporada terminó."}</h1>
+                <h1>${victoriasCount ? "Hay una estatuilla para vos." : "La temporada terminó."}</h1>
                 <p>${nominacionesJugador ? `Tu canal recibió ${nominacionesJugador} nominación${nominacionesJugador === 1 ? "" : "es"}.` : "Tu canal todavía no está entre los nominados."}</p>
-                ${victoriasJugador ? `<div class="award-result-badge">🏆 ${victoriasJugador} PREMIO${victoriasJugador === 1 ? "" : "S"}</div>` : ""}
+                ${victoriasCount ? `<div class="award-result-badge">🏆 ${victoriasCount} PREMIO${victoriasCount === 1 ? "" : "S"}</div>` : ""}
             </div>
 
             <div class="awards-categories">

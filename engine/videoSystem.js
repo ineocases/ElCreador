@@ -766,11 +766,12 @@ export function procesarPublicacionTrimestre(
     // publican, ganan seguidores y generan noticias aunque el jugador no los vea.
     simulateWorld(gameState);
 
+    // Generar oportunidades automáticamente: eventos, sponsors y colaboraciones
+    // aparecen solos durante el juego cuando se dan las condiciones.
     gameState.generarEventoPendiente();
-    if (!gameState.pendingEvent) {
-        gameState.generarOfertaColaboracionAutomatica();
-        if (!gameState.pendingCollabOffer) gameState.generarOfertaSponsor();
-    }
+    gameState.generarOfertaSponsor();
+    gameState.generarCollabOfertaAleatoria();
+
     gameState.guardar();
     return quarterResult;
 }
