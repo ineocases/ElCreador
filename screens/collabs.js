@@ -6,11 +6,12 @@ import { icon } from "../components/Icon.js";
 const nf = n => Number(n || 0).toLocaleString("es-AR");
 
 function continuar() {
+    // Una colaboración es una interacción propia: primero mostramos el
+    // resultado en el Dashboard. No debemos saltar a videoResult, porque
+    // una colab no genera un cierre trimestral por sí sola.
     setTimeout(() => {
-        if (gameState.pendingEvent) { window.location.hash = "#pasanCosas"; return; }
-        if (gameState.pendingSponsorOffer || gameState.pendingCampaignOffer) { window.location.hash = "#sponsors"; return; }
-        window.location.hash = "#videoResult";
-    }, 120);
+        window.location.hash = "#dashboard";
+    }, 160);
 }
 
 function normalizarTexto(valor = "") {
@@ -49,6 +50,16 @@ export function renderCollabs(el) {
                 </div>
                 <a href="#dashboard" class="btn ghost">← Volver</a>
             </div>
+
+            ${!offer && gameState.lastCollab?.estado && gameState.lastCollab?.creatorName ? `
+                <section class="panel collab-result-card">
+                    <div class="eyebrow">🤝 RESULTADO DE LA COLABORACIÓN</div>
+                    <h2>${gameState.lastCollab.estado === "aceptada" ? "Colaboración realizada" : "Colaboración rechazada"}</h2>
+                    <p>Con <b>${gameState.lastCollab.creatorName}</b>.</p>
+                    ${gameState.lastCollab.estado === "aceptada" ? `<div class="collab-offer-stats"><div><small>Vistas</small><strong>+${nf(gameState.lastCollab.vistas)}</strong></div><div><small>Suscriptores</small><strong>+${nf(gameState.lastCollab.subs)}</strong></div><div><small>Relación</small><strong>+15</strong></div></div>` : `<p class="muted">La relación con este creador se vio afectada. Podés volver a intentarlo más adelante.</p>`}
+                    <a class="btn primary" href="#dashboard">CONTINUAR</a>
+                </section>
+            ` : ""}
 
             ${offer ? `
                 <section class="panel collab-offer-card ${offer.direction === "outgoing" ? "outgoing" : ""}">

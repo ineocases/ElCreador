@@ -118,6 +118,9 @@ export function renderStore(el) {
             </div>
         </section>`;
 
+    const activeBoost = gameState.player?.boosts?.viewBoostTurns > 0 ? Number(gameState.player.boosts.viewMultiplier || 1) : 1;
+    const boostStatus = activeBoost > 1 ? `<div class="callout" style="margin-bottom:14px"><b>🚀 Boost activo</b><span>Próximo trimestre: x${activeBoost.toFixed(2)} vistas</span></div>` : "";
+
     const boostsHtml = `
         <section class="store-hero compact">
             <div>
@@ -127,7 +130,7 @@ export function renderStore(el) {
             </div>
             <div class="store-wallet"><span>DINERO</span><strong>${money(p.dinero)}</strong></div>
         </section>
-        <section class="store-product-grid boost-grid">
+        ${boostStatus}<section class="store-product-grid boost-grid">
             ${[
                 ["algoritmo", "Boost de algoritmo", "🚀", "+15% alcance", 250, "Impulso moderado para el próximo trimestre."],
                 ["tendencia", "Impulso de tendencia", "📈", "+28% alcance", 600, "Más exposición, con una inversión mayor."],

@@ -271,17 +271,17 @@ function baseVistasPorVideo(player, calidad = 1) {
     // Objetivo aproximado: ~25%-75% de los subs por video normal, con variación.
     let ratioMin, ratioMax;
     if (subs < 500) {
-        ratioMin = 0.35; ratioMax = 1.25;
+        ratioMin = 0.42; ratioMax = 1.45;
     } else if (subs < 1000) {
-        ratioMin = 0.35; ratioMax = 1.05;
+        ratioMin = 0.42; ratioMax = 1.20;
     } else if (subs < 10000) {
-        ratioMin = 0.28; ratioMax = 0.78;
+        ratioMin = 0.34; ratioMax = 0.90;
     } else if (subs < 100000) {
-        ratioMin = 0.22; ratioMax = 0.68;
+        ratioMin = 0.27; ratioMax = 0.76;
     } else if (subs < 1000000) {
-        ratioMin = 0.18; ratioMax = 0.58;
+        ratioMin = 0.22; ratioMax = 0.66;
     } else {
-        ratioMin = 0.16; ratioMax = 0.52;
+        ratioMin = 0.19; ratioMax = 0.60;
     }
 
     let ratio = randomFloat(ratioMin, ratioMax);
@@ -322,12 +322,12 @@ function calcularSubsPorVideo(vistas, player, viral = false) {
     let conversion = 0.018;  // Era 0.0115 - Base un 56% más alta
     
     if (subsActuales >= 1000000) conversion = 0.0012;   // Era 0.00085
-    else if (subsActuales >= 500000) conversion = 0.0015; // Era 0.00100
-    else if (subsActuales >= 250000) conversion = 0.0019; // Era 0.00125
-    else if (subsActuales >= 100000) conversion = 0.0024; // Era 0.00155
-    else if (subsActuales >= 50000) conversion = 0.0032;  // Era 0.00210
-    else if (subsActuales >= 10000) conversion = 0.0055;  // Era 0.00360
-    else if (subsActuales >= 1000) conversion = 0.010;    // Era 0.00700
+    else if (subsActuales >= 500000) conversion = 0.0018; // Era 0.00100
+    else if (subsActuales >= 250000) conversion = 0.00225; // Era 0.00125
+    else if (subsActuales >= 100000) conversion = 0.00285; // Era 0.00155
+    else if (subsActuales >= 50000) conversion = 0.0038;  // Era 0.00210
+    else if (subsActuales >= 10000) conversion = 0.0066;  // Era 0.00360
+    else if (subsActuales >= 1000) conversion = 0.012;    // Era 0.00700
 
     // Bonificaciones más fuertes
     conversion *= 1 + clamp(carisma / 100, 0, 1) * 0.85;  // Era 0.65 - Carisma impacta más
