@@ -69,7 +69,6 @@ export function renderVideoResult(el) {
                 </div>
             </div>
 
-            <div class="panel result-income-breakdown"><div class="eyebrow">💰 DE DÓNDE SALIÓ LA PLATA</div><p>Publicidad +$${nf(gameState.player.ingresosDesglose?.publicidad||0)} · Sponsors +$${nf(gameState.player.ingresosDesglose?.sponsors||0)} · Negocios +$${nf(gameState.player.ingresosDesglose?.negocios||0)} · Afiliados +$${nf(gameState.player.ingresosDesglose?.afiliados||0)} · Donaciones +$${nf(gameState.player.ingresosDesglose?.donaciones||0)}</p>${Number(gameState.player.suscriptores||0)<1000?'<small class="muted">Publicidad bloqueada hasta llegar a 1.000 subs.</small>':''}</div>
             <div class="callout discovery-factor">🔎 Descubrimiento x${Number(res.manualVideo.factorDescubrimiento||1).toFixed(1)} <small>(Algoritmo + Edición + audiencia)</small></div>
 
             ${gameState.player.ultimoDesgloseFama?.texto ? `<div class="callout fame-breakdown-callout">⭐ ${gameState.player.ultimoDesgloseFama.texto}</div>` : ""}
