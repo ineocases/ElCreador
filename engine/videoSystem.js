@@ -265,34 +265,40 @@ function baseVistasPorVideo(player, calidad = 1) {
     const boost = player?.boosts || {};
     const boostViews = boost.viewBoostTurns > 0 ? Number(boost.viewMultiplier || 1) : 1;
 
-    // La audiencia de un canal grande genera una base mucho mayor, pero siempre
-    // existe descubrimiento externo. Así 1.7M subs puede producir cientos de miles
-    // de vistas por video sin convertir cada publicación en un hit garantizado.
-    // La nueva escala busca que un canal con 5k subs vea aproximadamente
-    // 1k-3k vistas por publicación normal, no decenas de vistas.
+    // NUEVA ESCALA: Mucho más generosa para que el crecimiento sea satisfactorio
+    // Un canal de 10k subs debería tener entre 3k-8k vistas por video normal
+    // y el destacado puede llegar a 20k-50k facilmente
     const baseEngagement =
-        0.20 +
-        clamp(fama / 100, 0, 1) * 0.07 +
-        clamp(constancia / 100, 0, 1) * 0.05 +
-        clamp(algoritmo / 100, 0, 1) * 0.10 +
-        clamp(edicion / 100, 0, 1) * 0.08 +
-        clamp(marketing / 100, 0, 1) * 0.04;
-    const smallChannelBoost = subs < 10000 ? 2 : 1;
-    const engagement = clamp(baseEngagement * smallChannelBoost, 0.20, 0.60);
+        0.35 +  // Base más alta (era 0.20)
+        clamp(fama / 100, 0, 1) * 0.12 +  // Más impacto de fama (era 0.07)
+        clamp(constancia / 100, 0, 1) * 0.08 +  // Más impacto de constancia (era 0.05)
+        clamp(algoritmo / 100, 0, 1) * 0.15 +  // Más impacto de algoritmo (era 0.10)
+        clamp(edicion / 100, 0, 1) * 0.12 +  // Más impacto de edición (era 0.08)
+        clamp(marketing / 100, 0, 1) * 0.08;  // Más impacto de marketing (era 0.04)
+    
+    // Boost más agresivo para canales pequeños
+    const smallChannelBoost = subs < 10000 ? 2.5 : 1;  // Era 2
+    
+    // Rango de engagement más alto: 0.35 a 0.85 (era 0.20 a 0.60)
+    const engagement = clamp(baseEngagement * smallChannelBoost, 0.35, 0.85);
 
     let pre = 1;
     const efecto = bonusPretemporada(player);
-    if (efecto === "marketing") pre *= 1.12;
-    if (efecto === "algoritmo") pre *= 1.10;
-    if (efecto === "edicion") pre *= 1.12;
+    if (efecto === "marketing") pre *= 1.18;  // Era 1.12
+    if (efecto === "algoritmo") pre *= 1.15;  // Era 1.10
+    if (efecto === "edicion") pre *= 1.18;  // Era 1.12
 
-    const variacion = randomFloat(0.78, 1.28);
+    // Variación más amplia y generosa: 0.85 a 1.45 (era 0.78 a 1.28)
+    const variacion = randomFloat(0.85, 1.45);
+    
     const audiencia = subs * engagement * variacion * calidad * calcularTendencia() * pre * boostViews * edadFactor;
-    // Los canales nuevos también reciben descubrimiento para no quedar
-    // atrapados en un ciclo de 20 vistas y 0 crecimiento.
+    
+    // Descubrimiento mucho más generoso para canales nuevos
+    // Ahora un canal nuevo puede tener 500-1500 vistas base (era 180-700)
     const descubrimiento = subs < 10000
-        ? random(180, 700) + Math.floor(edicion * 10)
-        : 0;
+        ? random(500, 1500) + Math.floor(edicion * 15)  // Era 180-700 y *10
+        : random(200, 800) + Math.floor(edicion * 8);   // Canales grandes también tienen descubrimiento
+    
     return Math.max(descubrimiento, Math.floor(audiencia));
 }
 
@@ -303,44 +309,42 @@ function calcularSubsPorVideo(vistas, player, viral = false) {
     const fama = Number(player.fama) || 0;
     const subsActuales = Math.max(50, Number(player.suscriptores) || 50);
 
-    // Conversión decreciente: los canales chicos convierten mejor; los grandes
-    // necesitan muchas más vistas para sumar una cantidad enorme de seguidores.
-    let conversion = 0.0115;
-    if (subsActuales >= 1000000) conversion = 0.00085;
-    else if (subsActuales >= 500000) conversion = 0.00100;
-    else if (subsActuales >= 250000) conversion = 0.00125;
-    else if (subsActuales >= 100000) conversion = 0.00155;
-    else if (subsActuales >= 50000) conversion = 0.00210;
-    else if (subsActuales >= 10000) conversion = 0.00360;
-    else if (subsActuales >= 1000) conversion = 0.00700;
+    // NUEVA ESCALA: Conversión más generosa para que el crecimiento de subs sea satisfactorio
+    // Ahora los canales pequeños convierten mucho mejor
+    let conversion = 0.018;  // Era 0.0115 - Base un 56% más alta
+    
+    if (subsActuales >= 1000000) conversion = 0.0012;   // Era 0.00085
+    else if (subsActuales >= 500000) conversion = 0.0015; // Era 0.00100
+    else if (subsActuales >= 250000) conversion = 0.0019; // Era 0.00125
+    else if (subsActuales >= 100000) conversion = 0.0024; // Era 0.00155
+    else if (subsActuales >= 50000) conversion = 0.0032;  // Era 0.00210
+    else if (subsActuales >= 10000) conversion = 0.0055;  // Era 0.00360
+    else if (subsActuales >= 1000) conversion = 0.010;    // Era 0.00700
 
-    conversion *= 1 + clamp(carisma / 100, 0, 1) * 0.65;
-    conversion *= 0.85 + clamp(comunidad / 100, 0, 1) * 0.30;
-    conversion *= 0.92 + clamp(fama / 100, 0, 1) * 0.20;
-    if (player?.pretemporada?.efecto === "carisma") conversion *= 1.14;
-    if (viral) conversion *= randomFloat(1.25, 1.90);
+    // Bonificaciones más fuertes
+    conversion *= 1 + clamp(carisma / 100, 0, 1) * 0.85;  // Era 0.65 - Carisma impacta más
+    conversion *= 0.88 + clamp(comunidad / 100, 0, 1) * 0.35;  // Era 0.85 y 0.30
+    conversion *= 0.95 + clamp(fama / 100, 0, 1) * 0.28;  // Era 0.92 y 0.20
+    
+    if (player?.pretemporada?.efecto === "carisma") conversion *= 1.20;  // Era 1.14
+    if (viral) conversion *= randomFloat(1.40, 2.20);  // Era 1.25-1.90
 
-    const variacion = randomFloat(0.68, 1.34);
+    // Variación más amplia: 0.75 a 1.45 (era 0.68-1.34)
+    const variacion = randomFloat(0.75, 1.45);
     let resultado = Math.round(vistas * conversion * variacion);
 
-    // Regla de crecimiento del juego:
-    // un video publicado por el jugador siempre puede sumar audiencia.
-    // Incluso un video flojo deja al menos 10 subs; un viral puede despegar
-    // muchísimo más y romper la media de forma totalmente aleatoria.
-    resultado = Math.max(15, resultado);
+    // Mínimo más alto: 25 subs incluso en videos flojos (era 15)
+    resultado = Math.max(25, resultado);
 
     if (viral) {
-        // La mayoría de los virales son grandes; unos pocos son verdaderos
-        // saltos de carrera.
-        const saltoViral = randomFloat(1.5, 6.5);
-        resultado = Math.max(100, Math.round(resultado * saltoViral));
+        // Salto viral más agresivo: 1.8 a 8.0 (era 1.5-6.5)
+        const saltoViral = randomFloat(1.8, 8.0);
+        resultado = Math.max(150, Math.round(resultado * saltoViral));  // Mínimo 150 (era 100)
     }
 
-    // Un video excepcional puede convertirse en el descubrimiento de la
-    // temporada. Es raro incluso entre virales, pero permite carreras que
-    // despegan de forma extraordinaria.
-    if (viral && Math.random() < 0.008) {
-        resultado = Math.round(resultado * randomFloat(8, 30));
+    // Probabilidad aumentada de video excepcional: 1.2% (era 0.8%)
+    if (viral && Math.random() < 0.012) {
+        resultado = Math.round(resultado * randomFloat(10, 35));  // Multiplicador más alto
     }
 
     return resultado;
@@ -351,17 +355,22 @@ function calcularIngresosPorVideo(vistas, player) {
     const marketing = Number(a.marketing) || 0;
     const fama = Number(player.fama) || 0;
 
+    // NUEVA ESCALA: Monetización más generosa
     // Monetización tipo AdSense: se desbloquea a los 1.000 subs.
     if (Number(player?.suscriptores || 0) < 1000) return 0;
+    
+    // RPM base más alto: 1.50 a 12.00 (era 1.00 a 8.00)
     const rpm = clamp(
-        1.00 + marketing * 0.075 + fama * 0.014 + randomFloat(-0.10, 0.30),
-        0.80,
-        8.00
+        1.50 + marketing * 0.095 + fama * 0.018 + randomFloat(-0.05, 0.40),
+        1.20,
+        12.00
     );
 
     let ingreso = (Math.max(1, vistas) / 1000) * rpm;
-    if (player?.pretemporada?.efecto === "marketing") ingreso *= 1.12;
-    return Math.max(0.05, ingreso);
+    if (player?.pretemporada?.efecto === "marketing") ingreso *= 1.18;  // Era 1.12
+    
+    // Mínimo más alto para que cada video genere algo significativo
+    return Math.max(0.15, ingreso);
 }
 
 function resultadoVideoManual(titulo, enfoquePrincipal, enfoqueSecundario, contexto = {}) {
