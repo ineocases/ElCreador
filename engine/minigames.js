@@ -1,7 +1,18 @@
+import { icon } from "../components/Icon.js";
 // Motores reutilizables de minijuegos para El Creador.
 // Se rotan en orden: Timing -> Elección rápida -> Simon -> Whack-a-mole.
 
 const ICONOS = ["🔥", "🎮", "⚽", "🎤", "😂", "💎"];
+
+// Limpieza centralizada para que ningún timer/overlay quede vivo si el jugador
+// termina, cambia de pantalla o el failsafe entra en acción.
+let activeCleanup = null;
+
+function cleanupActiveMinigame() {
+    try { activeCleanup?.(); } catch (error) { console.warn("No se pudo limpiar el minijuego:", error); }
+    activeCleanup = null;
+    document.getElementById("minigameOverlay")?.remove();
+}
 
 function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
 function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
@@ -25,6 +36,8 @@ function overlayBase(title, subtitle) {
 
 function finish(overlay, score) {
     const final = clamp(Math.round(score), 0, 100);
+    try { activeCleanup?.(); } catch (error) { console.warn("Cleanup del minijuego:", error); }
+    activeCleanup = null;
     if (overlay && overlay.isConnected) overlay.remove();
     return final;
 }
@@ -33,21 +46,35 @@ export function runMinigame(type) {
     const runners = [runTiming, runQuickChoice, runSimon, runWhack];
     const runner = runners[((Number(type) || 0) % runners.length + runners.length) % runners.length] || runTiming;
 
-    // Failsafe: ningún minijuego puede dejar la publicación bloqueada para siempre.
-    return Promise.race([
-        Promise.resolve().then(() => runner()),
-        new Promise(resolve => setTimeout(() => resolve(0), 15000))
-    ]).catch(error => {
-        console.error("Error en minijuego:", error);
-        return 0;
-    }).then(score => {
-        // Mostrar resultado del minijuego por 2 segundos antes de continuar
-        return new Promise(resolve => {
-            mostrarResultadoMinijuego(score).then(() => {
-                resolve(score);
-            });
+    cleanupActiveMinigame();
+
+    // Failsafe real: si un minijuego no termina, se limpia TODO el overlay
+    // y la publicación continúa con una puntuación baja. Antes el timeout
+    // resolvía la promesa pero dejaba el overlay/timers en pantalla.
+    let timeoutId;
+    let timedOut = false;
+
+    const gamePromise = Promise.resolve()
+        .then(() => runner())
+        .catch(error => {
+            console.error("Error en minijuego:", error);
+            return 0;
         });
+
+    const timeoutPromise = new Promise(resolve => {
+        timeoutId = setTimeout(() => {
+            timedOut = true;
+            cleanupActiveMinigame();
+            resolve(0);
+        }, 15000);
     });
+
+    return Promise.race([gamePromise, timeoutPromise])
+        .finally(() => clearTimeout(timeoutId))
+        .then(score => {
+            if (timedOut) return score;
+            return mostrarResultadoMinijuego(score).then(() => score);
+        });
 }
 
 function mostrarResultadoMinijuego(score) {
@@ -61,19 +88,19 @@ function mostrarResultadoMinijuego(score) {
         
         let icono, texto, clase;
         if (score >= 90) {
-            icono = "🔥";
+            icono = icon("bolt", 28);
             texto = "¡EXCELENTE!";
             clase = "excelente";
         } else if (score >= 65) {
-            icono = "✅";
+            icono = icon("check", 28);
             texto = "¡BIEN HECHO!";
             clase = "bueno";
         } else if (score >= 35) {
-            icono = "😐";
+            icono = icon("refresh", 28);
             texto = "REGULAR";
             clase = "regular";
         } else {
-            icono = "❌";
+            icono = icon("close", 28);
             texto = "MAL";
             clase = "fallo";
         }
@@ -104,6 +131,8 @@ function runTiming() {
           <p id="timingHint" class="minigame-hint">Tenés una sola oportunidad.</p>`;
         const cursor = body.querySelector("#timingCursor");
         const hit = body.querySelector("#timingHit");
+        let rafId = null;
+        activeCleanup = () => { done = true; if (rafId) cancelAnimationFrame(rafId); };
         let pos = 0, dir = 1, done = false, last = performance.now();
         const zoneStart = 42, zoneEnd = 58;
         function tick(now) {
@@ -113,9 +142,9 @@ function runTiming() {
             if (pos >= 100) { pos = 100; dir = -1; }
             if (pos <= 0) { pos = 0; dir = 1; }
             cursor.style.left = `${pos}%`;
-            requestAnimationFrame(tick);
+            rafId = requestAnimationFrame(tick);
         }
-        requestAnimationFrame(tick);
+        rafId = requestAnimationFrame(tick);
         hit.onclick = () => {
             if (done) return;
             done = true;
@@ -145,6 +174,7 @@ function runQuickChoice() {
                 if (!done) { done = true; resolve(finish(overlay, 25)); }
             }
         }, 100);
+        activeCleanup = () => { done = true; clearInterval(timer); };
         body.querySelectorAll(".quick-option").forEach(btn => btn.onclick = () => {
             if (done) return;
             done = true; clearInterval(timer);
@@ -164,11 +194,13 @@ function runSimon() {
         const keys = [...body.querySelectorAll(".simon-key")];
         let input = 0, active = false;
         let delay = 450;
-        sequence.forEach((idx, n) => setTimeout(() => {
+        const timers = [];
+        activeCleanup = () => { active = false; timers.forEach(clearTimeout); };
+        sequence.forEach((idx, n) => timers.push(setTimeout(() => {
             keys[idx].classList.add("simon-lit");
             setTimeout(() => keys[idx].classList.remove("simon-lit"), delay * 0.7);
             if (n === sequence.length - 1) setTimeout(() => { active = true; body.querySelector("#simonStatus").textContent = "¡Ahora!"; }, delay);
-        }, n * delay));
+        }, n * delay)));
         keys.forEach(key => key.onclick = () => {
             if (!active) return;
             const chosen = Number(key.dataset.i);
@@ -193,6 +225,7 @@ function runWhack() {
         body.innerHTML = `<div id="whackBoard" class="whack-board"></div><p id="whackScore" class="minigame-hint">0 / 10</p>`;
         const board = body.querySelector("#whackBoard");
         let hits = 0, spawned = 0, finished = false;
+        const spawnedTimeouts = [];
         const interval = setInterval(() => {
             if (finished) return;
             const target = document.createElement("button");
@@ -212,11 +245,16 @@ function runWhack() {
                     resolve(finish(overlay, 100));
                 }
             };
-            setTimeout(() => target.remove(), 750);
+            spawnedTimeouts.push(setTimeout(() => target.remove(), 750));
             if (spawned >= 14 && hits < 10) {
                 finished = true; clearInterval(interval);
                 resolve(finish(overlay, hits * 10));
             }
         }, 380);
+        activeCleanup = () => {
+            finished = true;
+            clearInterval(interval);
+            spawnedTimeouts.forEach(clearTimeout);
+        };
     });
 }

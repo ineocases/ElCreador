@@ -1,5 +1,6 @@
 import { renderHeaderHud } from "../components/HeaderHud.js";
 import { gameState } from "../engine/gameState.js";
+import { icon } from "../components/Icon.js";
 
 const nf = n => Number(n || 0).toLocaleString("es-AR");
 const money = n => `$${nf(n)}`;

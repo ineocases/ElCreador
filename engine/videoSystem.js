@@ -584,52 +584,46 @@ export function procesarPublicacionTrimestre(
         contexto
     );
 
-    // El minijuego ocurre después de elegir el video, por lo que su resultado
-    // debe poder mejorar o empeorar el resultado ya calculado.
+    // El minijuego modifica SOLO el video destacado.
+    // Excelente (>=90): duplica los subs de ese video y x1.4 sus vistas.
+    // Fallo (<35): penalización moderada, sin matar el trimestre.
     const miniScore = Number(contexto.minigameScore);
     if (Number.isFinite(miniScore)) {
-        if (miniScore < 35) {
-            // Fallo claro: el video sale publicado, pero rinde peor.
-            manualResult.vistas = Math.max(0, Math.round(manualResult.vistas * 0.55));
-            manualResult.suscriptores = Math.max(0, Math.round(manualResult.suscriptores * 0.65));
-            manualResult.dinero = Math.max(0, Math.round(manualResult.dinero * 0.55));
-            manualResult.famaGanada = Math.max(0, Number(manualResult.famaGanada || 0) - 1);
-            manualResult.miniResultado = "fallo";
-            gameState.player.comunidad = Math.max(0, Number(gameState.player.comunidad || 50) - 2);
-            gameState.player.reputacion = Math.max(0, Number(gameState.player.reputacion || 50) - 1);
-        } else if (miniScore < 65) {
-            manualResult.miniResultado = "regular";
-        } else if (miniScore < 90) {
-            manualResult.miniResultado = "bueno";
-        } else {
-            manualResult.miniResultado = "excelente";
-        }
-    }
-
-    // Si el minijuego modificó el resultado, sincronizamos el estado del video
-    // y el dinero acumulado para que no queden cifras distintas entre pantallas.
-    if (Number.isFinite(miniScore) && miniScore < 35) {
         const p = gameState.player;
-        // procesarPublicacionVideo ya había aplicado el resultado original.
-        // Revertimos la parte perdida y aplicamos la penalización final.
         const original = gameState.lastVideoResult;
+
         if (original) {
-            const vistasOriginales = Number(original.vistas) || 0;
-            const subsOriginales = Number(original.suscriptores) || 0;
-            const dineroOriginal = Number(original.dinero) || 0;
-            const vistasFinales = manualResult.vistas;
-            const subsFinales = manualResult.suscriptores;
-            const dineroFinal = manualResult.dinero;
-            p.vistasTotales += vistasFinales - vistasOriginales;
-            p.suscriptores += subsFinales - subsOriginales;
-            p.dinero += dineroFinal - dineroOriginal;
-            p.ingresosTrimestre += dineroFinal - dineroOriginal;
-            p.ingresosGenerados = (Number(p.ingresosGenerados) || 0) + (dineroFinal - dineroOriginal);
-            p.vistasTotales = Math.max(0, p.vistasTotales);
-            p.suscriptores = Math.max(0, p.suscriptores);
-            p.dinero = Math.max(0, p.dinero);
-            p.ingresosTrimestre = Math.max(0, p.ingresosTrimestre);
-            p.ingresosGenerados = Math.max(0, p.ingresosGenerados);
+            const vistasOriginales = Math.max(0, Number(original.vistas) || 0);
+            const subsOriginales = Math.max(0, Number(original.suscriptores) || 0);
+            const vistasAntes = Math.max(0, Number(manualResult.vistas) || 0);
+            const subsAntes = Math.max(0, Number(manualResult.suscriptores) || 0);
+
+            if (miniScore >= 90) {
+                manualResult.vistas = Math.max(0, Math.round(vistasAntes * 1.40));
+                manualResult.suscriptores = Math.max(0, Math.round(subsAntes * 2));
+                manualResult.miniResultado = "excelente";
+                manualResult.miniBonus = { vistas: 1.40, suscriptores: 2.00 };
+            } else if (miniScore < 35) {
+                manualResult.vistas = Math.max(0, Math.round(vistasAntes * 0.85));
+                manualResult.suscriptores = Math.max(0, Math.round(subsAntes * 0.90));
+                manualResult.miniResultado = "fallo";
+                manualResult.miniPenalizacion = { vistas: 0.85, suscriptores: 0.90 };
+                p.comunidad = Math.max(0, Number(p.comunidad || 50) - 1);
+                p.reputacion = Math.max(0, Number(p.reputacion || 50) - 1);
+            } else if (miniScore < 65) {
+                manualResult.miniResultado = "regular";
+            } else {
+                manualResult.miniResultado = "bueno";
+            }
+
+            // procesarPublicacionVideo ya aplicó el resultado original.
+            // Ajustamos solamente la diferencia producida por el minijuego.
+            const deltaVistas = manualResult.vistas - vistasOriginales;
+            const deltaSubs = manualResult.suscriptores - subsOriginales;
+            p.vistasTotales = Math.max(0, Number(p.vistasTotales || 0) + deltaVistas);
+            p.suscriptores = Math.max(0, Number(p.suscriptores || 0) + deltaSubs);
+            actualizarFamaPorSubs(p);
+
             gameState.lastVideoResult = manualResult;
             p.ultimoVideoResultado = {
                 ...(p.ultimoVideoResultado || {}),

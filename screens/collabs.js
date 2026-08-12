@@ -1,6 +1,7 @@
 // Pantalla de colaboraciones: propuestas reales, con feedback inmediato.
 import { renderHeaderHud } from "../components/HeaderHud.js";
 import { gameState } from "../engine/gameState.js";
+import { icon } from "../components/Icon.js";
 
 const nf = n => Number(n || 0).toLocaleString("es-AR");
 
@@ -27,7 +28,14 @@ export function renderCollabs(el) {
     const creators = (gameState.creators || [])
         .filter(c => c.activo !== false && c.id !== "player")
         .filter(c => !Number.isFinite(Number(c.debutYear)) || Number(c.debutYear) <= Number(gameState.time.año || 2026))
-        .sort((a, b) => Number(b.seguidores || 0) - Number(a.seguidores || 0));
+        .sort((a, b) => {
+            const ia = gameState.obtenerInfoCollab(a.id) || { dentroDeAlcance: false };
+            const ib = gameState.obtenerInfoCollab(b.id) || { dentroDeAlcance: false };
+            if (Boolean(ia.dentroDeAlcance) !== Boolean(ib.dentroDeAlcance)) {
+                return ia.dentroDeAlcance ? -1 : 1;
+            }
+            return Number(a.seguidores || 0) - Number(b.seguidores || 0);
+        });
 
     container.innerHTML = `
         <div class="page-shell compact-page collabs-page">
@@ -35,7 +43,7 @@ export function renderCollabs(el) {
 
             <div class="dashboard-top collabs-head">
                 <div>
-                    <div class="eyebrow">🤝 NETWORKING</div>
+                    <div class="eyebrow">${icon("group", 16)} NETWORKING</div>
                     <h1 class="page-title">Colaboraciones</h1>
                     <p class="page-subtitle">Proponé una colab. La respuesta depende del tamaño del creador, tu relación y tu trayectoria.</p>
                 </div>
@@ -50,7 +58,7 @@ export function renderCollabs(el) {
                             <h2>${offer.creatorName}</h2>
                             <p>${nf(offer.creatorFollowers)} seguidores · ${offer.niche || "Variedad"} · ${offer.pais || "Argentina"}</p>
                         </div>
-                        <div class="collab-offer-badge">🤝 COLAB</div>
+                        <div class="collab-offer-badge">${icon("group", 18)} COLAB</div>
                     </div>
                     <div class="collab-offer-stats">
                         <div><small>Impacto estimado</small><strong>+${nf(offer.reward?.vistas)} vistas</strong></div>
@@ -68,7 +76,7 @@ export function renderCollabs(el) {
             <section class="panel collab-directory">
                 <div class="directory-head">
                     <div>
-                        <div class="eyebrow">CREADORES DISPONIBLES</div>
+                        <div class="eyebrow">PRIMERO: LOS QUE PODÉS CONTACTAR</div>
                         <h2>Elegí con quién querés trabajar</h2>
                     </div>
                     <div class="directory-count">${creators.length} perfiles</div>

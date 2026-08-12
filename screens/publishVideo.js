@@ -65,58 +65,73 @@ export function renderPublishVideo(el) {
 
             button.disabled = true;
             button.textContent = "JUGANDO...";
-            const miniType = Number(gameState.player.minigameIndex || 0) % 4;
-            let miniScore = 0;
+
             try {
-                miniScore = await runMinigame(miniType);
-            } catch (error) {
-                console.error("No se pudo completar el minijuego:", error);
-                miniScore = 0;
-            }
-            gameState.player.minigameIndex = (miniType + 1) % 4;
+                const miniType = Number(gameState.player.minigameIndex || 0) % 4;
+                const miniScore = await runMinigame(miniType);
+                gameState.player.minigameIndex = (miniType + 1) % 4;
 
-            // El resultado del minijuego es parte real del rendimiento del video.
-            // Un fallo no rompe la publicación: simplemente publica peor.
-            const miniFactor = 0.72 + (miniScore / 100) * 0.53;
-            const resultado = procesarPublicacionTrimestre(
-                video.titulo,
-                video.enfoquePrincipal,
-                video.enfoqueSecundario,
-                {
-                    costo: video.costo,
-                    tituloImpacto: (Number(video.tituloImpacto) || 1) * miniFactor,
-                    minigameScore: miniScore
+                // El resultado del minijuego se aplica dentro del motor de publicación.
+                // Así evitamos duplicar o pisar multiplicadores.
+                button.textContent = "PROCESANDO...";
+                const resultado = procesarPublicacionTrimestre(
+                    video.titulo,
+                    video.enfoquePrincipal,
+                    video.enfoqueSecundario,
+                    {
+                        costo: video.costo,
+                        tituloImpacto: Number(video.tituloImpacto) || 1,
+                        minigameScore: miniScore
+                    }
+                );
+
+                resultado.minigameScore = miniScore;
+                if (gameState.lastVideoResult) {
+                    gameState.lastVideoResult.minigameScore = miniScore;
                 }
-            );
-            resultado.minigameScore = miniScore;
-            gameState.lastVideoResult.minigameScore = miniScore;
-            // Feedback inmediato: un minijuego malo puede hacer que el video falle.
-            // La publicación igualmente cuenta y el jugador puede continuar.
-            if (miniScore < 35) {
-                resultado.miniResultado = "fallo";
-                resultado.miniPenalizacion = true;
-            } else if (miniScore < 65) {
-                resultado.miniResultado = "regular";
-            } else if (miniScore < 90) {
-                resultado.miniResultado = "bueno";
-            } else {
-                resultado.miniResultado = "excelente";
-            }
 
-            gameState.registrarVideoPublicado();
-            gameState.guardar();
+                if (miniScore < 35) {
+                    resultado.miniResultado = "fallo";
+                    resultado.miniPenalizacion = true;
+                } else if (miniScore < 65) {
+                    resultado.miniResultado = "regular";
+                } else if (miniScore < 90) {
+                    resultado.miniResultado = "bueno";
+                } else {
+                    resultado.miniResultado = "excelente";
+                }
 
-            // Las oportunidades no quedan escondidas en un menú:
-            // si el cierre generó un evento, una colab o un sponsor, el juego
-            // te lo muestra inmediatamente.
-            if (gameState.pendingEvent) {
-                window.location.hash = "#pasanCosas";
-            } else if (gameState.pendingCollabOffer) {
-                window.location.hash = "#collabs";
-            } else if (gameState.pendingSponsorOffer) {
-                window.location.hash = "#sponsors";
-            } else {
-                window.location.hash = "#videoResult";
+                gameState.registrarVideoPublicado();
+                gameState.guardar();
+
+                // Una sola navegación después de terminar TODO el cálculo.
+                if (gameState.pendingEvent) {
+                    window.location.hash = "#pasanCosas";
+                } else if (gameState.pendingCollabOffer) {
+                    window.location.hash = "#collabs";
+                } else if (gameState.pendingSponsorOffer) {
+                    window.location.hash = "#sponsors";
+                } else {
+                    window.location.hash = "#videoResult";
+                }
+            } catch (error) {
+                console.error("Error publicando el video:", error);
+
+                // Nunca dejar el botón clavado en "JUGANDO..." si falla una
+                // etapa posterior al minijuego.
+                button.disabled = false;
+                button.textContent = "PUBLICAR";
+
+                const msg = document.createElement("div");
+                msg.className = "error-panel";
+                msg.style.marginTop = "16px";
+                msg.innerHTML = `
+                    <strong>No se pudo terminar la publicación.</strong>
+                    <p>El minijuego terminó, pero hubo un error al procesar el video.</p>
+                    <button class="btn primary retry-video">REINTENTAR</button>
+                `;
+                button.closest(".video-option-card")?.appendChild(msg);
+                msg.querySelector(".retry-video")?.addEventListener("click", () => msg.remove());
             }
         });
     });
