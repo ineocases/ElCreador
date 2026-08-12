@@ -6,10 +6,25 @@ import { icon } from "../components/Icon.js";
 const nf = n => Number(n || 0).toLocaleString("es-AR");
 
 function continuar() {
-    // Una colaboración es una interacción propia: primero mostramos el
-    // resultado en el Dashboard. No debemos saltar a videoResult, porque
-    // una colab no genera un cierre trimestral por sí sola.
+    // Si la colab apareció después de publicar el video del trimestre,
+    // no podemos volver al dashboard sin salida: allí ya no aparece
+    // "PUBLICAR VIDEO". Hay que retomar el cierre del trimestre.
     setTimeout(() => {
+        if (gameState.pendingEvent) {
+            window.location.hash = "#pasanCosas";
+            return;
+        }
+
+        if (gameState.pendingSponsorOffer || gameState.pendingCampaignOffer) {
+            window.location.hash = "#sponsors";
+            return;
+        }
+
+        if (gameState.player?.videoSubidoEsteTrimestre && gameState.lastQuarterResult) {
+            window.location.hash = "#videoResult";
+            return;
+        }
+
         window.location.hash = "#dashboard";
     }, 160);
 }
