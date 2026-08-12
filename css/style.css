@@ -842,3 +842,56 @@ body{
 .whack-board{position:relative;height:300px;margin:20px 0;border-radius:18px;background:#101010;overflow:hidden;border:1px solid rgba(255,255,255,.08)}.whack-target{position:absolute;width:54px;height:54px;border:0;border-radius:50%;background:#242424;color:#fff;font-size:1.5rem;cursor:pointer;animation:whackPop .12s ease-out}.whack-target:hover{transform:scale(1.12)}
 @keyframes whackPop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
 @media(max-width:600px){.minigame-modal{padding:18px}.whack-board{height:260px}.simon-key{font-size:1.6rem}}
+
+/* Result display para minijuegos */
+.result-display {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+  border-radius: 12px;
+  margin-top: 15px;
+  animation: fadeIn 0.3s ease;
+}
+
+.result-display.success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.result-display.warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+}
+
+.result-display.fail {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.result-icon {
+  font-size: 2.5rem;
+}
+
+.result-text strong {
+  display: block;
+  font-size: 1.3rem;
+  margin-bottom: 5px;
+}
+
+.result-text p {
+  margin: 3px 0;
+  font-size: 0.95rem;
+}
+
+.score-big {
+  font-size: 2rem !important;
+  font-weight: bold !important;
+  margin-top: 8px !important;
+}
+
+/* Award reveal siempre visible */
+.award-reveal.revealed {
+  display: flex !important;
+  opacity: 1 !important;
+}

@@ -217,6 +217,12 @@ export function renderAwards(container) {
             </div>
         </div>
     `;
+    // Forzar que siempre se muestren los resultados (sin bloquear)
+    const revealElements = container.querySelectorAll(".award-reveal");
+    revealElements.forEach(el => {
+        el.style.display = "flex";
+        el.classList.add("revealed");
+    });
 
     container.querySelector("#nextYear")?.addEventListener("click", () => {
         if (Number(gameState.player.edad) >= 40) { gameState.player.retirado = true; gameState.guardar(); window.location.hash = "#careerEnd"; return; }

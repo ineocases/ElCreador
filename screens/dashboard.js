@@ -53,10 +53,10 @@ export function renderDashboard(el) {
                 <div class="stat-tile"><span>👥 Suscriptores</span><strong>${nf(p.suscriptores)}</strong></div>
                 <div class="stat-tile"><span>👁️ Vistas</span><strong>${nf(p.vistasTotales)}</strong></div>
                 <div class="stat-tile"><span>🎬 Videos</span><strong>${nf(p.videosSubidos)}</strong></div>
-                <div class="stat-tile"><span>💰 Dinero</span><strong>$${nf(p.dinero)}</strong></div>
+                <div class="stat-tile" id="moneyTile" style="cursor:pointer;position:relative;"><span>💰 Dinero</span><strong>$${nf(p.dinero)}</strong><small style="display:block;font-size:0.7em;opacity:0.7;">Click para ver detalle</small></div>
             </div>
 
-            <section class="panel income-panel"><div class="eyebrow">💰 INGRESOS</div><div class="income-grid"><div>Publicidad <b>$${nf(p.ingresosDesglose?.publicidad||0)}</b></div><div>Sponsors <b>$${nf(p.ingresosDesglose?.sponsors||0)}</b></div><div>Negocios <b>$${nf(p.ingresosDesglose?.negocios||0)}</b></div><div>Afiliados <b>$${nf(p.ingresosDesglose?.afiliados||0)}</b></div><div>Donaciones <b>$${nf(p.ingresosDesglose?.donaciones||0)}</b></div></div>${Number(p.suscriptores||0)<1000?'<p class="muted">🔒 Publicidad: se desbloquea con 1.000 suscriptores.</p>':''}</section>
+            <section id="incomePanel" class="panel income-panel" style="display:none;"><div class="eyebrow">💰 INGRESOS</div><div class="income-grid"><div>Publicidad <b>$${nf(p.ingresosDesglose?.publicidad||0)}</b></div><div>Sponsors <b>$${nf(p.ingresosDesglose?.sponsors||0)}</b></div><div>Negocios <b>$${nf(p.ingresosDesglose?.negocios||0)}</b></div><div>Afiliados <b>$${nf(p.ingresosDesglose?.afiliados||0)}</b></div><div>Donaciones <b>$${nf(p.ingresosDesglose?.donaciones||0)}</b></div></div>${Number(p.suscriptores||0)<1000?'<p class="muted">🔒 Publicidad: se desbloquea con 1.000 suscriptores.</p>':''}</section>
 
             ${hizoPretemporada && !p.videoSubidoEsteTrimestre && !pendingEvent && !sponsor && !collab ? `<a href="#publish" class="btn primary big pulse publish-main-cta">📹 PUBLICAR VIDEO</a>` : ""}
 
@@ -97,6 +97,17 @@ export function renderDashboard(el) {
         if (!window.confirm("¿Seguro que querés borrar esta carrera? Se perderá todo el progreso.")) return;
         gameState.resetPlayer();
     });
+
+    // Toggle panel de ingresos al hacer click en dinero
+    const moneyTile = container.querySelector("#moneyTile");
+    const incomePanel = container.querySelector("#incomePanel");
+    if (moneyTile && incomePanel) {
+        moneyTile.addEventListener("click", () => {
+            const isHidden = incomePanel.style.display === "none";
+            incomePanel.style.display = isHidden ? "block" : "none";
+            moneyTile.querySelector("small").textContent = isHidden ? "▲ Ocultar detalle" : "Click para ver detalle";
+        });
+    }
 
     return container;
 }
