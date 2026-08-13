@@ -333,16 +333,20 @@ function eventHasPositive(option) {
 }
 
 
+// Fama de audiencia: la audiencia define grandes saltos, pero los logros
+// (virales, premios, colabs, Velada) siguen sumando por separado.
+// La escala pedida hace que 10K sea un creador conocido, 100K un referente
+// y 1M una figura masiva.
 const FAMA_HITOS_SUBS = [
-    [1000, 5],
-    [5000, 10],
-    [10000, 15],
-    [50000, 25],
-    [100000, 35],
-    [500000, 50],
-    [1000000, 65],
-    [5000000, 80],
-    [10000000, 90]
+    [1000, 1],
+    [5000, 3],
+    [10000, 5],
+    [50000, 7],
+    [100000, 10],
+    [500000, 40],
+    [1000000, 100],
+    [5000000, 100],
+    [10000000, 100]
 ];
 
 function famaAudienciaPorSubs(subs) {
@@ -913,8 +917,17 @@ export const gameState = {
         const creador = pool[Math.floor(Math.random() * pool.length)];
 
         const creadorSubs = Math.max(1000, Number(creador.seguidores) || 1000);
-        const vistas = Math.max(100, Math.round(creadorSubs * randomFloat(0.015, 0.055)));
-        const subsGanados = Math.max(15, Math.round(vistas * randomFloat(0.045, 0.14)));
+        // Una colab tiene que sentirse como una exposición real a otra audiencia,
+        // no como un premio fijo de +15 subs. El resultado varía mucho según
+        // el tamaño del creador y la suerte del contenido.
+        const baseCompartida = Math.max(1, Number(p.suscriptores) || 1);
+        const vistas = Math.max(300, Math.round(
+            creadorSubs * randomFloat(0.12, 0.55) +
+            baseCompartida * randomFloat(0.04, 0.18)
+        ));
+        const conversion = randomFloat(0.025, 0.095) + Math.min(0.035, Number(p.atributos?.carisma || 0) * 0.00035);
+        const pico = Math.random() < 0.08 ? randomFloat(1.5, 3.2) : 1;
+        const subsGanados = Math.max(30, Math.round(vistas * conversion * pico));
         const vuelo = costoVuelo(creador.pais || "Argentina");
 
         this.pendingCollabOffer = {
@@ -991,8 +1004,18 @@ export const gameState = {
             return "rechazada";
         }
 
-        const vistas = Math.max(100, Math.round(Number(creador.seguidores || 0) * randomFloat(0.012, 0.045)));
-        const subs = Math.max(15, Math.round(vistas * randomFloat(0.045, 0.13)));
+        // Las colabs pueden mover cientos o miles de seguidores.
+        // No usamos un mínimo artificial de +15: el tamaño de ambas audiencias,
+        // carisma, relación y un pequeño factor de suerte determinan el resultado.
+        const creadorSubs = Math.max(1000, Number(creador.seguidores || 0));
+        const audienciaJugador = Math.max(1, Number(p.suscriptores || 1));
+        const vistas = Math.max(300, Math.round(
+            creadorSubs * randomFloat(0.12, 0.55) +
+            audienciaJugador * randomFloat(0.04, 0.18)
+        ));
+        const conversion = randomFloat(0.025, 0.095) + Math.min(0.035, Number(p.atributos?.carisma || 0) * 0.00035);
+        const pico = Math.random() < 0.08 ? randomFloat(1.5, 3.2) : 1;
+        const subs = Math.max(30, Math.round(vistas * conversion * pico));
         this.pendingCollabOffer = {
             id: crearId("collab_out"), creatorId, creatorName: creador.nombre,
             creatorFollowers: Number(creador.seguidores) || 0, año: this.time.año,

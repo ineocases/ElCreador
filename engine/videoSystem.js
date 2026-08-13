@@ -317,17 +317,18 @@ function calcularSubsPorVideo(vistas, player, viral = false) {
     const fama = Number(player.fama) || 0;
     const subsActuales = Math.max(50, Number(player.suscriptores) || 50);
 
-    // NUEVA ESCALA: Conversión más generosa para que el crecimiento de subs sea satisfactorio
-    // Ahora los canales pequeños convierten mucho mejor
-    let conversion = 0.018;  // Era 0.0115 - Base un 56% más alta
-    
-    if (subsActuales >= 1000000) conversion = 0.0012;   // Era 0.00085
-    else if (subsActuales >= 500000) conversion = 0.0018; // Era 0.00100
-    else if (subsActuales >= 250000) conversion = 0.00225; // Era 0.00125
-    else if (subsActuales >= 100000) conversion = 0.00285; // Era 0.00155
-    else if (subsActuales >= 50000) conversion = 0.0038;  // Era 0.00210
-    else if (subsActuales >= 10000) conversion = 0.0066;  // Era 0.00360
-    else if (subsActuales >= 1000) conversion = 0.012;    // Era 0.00700
+    // Conversión más fuerte y variable: queremos que un buen trimestre
+    // realmente mueva la carrera. Sigue cayendo con el tamaño porque en un
+    // canal enorme convertir cada espectador en suscriptor es mucho más difícil.
+    let conversion = 0.025;
+
+    if (subsActuales >= 1000000) conversion = 0.0035;
+    else if (subsActuales >= 500000) conversion = 0.0055;
+    else if (subsActuales >= 250000) conversion = 0.0080;
+    else if (subsActuales >= 100000) conversion = 0.0120;
+    else if (subsActuales >= 50000) conversion = 0.0150;
+    else if (subsActuales >= 10000) conversion = 0.0200;
+    else if (subsActuales >= 1000) conversion = 0.0280;
 
     // Bonificaciones más fuertes
     conversion *= 1 + clamp(carisma / 100, 0, 1) * 0.85;  // Era 0.65 - Carisma impacta más
@@ -341,8 +342,9 @@ function calcularSubsPorVideo(vistas, player, viral = false) {
     const variacion = randomFloat(0.75, 1.45);
     let resultado = Math.round(vistas * conversion * variacion);
 
-    // Mínimo más alto: 25 subs incluso en videos flojos (era 15)
-    resultado = Math.max(25, resultado);
+    // Incluso un video flojo deja crecimiento, pero el resultado normal puede
+    // ser mucho mayor gracias a la conversión y a la variación.
+    resultado = Math.max(15, resultado);
 
     if (viral) {
         // Salto viral más agresivo: 1.8 a 8.0 (era 1.5-6.5)

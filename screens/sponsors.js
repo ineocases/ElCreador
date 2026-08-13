@@ -42,8 +42,6 @@ export function renderSponsors(el) {
         ...(gameState.campaigns || [])
     ].sort((a,b) => Number(b.firmadoEn || b.aceptadoEn || b.fecha || b.rechazadoEn || 0) - Number(a.firmadoEn || a.aceptadoEn || a.fecha || a.rechazadoEn || 0)).slice(0, 12);
     const activeCampaigns = (gameState.campaigns || []).filter(c => c.estado === "activo");
-    const rpm = gameState.calcularRPMEstimado ? gameState.calcularRPMEstimado() : Number(p.monetizacion?.rpmEstimado || 0);
-    const adsUnlocked = Number(p.suscriptores || 0) >= 1000;
 
     // Esta pantalla solo existe como bandeja de una oportunidad pendiente.
     // Si no hay oferta fija ni campaña, no debe aparecer durante el loop trimestral.
@@ -63,12 +61,6 @@ export function renderSponsors(el) {
                 </div>
                 <a href="#dashboard" class="btn ghost">← Volver</a>
             </div>
-
-            <section class="monetization-overview">
-                <article class="panel"><span>📺 Publicidad</span><strong>${adsUnlocked ? "ACTIVA" : "BLOQUEADA"}</strong><small>${adsUnlocked ? `RPM estimado ${money(rpm)}` : "Se habilita con 1.000 suscriptores."}</small></article>
-                <article class="panel"><span>📊 Campañas activas</span><strong>${activeCampaigns.length}</strong><small>Liquidación según vistas verificadas.</small></article>
-                <article class="panel"><span>🤝 Acuerdos firmados</span><strong>${nf(p.monetizacion?.acuerdosFirmados || p.stats?.sponsors || 0)}</strong><small>Incluye acuerdos fijos y campañas.</small></article>
-            </section>
 
             ${offer ? `<section class="panel contract-card sponsor-offer-card">
                 <div class="eyebrow">📩 PROPUESTA FIJA</div>
