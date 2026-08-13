@@ -334,7 +334,12 @@ function hacerEventoMasRealista(evento, player) {
     );
 
     if (evento.c) {
-        evento.c.tradeoff = "Camino de alto riesgo: requiere una habilidad y puede salir bien o mal.";
+        asegurarContrapartida(
+            evento.c,
+            evento.c?.desc || "Camino avanzado: ofrece una ventaja concreta, pero sacrifica otra parte de tu carrera.",
+            "c"
+        );
+        evento.c.tradeoff = evento.c.tradeoff || "Camino avanzado: ofrece una ventaja, pero también un costo real.";
     }
 
     return evento;
