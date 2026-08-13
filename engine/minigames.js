@@ -121,11 +121,18 @@ function runAwardsVote() {
     return new Promise(resolve => {
         const o=overlayBase("Votá en los Awards","Compará crecimiento, impacto y consistencia. No elijas automáticamente al más grande.");
         const b=o.querySelector("#minigameBody");
-        const candidates=shuffle([
-            {name:"Creador A",growth:92,impact:74,consistency:88,score:91},
-            {name:"Creador B",growth:76,impact:95,consistency:81,score:89},
-            {name:"Creador C",growth:88,impact:82,consistency:96,score:94}
-        ]);
+        const pool = (window.__elCreadorState?.creators || []).filter(c => c.activo !== false && (c.pais || "Argentina") === "Argentina");
+        const real = pool.length >= 3 ? pool : [
+            {nombre:"Coscu"}, {nombre:"Spreen"}, {nombre:"Momo"}, {nombre:"Agusneta"}, {nombre:"zEkO"}
+        ];
+        const selected = shuffle(real).slice(0, 3);
+        const candidates = selected.map((c, i) => ({
+            name: c.nombre || c.name || "Creador argentino",
+            growth: 72 + Math.floor(Math.random()*24),
+            impact: 70 + Math.floor(Math.random()*27),
+            consistency: 68 + Math.floor(Math.random()*29),
+            score: 75 + Math.floor(Math.random()*24)
+        }));
         b.innerHTML=`<div class="awards-candidate-grid">${candidates.map(c=>`<button class="award-candidate" data-score="${c.score}"><b>🏆 ${c.name}</b><span>Crecimiento <strong>${c.growth}</strong></span><span>Impacto <strong>${c.impact}</strong></span><span>Consistencia <strong>${c.consistency}</strong></span></button>`).join('')}</div>`;
         activeCleanup=()=>{};
         b.querySelectorAll('.award-candidate').forEach(btn=>btn.onclick=()=>resolve(finish(o,Number(btn.dataset.score)||50)));

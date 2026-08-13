@@ -13,23 +13,6 @@ function continuarDespuesDeMonetizacion() {
     }, 120);
 }
 
-function renderHistory(history) {
-    if (!history.length) return `<p class="muted">Todavía no cerraste acuerdos con marcas.</p>`;
-    return `<div class="mini-list">${history.map(s => {
-        const active = s.estado === "activo";
-        const completed = s.estado === "completado";
-        const campaign = s.type === "cpm";
-        const label = active ? "Activo" : completed ? "Completado" : s.estado === "aceptado" ? "Firmado" : "Rechazado";
-        const detail = campaign
-            ? `${nf(s.vistasAcumuladas || 0)} vistas · ${money(s.pagoAcumulado || 0)}`
-            : s.estado === "aceptado" ? money(s.pago) : "—";
-        return `<div class="history-row">
-            <div><b>${s.name}</b><span>${campaign ? "Campaña por vistas" : "Acuerdo fijo"} · ${label}</span></div>
-            <strong>${detail}</strong>
-        </div>`;
-    }).join("")}</div>`;
-}
-
 export function renderSponsors(el) {
     const container = el || document.getElementById("sponsorsScreen");
     if (!container) return;
@@ -37,12 +20,6 @@ export function renderSponsors(el) {
     const p = gameState.player;
     const offer = gameState.pendingSponsorOffer;
     const campaign = gameState.pendingCampaignOffer;
-    const history = [
-        ...(gameState.sponsors || []),
-        ...(gameState.campaigns || [])
-    ].sort((a,b) => Number(b.firmadoEn || b.aceptadoEn || b.fecha || b.rechazadoEn || 0) - Number(a.firmadoEn || a.aceptadoEn || a.fecha || a.rechazadoEn || 0)).slice(0, 12);
-    const activeCampaigns = (gameState.campaigns || []).filter(c => c.estado === "activo");
-
     // Esta pantalla solo existe como bandeja de una oportunidad pendiente.
     // Si no hay oferta fija ni campaña, no debe aparecer durante el loop trimestral.
     if (!offer && !campaign) {
@@ -57,7 +34,7 @@ export function renderSponsors(el) {
                 <div>
                     <div class="eyebrow">💼 MONETIZACIÓN</div>
                     <h1 class="page-title">Acuerdos y campañas</h1>
-                    <p class="page-subtitle">No todo se cobra igual: algunas marcas pagan fijo y otras pagan según el rendimiento.</p>
+                    <p class="page-subtitle">Revisá la propuesta y decidí si querés aceptarla, negociar o rechazarla.</p>
                 </div>
                 <a href="#dashboard" class="btn ghost">← Volver</a>
             </div>
@@ -98,18 +75,6 @@ export function renderSponsors(el) {
             </section>` : ""}
 
             ${!offer && !campaign ? `<section class="panel empty-opportunity"><div class="empty-icon">📈</div><h2>No tenés una propuesta pendiente.</h2><p>Las marcas aparecen cuando tu audiencia, nicho y rendimiento empiezan a tener valor comercial.</p></section>` : ""}
-
-            <section class="panel">
-                <div class="eyebrow">📌 ACUERDOS ACTIVOS</div>
-                <h2>Lo que estás cumpliendo ahora</h2>
-                ${activeCampaigns.length ? `<div class="mini-list">${activeCampaigns.map(c => `<div class="history-row"><div><b>${c.name}</b><span>${money(c.cpm)} / 1.000 vistas verificadas · ${c.trimestresRestantes} trimestre${c.trimestresRestantes === 1 ? "" : "s"} restante${c.trimestresRestantes === 1 ? "" : "s"}</span></div><strong>${nf(c.vistasAcumuladas || 0)} vistas</strong></div>`).join("")}</div>` : `<p class="muted">No tenés campañas por rendimiento activas.</p>`}
-            </section>
-
-            <section class="panel">
-                <div class="eyebrow">📋 HISTORIAL</div>
-                <h2>Tus acuerdos</h2>
-                ${renderHistory(history)}
-            </section>
         </div>`;
 
     container.querySelector("#negotiateSponsor")?.addEventListener("click", () => {

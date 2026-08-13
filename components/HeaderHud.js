@@ -93,8 +93,9 @@ if (typeof document !== "undefined" && !window.__elCreadorCareerMenuInstalled) {
                 <div class="eyebrow">MENÚ DE CARRERA</div>
                 <h2>Tu partida</h2>
                 <p>Acá podés volver al inicio o reiniciar la carrera actual.</p>
-                <div class="career-menu-actions">
+                <div class="career-menu-actions career-menu-actions-stack">
                     <button class="btn ghost" data-career-close>VOLVER</button>
+                    <button class="btn secondary" data-career-retire>${icon("sports_mma",15)} RETIRARSE</button>
                     <button class="btn danger" data-career-reset-start>${icon("trash",15)} BORRAR CARRERA</button>
                 </div>
             </div>`;
@@ -102,6 +103,16 @@ if (typeof document !== "undefined" && !window.__elCreadorCareerMenuInstalled) {
 
         const close = () => overlay.remove();
         overlay.addEventListener("click", e => { if (e.target === overlay || e.target.closest("[data-career-close]")) close(); });
+
+        overlay.querySelector("[data-career-retire]")?.addEventListener("click", () => {
+            if (!gameState.puedeRetirarse()) {
+                alert("El retiro voluntario se desbloquea desde el año 8. A los 40 años es obligatorio.");
+                return;
+            }
+            if (!confirm("¿Querés retirarte de tu carrera? Vas a cerrar esta partida y conservarás tu resumen final.")) return;
+            gameState.retirarse();
+            close();
+        });
 
         overlay.querySelector("[data-career-reset-start]")?.addEventListener("click", () => {
             overlay.querySelector(".career-menu-modal").innerHTML = `

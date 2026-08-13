@@ -1131,3 +1131,14 @@ body{
 .event-result-effects span { padding:8px 11px; border-radius:8px; background:rgba(255,255,255,.05); font-weight:800; }
 .event-result-effects .result-good { color:#59e391; border:1px solid rgba(89,227,145,.25); }
 .event-result-effects .result-bad { color:#ff6b6b; border:1px solid rgba(255,107,107,.25); }
+
+/* V8 UI simplification: less visual noise, clearer hierarchy. */
+.career-feed-page .feed-status-card { padding: 14px 18px; }
+.career-feed-page .feed-status-main small { opacity:.72; }
+.career-feed-page .feed-world-card, .career-feed-page .feed-skills-card { display:none !important; }
+.career-more { margin-top: 14px; }
+.career-menu-actions-stack { display:grid !important; grid-template-columns:1fr !important; gap:8px !important; }
+.career-menu-actions-stack .btn { width:100%; }
+.career-menu-actions-stack .btn.secondary { border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06); color:#fff; }
+.monetization-page .contract-card { max-width:760px; margin-inline:auto; }
+.monetization-page .dashboard-top { max-width:760px; margin-inline:auto; }

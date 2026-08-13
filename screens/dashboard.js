@@ -143,8 +143,7 @@ export function renderDashboard(el) {
         </div>
 
         <section class="career-card feed-status-card">
-            <div class="feed-status-main"><span>ESTADO DEL CANAL</span><strong>${nf(p.suscriptores)} subs</strong><small>${fame(p.fama)}/100 fama · ${nf(p.vistasTotales)} vistas · ${money(p.dinero)}</small></div>
-            <div class="feed-mini-stats"><span>👁️ ${nf(p.vistasTotales)}</span><span>🎬 ${nf(p.videosSubidos)}</span><span>💰 ${money(p.dinero)}</span></div>
+            <div class="feed-status-main"><span>ESTADO DEL CANAL</span><strong>${nf(p.suscriptores)} subs</strong><small>${fame(p.fama)}/100 fama · ${money(p.dinero)}</small></div>
         </section>
 
         ${!event ? resultCard(res) : ""}
@@ -152,9 +151,6 @@ export function renderDashboard(el) {
         ${collab ? collabCard(collab) : ""}
         ${sponsor || campaign ? sponsorCard(sponsor, campaign) : ""}
         ${!collab && !event && !sponsor && !campaign ? collabResultCard(gameState.lastCollab) : ""}
-        ${worldCard()}
-
-        ${!p.pretemporada ? "" : `<section class="career-card feed-skills-card"><div class="feed-card-head"><div class="feed-icon">${icon("refresh",18)}</div><div><div class="eyebrow">TU ESTADO</div><h2>Lo que te hace crecer</h2></div></div><div class="feed-skill-grid">${skills.map(([label,key,tip,ico])=>`<div class="feed-skill ${improved===key?"improved":""}" title="${tip}"><span>${icon(ico,14)} ${label}</span><b>${Number(p.atributos?.[key]||0)}${improved===key?" ▲":""}</b></div>`).join("")}</div></section>`}
 
         ${nextActionCard(p, hasResult, blockedByOffer)}
 
