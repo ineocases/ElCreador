@@ -2,7 +2,7 @@ import { icon } from "../components/Icon.js";
 // Motores reutilizables de minijuegos para El Creador.
 // Se rotan en orden: Timing -> Elección rápida -> Simon -> Whack-a-mole.
 
-const ICONOS = ["🔥", "🎮", "⚽", "🎤", "😂", "💎"];
+const ICONOS = ["bolt", "gamepad", "soccer", "videocam", "group", "trophy"];
 
 // Limpieza centralizada para que ningún timer/overlay quede vivo si el jugador
 // termina, cambia de pantalla o el failsafe entra en acción.
@@ -42,15 +42,73 @@ function finish(overlay, score) {
     return final;
 }
 
-export function runMinigame(type) {
-    const runners = [runTiming, runQuickChoice, runSimon, runWhack];
-    const runner = runners[((Number(type) || 0) % runners.length + runners.length) % runners.length] || runTiming;
+function minigameInfo(type) {
+    const infos = [
+        {
+            title: "Timing de publicación",
+            desc: "Esperá el momento justo y tocá COMENZAR. Después hacé clic cuando el marcador entre en la zona verde.",
+            goal: "Cuanto más preciso seas, mejor rinden las vistas y los subs."
+        },
+        {
+            title: "Elección rápida",
+            desc: "Vas a tener 3 opciones y pocos segundos. Tocá COMENZAR cuando estés listo y elegí la que mejor encaje con tu contenido.",
+            goal: "Una buena decisión mejora el rendimiento; quedarte sin tiempo te perjudica."
+        },
+        {
+            title: "Memoria",
+            desc: "Primero vas a ver una secuencia de iconos. Tocá COMENZAR, memorizala y repetila exactamente en el mismo orden.",
+            goal: "Si completás toda la secuencia, conseguís el mejor resultado."
+        },
+        {
+            title: "Whack-a-mole",
+            desc: "Los objetivos van a aparecer por la pantalla. Tocá COMENZAR y atrapá tantos como puedas antes de que desaparezcan.",
+            goal: "Necesitás 10 aciertos para conseguir el resultado perfecto."
+        }
+    ];
+    return infos[((Number(type) || 0) % infos.length + infos.length) % infos.length];
+}
 
+function showMinigameIntro(type) {
+    const info = minigameInfo(type);
+    return new Promise(resolve => {
+        cleanupActiveMinigame();
+        const old = document.getElementById("minigameIntroOverlay");
+        old?.remove();
+        const el = document.createElement("div");
+        el.id = "minigameIntroOverlay";
+        el.className = "minigame-overlay minigame-intro-overlay";
+        el.innerHTML = `
+          <div class="minigame-modal minigame-intro-modal">
+            <div class="minigame-eyebrow">ANTES DE EMPEZAR</div>
+            <div class="minigame-intro-icon">${icon(type === 0 ? "bolt" : type === 1 ? "refresh" : type === 2 ? "group" : "target", 30)}</div>
+            <h2>${info.title}</h2>
+            <p class="minigame-subtitle">${info.desc}</p>
+            <div class="minigame-goal"><span>${icon("check",14)}</span><b>${info.goal}</b></div>
+            <button id="startMinigame" class="btn primary minigame-start-btn">${icon("play",16)} COMENZAR</button>
+          </div>`;
+        document.body.appendChild(el);
+        const start = el.querySelector("#startMinigame");
+        start?.addEventListener("click", () => {
+            start.disabled = true;
+            el.classList.add("closing");
+            setTimeout(() => {
+                el.remove();
+                resolve();
+            }, 140);
+        });
+    });
+}
+
+export async function runMinigame(type) {
+    const normalizedType = ((Number(type) || 0) % 4 + 4) % 4;
+    const runners = [runTiming, runQuickChoice, runSimon, runWhack];
+    const runner = runners[normalizedType] || runTiming;
+
+    // El jugador tiene tiempo para leer la explicación. El cronómetro del
+    // minijuego recién empieza después de tocar COMENZAR.
+    await showMinigameIntro(normalizedType);
     cleanupActiveMinigame();
 
-    // Failsafe real: si un minijuego no termina, se limpia TODO el overlay
-    // y la publicación continúa con una puntuación baja. Antes el timeout
-    // resolvía la promesa pero dejaba el overlay/timers en pantalla.
     let timeoutId;
     let timedOut = false;
 
@@ -58,6 +116,7 @@ export function runMinigame(type) {
         .then(() => runner())
         .catch(error => {
             console.error("Error en minijuego:", error);
+            cleanupActiveMinigame();
             return 0;
         });
 
@@ -190,7 +249,7 @@ function runSimon() {
         const body = overlay.querySelector("#minigameBody");
         const length = 3 + Math.floor(Math.random() * 3);
         const sequence = Array.from({length}, () => Math.floor(Math.random() * ICONOS.length));
-        body.innerHTML = `<div id="simonBoard" class="simon-board">${ICONOS.map((x,i)=>`<button class="simon-key" data-i="${i}">${x}</button>`).join("")}</div><p id="simonStatus" class="minigame-hint">Preparando...</p>`;
+        body.innerHTML = `<div id="simonBoard" class="simon-board">${ICONOS.map((x,i)=>`<button class="simon-key" data-i="${i}">${icon(x,24)}</button>`).join("")}</div><p id="simonStatus" class="minigame-hint">Preparando...</p>`;
         const keys = [...body.querySelectorAll(".simon-key")];
         let input = 0, active = false;
         let delay = 450;
@@ -230,7 +289,7 @@ function runWhack() {
             if (finished) return;
             const target = document.createElement("button");
             target.className = "whack-target";
-            target.textContent = ICONOS[Math.floor(Math.random()*ICONOS.length)];
+            target.innerHTML = icon(ICONOS[Math.floor(Math.random()*ICONOS.length)], 22);
             target.style.left = `${8 + Math.random()*78}%`;
             target.style.top = `${8 + Math.random()*68}%`;
             board.appendChild(target);

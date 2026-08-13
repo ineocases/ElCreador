@@ -1,70 +1,150 @@
 // screens/createChannel.js
-// CORREGIDO: imports consistentes, flujo correcto hacia pretemporada
-
+// Pantalla de inicio de carrera: visual, clara y mobile-first.
 import { gameState } from '../engine/gameState.js';
-import saveManager from '../engine/saveManager.js';
+import { icon } from '../components/Icon.js';
+
+const NICHES = [
+    { value:'Gaming', label:'Gaming', desc:'Juegos, streams y desafíos', ico:'gamepad' },
+    { value:'Fútbol', label:'Fútbol', desc:'Análisis, actualidad y debate', ico:'soccer' },
+    { value:'Vlog', label:'IRL / Vlog', desc:'Tu vida, viajes y momentos', ico:'camera' },
+    { value:'Tecnología', label:'Tecnología', desc:'Reviews, gadgets y novedades', ico:'phone' },
+    { value:'Cocina', label:'Cocina', desc:'Recetas, desafíos y cocina en vivo', ico:'chef' },
+    { value:'Periodismo', label:'Noticias', desc:'Actualidad, entrevistas y análisis', ico:'news' }
+];
 
 export function renderCreateChannel(el) {
     const container = el || document.getElementById('createChannelScreen');
     if (!container) return;
 
     container.innerHTML = `
-        <div style="max-width: 600px; margin: 40px auto; padding: 30px; background: var(--bg-card); border: var(--border-card); border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); color: #fff;">
-            <h1 style="font-family: var(--font-heading); font-size: 2.5rem; text-align: center; margin-top: 0; color: var(--accent-red); text-transform: uppercase;">
-                Creá tu Creador
-            </h1>
-            <p style="text-align: center; color: var(--text-muted); margin-bottom: 30px;">
-                Configurá la identidad de tu personaje antes de arrancar tu carrera.
-            </p>
+        <div class="create-page">
+            <div class="create-noise"></div>
+            <div class="create-orbit orbit-a"></div>
+            <div class="create-orbit orbit-b"></div>
 
-            <form id="create-channel-form" style="display: flex; flex-direction: column; gap: 20px;">
-                <div>
-                    <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">Tu Nombre o Alias</label>
-                    <input type="text" id="player-name" required placeholder="Ej: Mateo, Nico..." style="width: 100%; padding: 12px 16px; background: rgba(0,0,0,0.5); border: var(--border-subtle); border-radius: 8px; color: #fff; font-size: 1rem; box-sizing: border-box;" />
-                </div>
+            <main class="create-shell">
+                <header class="create-topbar">
+                    <div class="create-brand"><span class="create-brand-mark">${icon('play',18)}</span><span>EL CREADOR</span></div>
+                    <span class="create-version">NUEVA CARRERA · 01</span>
+                </header>
 
-                <div>
-                    <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">Nombre de tu Canal</label>
-                    <input type="text" id="channel-name" required placeholder="Ej: Mateoplay, NicoVlogs..." style="width: 100%; padding: 12px 16px; background: rgba(0,0,0,0.5); border: var(--border-subtle); border-radius: 8px; color: #fff; font-size: 1rem; box-sizing: border-box;" />
-                </div>
+                <section class="create-hero">
+                    <div class="create-kicker">${icon('bolt',14)} TU HISTORIA EMPIEZA ACÁ</div>
+                    <h1>Creá tu<br><span>carrera.</span></h1>
+                    <p>No necesitás ser famoso. Empezás desde cero y cada decisión cambia lo que pasa después.</p>
+                    <div class="create-steps">
+                        <span class="active"><b>01</b> Identidad</span><i>→</i><span><b>02</b> Nicho</span><i>→</i><span><b>03</b> Pretemporada</span>
+                    </div>
+                </section>
 
-                <div>
-                    <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;">Elegí tu Nicho Principal</label>
-                    <select id="channel-niche" style="width: 100%; padding: 12px 16px; background: rgba(0,0,0,0.8); border: var(--border-subtle); border-radius: 8px; color: #fff; font-size: 1rem; box-sizing: border-box;">
-                        <option value="Gaming">🎮 Gaming</option>
-                        <option value="Fútbol">⚽ Fútbol</option>
-                        <option value="Vlog">📹 Vlog & IRL</option>
-                        <option value="Tecnología">📱 Tecnología</option>
-                        <option value="Cocina">🍳 Cocina</option>
-                        <option value="Periodismo">📰 Periodismo</option>
-                    </select>
-                </div>
+                <form id="create-channel-form" class="create-form">
+                    <section class="create-panel create-identity-panel">
+                        <div class="create-panel-head">
+                            <div><span class="create-section-number">01</span><div><small>IDENTIDAD</small><h2>¿Quién va a aparecer en pantalla?</h2></div></div>
+                            <span class="create-live-dot">NUEVA CARRERA</span>
+                        </div>
+                        <div class="create-input-grid">
+                            <label class="create-field">
+                                <span>${icon('person',14)} TU NOMBRE O ALIAS</span>
+                                <input type="text" id="player-name" required maxlength="24" autocomplete="nickname" placeholder="Ej. Mateo, Nico, Tras..." />
+                                <small>El nombre que va a aparecer en tu carrera.</small>
+                            </label>
+                            <label class="create-field">
+                                <span>${icon('videocam',14)} NOMBRE DEL CANAL</span>
+                                <input type="text" id="channel-name" required maxlength="28" autocomplete="off" placeholder="Ej. Mateoplay, NicoVlogs..." />
+                                <small>Tu marca. Podés cambiarla más adelante si el juego lo permite.</small>
+                            </label>
+                        </div>
+                    </section>
 
-                <button type="submit" style="margin-top: 15px; padding: 16px; background: var(--accent-red); color: #fff; font-family: var(--font-heading); font-size: 1.2rem; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px;">
-                    ▶ Ir a Pretemporada
-                </button>
-            </form>
+                    <section class="create-panel">
+                        <div class="create-panel-head">
+                            <div><span class="create-section-number">02</span><div><small>NICHO</small><h2>Elegí dónde querés crecer</h2></div></div>
+                            <span id="niche-counter">1 / ${NICHES.length}</span>
+                        </div>
+                        <div class="niche-grid">
+                            ${NICHES.map((n, i) => `
+                                <button type="button" class="niche-card ${i === 0 ? 'selected' : ''}" data-niche="${n.value}">
+                                    <span class="niche-icon">${icon(n.ico,24)}</span>
+                                    <span class="niche-copy"><b>${n.label}</b><small>${n.desc}</small></span>
+                                    <span class="niche-check">${icon('check',14)}</span>
+                                </button>
+                            `).join('')}
+                        </div>
+                        <input type="hidden" id="channel-niche" value="Gaming" />
+                    </section>
+
+                    <section class="create-preview-card">
+                        <div class="preview-avatar"><span id="preview-avatar-icon">${icon('videocam',30)}</span></div>
+                        <div class="preview-copy">
+                            <small>ASÍ SE VA A VER TU PERFIL</small>
+                            <strong id="preview-channel">Tu canal</strong>
+                            <span id="preview-meta">Gaming · 18 años · 0 subs</span>
+                        </div>
+                        <div class="preview-stat"><b>0</b><small>FAMA</small></div>
+                    </section>
+
+                    <button type="submit" class="create-start-btn">
+                        <span>${icon('play',18)}</span>
+                        <span><small>TODO LISTO</small> EMPEZAR MI CARRERA</span>
+                        <b>→</b>
+                    </button>
+                    <p class="create-footnote">Vas a empezar con 18 años, una audiencia mínima y un setup básico. La pretemporada es tu primera decisión.</p>
+                </form>
+            </main>
         </div>
     `;
+
     const form = container.querySelector('#create-channel-form');
-    if (form) {
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
+    const nameInput = container.querySelector('#player-name');
+    const channelInput = container.querySelector('#channel-name');
+    const nicheInput = container.querySelector('#channel-niche');
+    const previewChannel = container.querySelector('#preview-channel');
+    const previewMeta = container.querySelector('#preview-meta');
+    const previewAvatar = container.querySelector('#preview-avatar-icon');
+    const counter = container.querySelector('#niche-counter');
 
-            const nombre = container.querySelector('#player-name').value;
-            const canal = container.querySelector('#channel-name').value;
-            const niche = container.querySelector('#channel-niche').value;
+    const updatePreview = () => {
+        const canal = channelInput.value.trim() || 'Tu canal';
+        const niche = nicheInput.value || 'Gaming';
+        const selected = NICHES.find(n => n.value === niche) || NICHES[0];
+        previewChannel.textContent = canal;
+        previewMeta.textContent = `${niche} · 18 años · 0 subs`;
+        previewAvatar.innerHTML = icon(selected.ico, 30);
+    };
 
-            // Iniciar partida con los datos
-            gameState.iniciarPartida({ nombre, canal, niche });
-
-            // Guardar la nueva partida
-            gameState.guardar();
-
-            // Redirección a pretemporada
-            window.location.hash = '#pretemporada';
+    container.querySelectorAll('.niche-card').forEach((button, index) => {
+        button.addEventListener('click', () => {
+            container.querySelectorAll('.niche-card').forEach(b => b.classList.remove('selected'));
+            button.classList.add('selected');
+            nicheInput.value = button.dataset.niche;
+            counter.textContent = `${index + 1} / ${NICHES.length}`;
+            updatePreview();
         });
-    }
+    });
+    channelInput.addEventListener('input', updatePreview);
+    nameInput.addEventListener('input', () => {
+        if (!channelInput.value.trim()) channelInput.value = nameInput.value.trim();
+        updatePreview();
+    });
+    updatePreview();
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const nombre = nameInput.value.trim();
+        const canal = channelInput.value.trim() || nombre;
+        const niche = nicheInput.value || 'Gaming';
+        if (!nombre || !canal) return;
+
+        const submit = form.querySelector('.create-start-btn');
+        submit.disabled = true;
+        submit.classList.add('loading');
+        submit.querySelector('span:nth-child(2)').innerHTML = '<small>PREPARANDO</small> CREANDO TU CARRERA...';
+
+        gameState.iniciarPartida({ nombre, canal, niche });
+        gameState.guardar();
+        window.location.hash = '#pretemporada';
+    });
 
     return container;
 }

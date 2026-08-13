@@ -157,8 +157,8 @@ export function renderAwards(container) {
     const resultados = obtenerResultados(summary);
     const nominacionesJugador = resultados.filter(r => r.nominados.some(n => n.isPlayer)).length;
     const victoriasJugador = resultados.filter(r => r.ganador?.isPlayer).length;
-    // El premio Revelación SÍ cuenta como victoria para el resumen y la estadística.
-    const victoriasCount = resultados.filter(r => r.ganador?.isPlayer).length;
+    // Cada terna ganada, incluida Revelación, cuenta como un premio real.
+    const victoriasCount = victoriasJugador;
     const premiosJugador = resultados.filter(r => r.ganador?.isPlayer).map(r => r.nombre);
     gameState.player.awardsHistory ||= [];
     const alreadyRecorded = gameState.player.awardsHistory.some(a => Number(a.año) === Number(summary.año));

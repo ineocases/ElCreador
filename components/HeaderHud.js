@@ -53,7 +53,7 @@ export function renderHeaderHud() {
                 <a href="#sponsors" class="hud-menu-btn">${icon("briefcase",16)} <span>Sponsors</span></a>
                 <a href="#awards" class="hud-menu-btn ${awardAccess ? "" : "locked"}">${icon("trophy",16)} <span>Awards</span>${awardAccess ? "" : " 🔒"}</a>
                 <a href="#velada" class="hud-menu-btn ${canVelada ? "" : "locked"}">${icon("sports_mma",16)} <span>Velada</span>${canVelada ? "" : " 🔒"}</a>
-                <button type="button" class="hud-menu-btn hud-career-btn" id="retireCareerBtn">☰</button>
+                <button type="button" class="hud-menu-btn hud-career-btn" id="retireCareerBtn" aria-label="Menú de carrera">${icon("settings",16)} <span>MENÚ</span></button>
             </nav>
             <div class="hud-fame-level">
                 <div class="player-figurita figurita-${level.color}"><span>${level.emoji}</span></div>
@@ -72,3 +72,52 @@ export function renderHeaderHud() {
 }
 
 export default renderHeaderHud;
+
+
+// Menú global de carrera: queda disponible desde cualquier pantalla sin
+// agregar otra ruta ni esconder "Borrar carrera" en un lugar difícil de hallar.
+if (typeof document !== "undefined" && !window.__elCreadorCareerMenuInstalled) {
+    window.__elCreadorCareerMenuInstalled = true;
+    document.addEventListener("click", (event) => {
+        const trigger = event.target.closest?.("#retireCareerBtn");
+        if (!trigger) return;
+        event.preventDefault();
+
+        document.getElementById("careerMenuOverlay")?.remove();
+        const overlay = document.createElement("div");
+        overlay.id = "careerMenuOverlay";
+        overlay.className = "career-menu-overlay";
+        overlay.innerHTML = `
+            <div class="career-menu-modal">
+                <div class="career-menu-icon">${icon("settings",26)}</div>
+                <div class="eyebrow">MENÚ DE CARRERA</div>
+                <h2>Tu partida</h2>
+                <p>Acá podés volver al inicio o reiniciar la carrera actual.</p>
+                <div class="career-menu-actions">
+                    <button class="btn ghost" data-career-close>VOLVER</button>
+                    <button class="btn danger" data-career-reset-start>${icon("trash",15)} BORRAR CARRERA</button>
+                </div>
+            </div>`;
+        document.body.appendChild(overlay);
+
+        const close = () => overlay.remove();
+        overlay.addEventListener("click", e => { if (e.target === overlay || e.target.closest("[data-career-close]")) close(); });
+
+        overlay.querySelector("[data-career-reset-start]")?.addEventListener("click", () => {
+            overlay.querySelector(".career-menu-modal").innerHTML = `
+                <div class="career-menu-icon danger-icon">${icon("trash",26)}</div>
+                <div class="eyebrow">SEGUNDA CONFIRMACIÓN</div>
+                <h2>¿Borrar toda la carrera?</h2>
+                <p>Se van a eliminar suscriptores, premios, dinero, relaciones, inventario y progreso. Esta acción no se puede deshacer.</p>
+                <div class="career-menu-actions">
+                    <button class="btn ghost" data-career-cancel>NO, VOLVER</button>
+                    <button class="btn danger" data-career-reset-final>${icon("trash",15)} SÍ, BORRAR TODO</button>
+                </div>`;
+            overlay.querySelector("[data-career-cancel]")?.addEventListener("click", close);
+            overlay.querySelector("[data-career-reset-final]")?.addEventListener("click", () => {
+                gameState.resetPlayer();
+                close();
+            });
+        });
+    });
+}
