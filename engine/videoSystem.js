@@ -759,6 +759,8 @@ export function procesarPublicacionTrimestre(
     p[`historialTrimestre${gameState.time.trimestre}`] = actividad;
 
     const quarterResult = {
+        año: gameState.time.año,
+        trimestre: gameState.time.trimestre,
         manualVideo: manualResult,
         totalVideos,
         totalVistas: actividad.vistas,

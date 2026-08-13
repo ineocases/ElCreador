@@ -1033,3 +1033,51 @@ body{
 .collab-locked .collab-difficulty { opacity: .9; }
 .collab-requirement { display:block; margin-top:4px; opacity:.72; font-size:12px; }
 .collab-locked button[disabled] { cursor:not-allowed; opacity:.55; }
+
+/* =========================================================
+   CAREER FEED — UX inspirado en un feed de carrera vertical
+   ========================================================= */
+.career-feed-page{max-width:980px}
+.career-feed-intro{padding:18px 4px 8px}
+.career-feed-intro h1{font-family:var(--font-heading);font-size:clamp(2rem,5vw,3.4rem);margin:4px 0}
+.career-feed-intro p{color:var(--text-muted);margin:0}
+.career-card{background:#0d1014;border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:16px;margin:10px 0;box-shadow:0 8px 28px rgba(0,0,0,.18)}
+.feed-status-card{display:flex;align-items:center;justify-content:space-between;gap:16px;border-top:2px solid rgba(229,9,20,.7)}
+.feed-status-main span{display:block;color:var(--text-muted);font-size:.65rem;font-weight:900;letter-spacing:.12em}
+.feed-status-main strong{display:block;font-size:1.65rem;margin-top:3px}
+.feed-status-main small{color:var(--text-muted)}
+.feed-mini-stats{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.feed-mini-stats span{background:#15191e;border:1px solid rgba(255,255,255,.07);padding:7px 9px;border-radius:7px;font-size:.72rem;color:#d7d7d7}
+.feed-card-head{display:flex;align-items:flex-start;gap:10px}
+.feed-card-head h2{font-size:1.05rem;margin:2px 0 0;font-family:var(--font-heading)}
+.feed-card-head p{margin:3px 0 0}
+.feed-icon{width:32px;height:32px;display:grid;place-items:center;border-radius:8px;background:#171b20;flex:0 0 auto}
+.feed-icon.red{background:rgba(229,9,20,.14);color:#ff4752}.feed-icon.green{background:rgba(57,211,83,.12);color:#39d353}.feed-icon.gold{background:rgba(255,212,59,.12);color:#ffd43b}
+.feed-event-card{border-top:2px solid #e50914}.feed-event-card>p{color:#c6c6c6;line-height:1.5;margin:12px 0}
+.feed-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.feed-choice{appearance:none;border:1px solid rgba(229,9,20,.45);background:#14171b;color:#fff;text-align:left;border-radius:9px;padding:11px;transition:.15s}
+.feed-choice:hover:not(:disabled){background:#1b1f24;border-color:#e50914;transform:translateY(-1px)}
+.feed-choice.secondary{border-color:rgba(255,255,255,.14)}
+.feed-choice.locked{opacity:.48;cursor:not-allowed}
+.feed-choice span{display:block;color:#a6a6a6;font-size:.58rem;font-weight:900;letter-spacing:.08em;margin-bottom:5px}.feed-choice b{display:block;font-size:.86rem}.feed-choice small{display:block;color:#8f8f8f;font-size:.68rem;line-height:1.35;margin-top:5px}
+.feed-hint,.feed-muted{display:block;color:#777;font-size:.68rem;margin-top:9px}
+.feed-result-card{border-top:2px solid #39d353}.feed-result-title{display:flex;align-items:baseline;gap:8px;margin:14px 0 9px}.feed-result-title strong{font-size:2.3rem}.feed-result-title span{color:#aaa;font-weight:700}
+.feed-result-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.feed-result-grid div{background:#15191e;border-radius:7px;padding:9px}.feed-result-grid small{display:block;color:#777;font-size:.56rem;font-weight:900}.feed-result-grid b{display:block;margin-top:3px;font-size:.9rem}
+.feed-featured{margin-top:9px;padding:10px;background:#111419;border-radius:8px;border-left:3px solid #e50914}.feed-featured span{display:block;color:#888;font-size:.58rem;font-weight:900}.feed-featured b{display:block;margin:5px 0;font-size:.9rem}.feed-featured small{color:#aaa}.feed-factor{margin-top:8px;color:#72df89;font-size:.68rem}
+.feed-result-strip{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}.feed-result-strip span{background:#15191e;padding:8px 9px;border-radius:7px;font-size:.7rem;color:#ddd}
+.feed-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.feed-actions .btn{flex:0 0 auto}
+.feed-collab-card{border-top:2px solid #39d353}.feed-sponsor-card{border-top:2px solid #ffd43b}.feed-warning{color:#ffd43b;font-size:.75rem}
+.feed-small-result{padding:13px}.feed-small-result.negative{border-left:3px solid #e50914}.feed-small-result.positive{border-left:3px solid #39d353}.feed-small-result h2{font-size:.92rem}
+.feed-world-card{padding:13px}.feed-world-row{display:flex;gap:8px;align-items:flex-start;border-top:1px solid rgba(255,255,255,.06);padding:8px 0}.feed-world-row:first-of-type{border-top:0}.feed-world-row p{margin:0;color:#aaa;font-size:.72rem;line-height:1.35}
+.feed-skills-card{padding:13px}.feed-skill-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}.feed-skill{display:flex;justify-content:space-between;gap:6px;align-items:center;background:#15191e;border-radius:7px;padding:8px;font-size:.68rem;color:#aaa}.feed-skill b{color:#fff}.feed-skill.improved{border:1px solid rgba(57,211,83,.55);color:#39d353}.feed-skill.improved b{color:#39d353}
+.feed-next-card{display:flex;align-items:center;justify-content:space-between;gap:14px;border-top:2px solid rgba(255,255,255,.14)}.feed-next-card h2{margin:3px 0;font-size:1.05rem}.feed-next-card p{margin:0;color:#8f8f8f;font-size:.75rem}.publish-next{border-top-color:#e50914}
+.career-more{margin:14px 0;color:#999}.career-more summary{cursor:pointer;padding:9px 2px;font-size:.72rem}.career-more-grid{display:flex;gap:6px;flex-wrap:wrap;padding:8px 0}.career-more-grid .btn{font-size:.68rem;padding:8px 10px}
+
+@media(max-width:680px){
+ .career-feed-page{width:calc(100% - 14px);padding-top:6px}
+ .career-feed-intro{padding:8px 2px 4px}.career-feed-intro h1{font-size:1.8rem}.career-feed-intro p{font-size:.72rem}
+ .career-card{padding:11px;border-radius:10px;margin:8px 0}.feed-status-card,.feed-next-card{align-items:flex-start;flex-direction:column}.feed-mini-stats{justify-content:flex-start;width:100%}
+ .feed-choices{grid-template-columns:1fr}.feed-result-grid{grid-template-columns:repeat(2,1fr)}.feed-skill-grid{grid-template-columns:repeat(2,1fr)}
+ .feed-card-head h2{font-size:.88rem}.feed-result-title strong{font-size:1.9rem}.feed-result-grid b{font-size:.8rem}.feed-choice b{font-size:.8rem}.feed-choice small{font-size:.64rem}
+ .feed-actions{width:100%}.feed-actions .btn{flex:1;min-width:100px}.feed-next-card .btn{width:100%}
+}

@@ -106,13 +106,7 @@ export function renderPublishVideo(el) {
 
                 // Una sola navegación después de terminar TODO el cálculo.
                 if (gameState.pendingEvent) {
-                    window.location.hash = "#pasanCosas";
-                } else if (gameState.pendingCollabOffer) {
-                    window.location.hash = "#collabs";
-                } else if (gameState.pendingSponsorOffer || gameState.pendingCampaignOffer) {
-                    window.location.hash = "#sponsors";
-                } else {
-                    window.location.hash = "#videoResult";
+                    window.location.hash = "#dashboard";
                 }
             } catch (error) {
                 console.error("Error publicando el video:", error);
