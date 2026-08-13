@@ -1,319 +1,216 @@
 import { icon } from "../components/Icon.js";
-// Motores reutilizables de minijuegos para El Creador.
-// Se rotan en orden: Timing -> Elección rápida -> Simon -> Whack-a-mole.
 
-const ICONOS = ["bolt", "gamepad", "soccer", "videocam", "group", "trophy"];
-
-// Limpieza centralizada para que ningún timer/overlay quede vivo si el jugador
-// termina, cambia de pantalla o el failsafe entra en acción.
+// Minijuegos elegidos para el loop principal de publicación:
+// 0 Timing de publicación · 1 Miniatura · 2 Aprovechar tendencia · 3 Votación de Awards
 let activeCleanup = null;
 
 function cleanupActiveMinigame() {
     try { activeCleanup?.(); } catch (error) { console.warn("No se pudo limpiar el minijuego:", error); }
     activeCleanup = null;
     document.getElementById("minigameOverlay")?.remove();
+    document.getElementById("minigameIntroOverlay")?.remove();
+    document.getElementById("minigameResultOverlay")?.remove();
 }
-
 function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
 function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
 
 function overlayBase(title, subtitle) {
-    const old = document.getElementById("minigameOverlay");
-    if (old) old.remove();
+    const old = document.getElementById("minigameOverlay"); old?.remove();
     const el = document.createElement("div");
-    el.id = "minigameOverlay";
-    el.className = "minigame-overlay";
-    el.innerHTML = `
-      <div class="minigame-modal">
-        <div class="minigame-eyebrow">MINIJUEGO</div>
-        <h2>${title}</h2>
-        <p class="minigame-subtitle">${subtitle}</p>
-        <div id="minigameBody"></div>
-      </div>`;
-    document.body.appendChild(el);
-    return el;
+    el.id = "minigameOverlay"; el.className = "minigame-overlay";
+    el.innerHTML = `<div class="minigame-modal"><div class="minigame-eyebrow">MINIJUEGO</div><h2>${title}</h2><p class="minigame-subtitle">${subtitle}</p><div id="minigameBody"></div></div>`;
+    document.body.appendChild(el); return el;
 }
 
 function finish(overlay, score) {
     const final = clamp(Math.round(score), 0, 100);
-    try { activeCleanup?.(); } catch (error) { console.warn("Cleanup del minijuego:", error); }
+    try { activeCleanup?.(); } catch {}
     activeCleanup = null;
-    if (overlay && overlay.isConnected) overlay.remove();
+    overlay?.remove();
     return final;
 }
 
-function minigameInfo(type) {
-    const infos = [
-        {
-            title: "Timing de publicación",
-            desc: "Esperá el momento justo y tocá COMENZAR. Después hacé clic cuando el marcador entre en la zona verde.",
-            goal: "Cuanto más preciso seas, mejor rinden las vistas y los subs."
-        },
-        {
-            title: "Elección rápida",
-            desc: "Vas a tener 3 opciones y pocos segundos. Tocá COMENZAR cuando estés listo y elegí la que mejor encaje con tu contenido.",
-            goal: "Una buena decisión mejora el rendimiento; quedarte sin tiempo te perjudica."
-        },
-        {
-            title: "Memoria",
-            desc: "Primero vas a ver una secuencia de iconos. Tocá COMENZAR, memorizala y repetila exactamente en el mismo orden.",
-            goal: "Si completás toda la secuencia, conseguís el mejor resultado."
-        },
-        {
-            title: "Whack-a-mole",
-            desc: "Los objetivos van a aparecer por la pantalla. Tocá COMENZAR y atrapá tantos como puedas antes de que desaparezcan.",
-            goal: "Necesitás 10 aciertos para conseguir el resultado perfecto."
-        }
-    ];
-    return infos[((Number(type) || 0) % infos.length + infos.length) % infos.length];
+function info(type) {
+    return [
+        { title: "Timing de publicación", desc: "Esperá el momento justo y publicá cuando el marcador entre en la zona ideal.", goal: "Precisión = mejor rendimiento del video." },
+        { title: "Miniatura perfecta", desc: "Elegí la miniatura que mejor combine claridad, curiosidad y fidelidad al contenido.", goal: "Una buena miniatura mejora el CTR sin caer en clickbait barato." },
+        { title: "Aprovechá la tendencia", desc: "Elegí qué tendencia aprovechar para tu próximo contenido antes de que pierda fuerza.", goal: "Importan la velocidad, el encaje con tu nicho y la saturación." },
+        { title: "Votación de Awards", desc: "Analizá tres candidatos y elegí quién merece ganar según rendimiento e impacto.", goal: "No siempre gana el más grande: evaluá la temporada completa." }
+    ][type % 4];
 }
 
-function showMinigameIntro(type) {
-    const info = minigameInfo(type);
+function intro(type) {
+    const i = info(type);
     return new Promise(resolve => {
         cleanupActiveMinigame();
-        const old = document.getElementById("minigameIntroOverlay");
-        old?.remove();
-        const el = document.createElement("div");
-        el.id = "minigameIntroOverlay";
-        el.className = "minigame-overlay minigame-intro-overlay";
-        el.innerHTML = `
-          <div class="minigame-modal minigame-intro-modal">
-            <div class="minigame-eyebrow">ANTES DE EMPEZAR</div>
-            <div class="minigame-intro-icon">${icon(type === 0 ? "bolt" : type === 1 ? "refresh" : type === 2 ? "group" : "target", 30)}</div>
-            <h2>${info.title}</h2>
-            <p class="minigame-subtitle">${info.desc}</p>
-            <div class="minigame-goal"><span>${icon("check",14)}</span><b>${info.goal}</b></div>
-            <button id="startMinigame" class="btn primary minigame-start-btn">${icon("play",16)} COMENZAR</button>
-          </div>`;
+        const el = document.createElement("div"); el.id = "minigameIntroOverlay"; el.className = "minigame-overlay minigame-intro-overlay";
+        el.innerHTML = `<div class="minigame-modal minigame-intro-modal"><div class="minigame-eyebrow">ANTES DE EMPEZAR</div><div class="minigame-intro-icon">${icon(type===0?"bolt":type===1?"image":type===2?"trend": "trophy",30)}</div><h2>${i.title}</h2><p class="minigame-subtitle">${i.desc}</p><div class="minigame-goal"><span>${icon("check",14)}</span><b>${i.goal}</b></div><button id="startMinigame" class="btn primary minigame-start-btn">${icon("play",16)} COMENZAR</button></div>`;
         document.body.appendChild(el);
-        const start = el.querySelector("#startMinigame");
-        start?.addEventListener("click", () => {
-            start.disabled = true;
-            el.classList.add("closing");
-            setTimeout(() => {
-                el.remove();
-                resolve();
-            }, 140);
-        });
+        el.querySelector("#startMinigame")?.addEventListener("click", () => { el.remove(); resolve(); }, { once:true });
     });
 }
 
 export async function runMinigame(type) {
-    const normalizedType = ((Number(type) || 0) % 4 + 4) % 4;
-    const runners = [runTiming, runQuickChoice, runSimon, runWhack];
-    const runner = runners[normalizedType] || runTiming;
-
-    // El jugador tiene tiempo para leer la explicación. El cronómetro del
-    // minijuego recién empieza después de tocar COMENZAR.
-    await showMinigameIntro(normalizedType);
+    const t = ((Number(type)||0)%4+4)%4;
+    await intro(t);
     cleanupActiveMinigame();
-
-    let timeoutId;
+    const runners = [runTiming, runThumbnail, runTrend, runAwardsVote];
+    let timeout;
     let timedOut = false;
-
-    const gamePromise = Promise.resolve()
-        .then(() => runner())
-        .catch(error => {
-            console.error("Error en minijuego:", error);
-            cleanupActiveMinigame();
-            return 0;
-        });
-
-    const timeoutPromise = new Promise(resolve => {
-        timeoutId = setTimeout(() => {
-            timedOut = true;
-            cleanupActiveMinigame();
-            resolve(0);
-        }, 15000);
-    });
-
-    return Promise.race([gamePromise, timeoutPromise])
-        .finally(() => clearTimeout(timeoutId))
-        .then(score => {
-            if (timedOut) return score;
-            return mostrarResultadoMinijuego(score).then(() => score);
-        });
+    const game = Promise.resolve().then(() => runners[t]()).catch(error => { console.error("Error en minijuego:", error); cleanupActiveMinigame(); return 0; });
+    const guard = new Promise(resolve => { timeout=setTimeout(()=>{timedOut=true;cleanupActiveMinigame();resolve(0);},18000); });
+    const score = await Promise.race([game,guard]);
+    clearTimeout(timeout);
+    if (!timedOut) await showResult(score);
+    return score;
 }
 
-function mostrarResultadoMinijuego(score) {
+function showResult(score) {
     return new Promise(resolve => {
-        const old = document.getElementById("minigameResultOverlay");
-        if (old) old.remove();
-        
-        const el = document.createElement("div");
-        el.id = "minigameResultOverlay";
-        el.className = "minigame-overlay";
-        
-        let icono, texto, clase;
-        if (score >= 90) {
-            icono = icon("bolt", 28);
-            texto = "¡EXCELENTE!";
-            clase = "excelente";
-        } else if (score >= 65) {
-            icono = icon("check", 28);
-            texto = "¡BIEN HECHO!";
-            clase = "bueno";
-        } else if (score >= 35) {
-            icono = icon("refresh", 28);
-            texto = "REGULAR";
-            clase = "regular";
-        } else {
-            icono = icon("close", 28);
-            texto = "MAL";
-            clase = "fallo";
-        }
-        
-        el.innerHTML = `
-          <div class="minigame-modal">
-            <div class="minigame-eyebrow">RESULTADO DEL MINIJUEGO</div>
-            <h2>${icono} ${texto}</h2>
-            <p class="minigame-subtitle">Puntaje: ${score}/100</p>
-            <div style="font-size: 3rem; margin: 20px 0;">${score}%</div>
-          </div>`;
-        document.body.appendChild(el);
-        
-        setTimeout(() => {
-            if (el && el.isConnected) el.remove();
-            resolve();
-        }, 2000);
+        const el=document.createElement("div"); el.id="minigameResultOverlay"; el.className="minigame-overlay";
+        const label=score>=90?"¡EXCELENTE!":score>=65?"¡BIEN HECHO!":score>=35?"REGULAR":"MAL";
+        el.innerHTML=`<div class="minigame-modal"><div class="minigame-eyebrow">RESULTADO</div><h2>${label}</h2><p class="minigame-subtitle">Puntaje: ${score}/100</p><div style="font-size:3rem;margin:20px 0">${score}%</div></div>`;
+        document.body.appendChild(el); setTimeout(()=>{el.remove();resolve();},1500);
     });
 }
 
 function runTiming() {
     return new Promise(resolve => {
-        const overlay = overlayBase("Elegí el momento", "Hacé clic cuando el marcador entre en la zona verde.");
-        const body = overlay.querySelector("#minigameBody");
-        body.innerHTML = `
-          <div class="timing-track"><div class="timing-zone"></div><div id="timingCursor"></div></div>
-          <button id="timingHit" class="btn primary minigame-action">¡PUBLICAR!</button>
-          <p id="timingHint" class="minigame-hint">Tenés una sola oportunidad.</p>`;
-        const cursor = body.querySelector("#timingCursor");
-        const hit = body.querySelector("#timingHit");
-        let rafId = null;
-        activeCleanup = () => { done = true; if (rafId) cancelAnimationFrame(rafId); };
-        let pos = 0, dir = 1, done = false, last = performance.now();
-        const zoneStart = 42, zoneEnd = 58;
-        function tick(now) {
-            if (done) return;
-            const dt = Math.min(32, now - last); last = now;
-            pos += dir * dt * 0.075;
-            if (pos >= 100) { pos = 100; dir = -1; }
-            if (pos <= 0) { pos = 0; dir = 1; }
-            cursor.style.left = `${pos}%`;
-            rafId = requestAnimationFrame(tick);
-        }
-        rafId = requestAnimationFrame(tick);
-        hit.onclick = () => {
-            if (done) return;
-            done = true;
-            const distance = pos < zoneStart ? zoneStart - pos : pos > zoneEnd ? pos - zoneEnd : 0;
-            const score = distance === 0 ? 100 : clamp(100 - distance * 5, 15, 95);
-            resolve(finish(overlay, score));
-        };
+        const o=overlayBase("Elegí el momento","Publicá cuando el cursor esté dentro de la zona ideal.");
+        const b=o.querySelector("#minigameBody"); b.innerHTML=`<div class="timing-track"><div class="timing-zone"></div><div id="timingCursor"></div></div><button id="timingHit" class="btn primary minigame-action">¡PUBLICAR!</button><p class="minigame-hint">Una sola oportunidad.</p>`;
+        const c=b.querySelector("#timingCursor"), hit=b.querySelector("#timingHit"); let pos=0,dir=1,done=false,raf,last=performance.now(); const a=42,z=58;
+        activeCleanup=()=>{done=true;if(raf)cancelAnimationFrame(raf);};
+        function tick(now){if(done)return;const dt=Math.min(32,now-last);last=now;pos+=dir*dt*.075;if(pos>=100){pos=100;dir=-1}if(pos<=0){pos=0;dir=1}c.style.left=`${pos}%`;raf=requestAnimationFrame(tick)}
+        raf=requestAnimationFrame(tick); hit.onclick=()=>{if(done)return;done=true;const d=pos<a?a-pos:pos>z?pos-z:0;resolve(finish(o,d===0?100:clamp(100-d*5,15,95)));};
     });
 }
 
-function runQuickChoice() {
+function runThumbnail() {
     return new Promise(resolve => {
-        const overlay = overlayBase("Elegí rápido", "Tu primera decisión importa. Tenés 4 segundos.");
-        const body = overlay.querySelector("#minigameBody");
-        const options = shuffle([
-            { t: "🔥 Hook fuerte", s: 95 },
-            { t: "🎯 Título equilibrado", s: 78 },
-            { t: "💬 Más contexto", s: 58 }
+        const o=overlayBase("Elegí la miniatura","Una miniatura clara gana; el clickbait exagerado puede perjudicar la confianza.");
+        const b=o.querySelector("#minigameBody");
+        const cards=shuffle([
+            {score:96,tag:"CLARA",title:"La actualización cambió TODO",desc:"Imagen limpia + protagonista + contexto"},
+            {score:72,tag:"CURIOSIDAD",title:"NO PUEDO CREER LO QUE PASÓ",desc:"Más impacto, pero menos contexto"},
+            {score:48,tag:"CLICKBAIT",title:"ESTO ES ILEGAL",desc:"Promesa exagerada que no coincide con el video"}
         ]);
-        body.innerHTML = `<div id="quickTimer" class="quick-timer">4.0</div><div class="quick-options">${options.map((o,i)=>`<button class="quick-option" data-score="${o.s}">${o.t}</button>`).join("")}</div>`;
-        let left = 4, done = false;
-        const timer = setInterval(() => {
-            left -= 0.1;
-            body.querySelector("#quickTimer").textContent = Math.max(0, left).toFixed(1);
-            if (left <= 0) {
-                clearInterval(timer);
-                if (!done) { done = true; resolve(finish(overlay, 25)); }
-            }
-        }, 100);
-        activeCleanup = () => { done = true; clearInterval(timer); };
-        body.querySelectorAll(".quick-option").forEach(btn => btn.onclick = () => {
-            if (done) return;
-            done = true; clearInterval(timer);
-            const base = Number(btn.dataset.score) || 50;
-            resolve(finish(overlay, base + left * 2));
-        });
+        b.innerHTML=`<div class="mini-thumb-grid">${cards.map((x,i)=>`<button class="mini-thumb" data-score="${x.score}"><span class="mini-thumb-art">${i===0?'🎮':i===1?'😱':'🚨'}</span><b>${x.title}</b><small>${x.tag} · ${x.desc}</small></button>`).join('')}</div>`;
+        activeCleanup=()=>{};
+        b.querySelectorAll('.mini-thumb').forEach(btn=>btn.onclick=()=>resolve(finish(o,Number(btn.dataset.score)||50)));
     });
 }
 
-function runSimon() {
+function runTrend() {
     return new Promise(resolve => {
-        const overlay = overlayBase("Memorizá la secuencia", "Mirá los iconos y repetilos en el mismo orden.");
-        const body = overlay.querySelector("#minigameBody");
-        const length = 3 + Math.floor(Math.random() * 3);
-        const sequence = Array.from({length}, () => Math.floor(Math.random() * ICONOS.length));
-        body.innerHTML = `<div id="simonBoard" class="simon-board">${ICONOS.map((x,i)=>`<button class="simon-key" data-i="${i}">${icon(x,24)}</button>`).join("")}</div><p id="simonStatus" class="minigame-hint">Preparando...</p>`;
-        const keys = [...body.querySelectorAll(".simon-key")];
-        let input = 0, active = false;
-        let delay = 450;
-        const timers = [];
-        activeCleanup = () => { active = false; timers.forEach(clearTimeout); };
-        sequence.forEach((idx, n) => timers.push(setTimeout(() => {
-            keys[idx].classList.add("simon-lit");
-            setTimeout(() => keys[idx].classList.remove("simon-lit"), delay * 0.7);
-            if (n === sequence.length - 1) setTimeout(() => { active = true; body.querySelector("#simonStatus").textContent = "¡Ahora!"; }, delay);
-        }, n * delay)));
-        keys.forEach(key => key.onclick = () => {
-            if (!active) return;
-            const chosen = Number(key.dataset.i);
-            if (chosen !== sequence[input]) {
-                active = false;
-                resolve(finish(overlay, Math.max(20, Math.round(input / sequence.length * 80))));
-                return;
-            }
-            input++;
-            if (input === sequence.length) {
-                active = false;
-                resolve(finish(overlay, 100));
-            }
-        });
+        const o=overlayBase("Elegí la tendencia","Tenés pocos segundos. Pensá en tu nicho, velocidad y saturación.");
+        const b=o.querySelector("#minigameBody");
+        const opts=shuffle([
+            {name:"🔥 Tendencia explosiva",score:94,meta:"Mucho alcance · muy saturada"},
+            {name:"🎯 Tendencia de tu nicho",score:88,meta:"Buen encaje · crecimiento estable"},
+            {name:"🌱 Tema emergente",score:78,meta:"Poca competencia · resultado incierto"},
+            {name:"🧊 Tendencia agotada",score:38,meta:"Mucho ruido · poca retención"}
+        ]);
+        let left=6,done=false; b.innerHTML=`<div id="trendTimer" class="quick-timer">6.0</div><div class="trend-options">${opts.map(x=>`<button class="trend-option" data-score="${x.score}"><b>${x.name}</b><small>${x.meta}</small></button>`).join('')}</div>`;
+        const timer=setInterval(()=>{left-=.1;const el=b.querySelector('#trendTimer');if(el)el.textContent=Math.max(0,left).toFixed(1);if(left<=0&&!done){done=true;clearInterval(timer);resolve(finish(o,25));}},100);
+        activeCleanup=()=>{done=true;clearInterval(timer)};
+        b.querySelectorAll('.trend-option').forEach(btn=>btn.onclick=()=>{if(done)return;done=true;clearInterval(timer);resolve(finish(o,Number(btn.dataset.score)+Math.round(left)))});
     });
 }
 
-function runWhack() {
+function runAwardsVote() {
     return new Promise(resolve => {
-        const overlay = overlayBase("¡No lo dejes escapar!", "Hacé clic en los objetivos antes de que desaparezcan.");
-        const body = overlay.querySelector("#minigameBody");
-        body.innerHTML = `<div id="whackBoard" class="whack-board"></div><p id="whackScore" class="minigame-hint">0 / 10</p>`;
-        const board = body.querySelector("#whackBoard");
-        let hits = 0, spawned = 0, finished = false;
-        const spawnedTimeouts = [];
-        const interval = setInterval(() => {
-            if (finished) return;
-            const target = document.createElement("button");
-            target.className = "whack-target";
-            target.innerHTML = icon(ICONOS[Math.floor(Math.random()*ICONOS.length)], 22);
-            target.style.left = `${8 + Math.random()*78}%`;
-            target.style.top = `${8 + Math.random()*68}%`;
-            board.appendChild(target);
-            spawned++;
-            target.onclick = () => {
-                if (finished) return;
-                hits++;
-                target.remove();
-                body.querySelector("#whackScore").textContent = `${hits} / 10`;
-                if (hits >= 10) {
-                    finished = true; clearInterval(interval);
-                    resolve(finish(overlay, 100));
-                }
-            };
-            spawnedTimeouts.push(setTimeout(() => target.remove(), 750));
-            if (spawned >= 14 && hits < 10) {
-                finished = true; clearInterval(interval);
-                resolve(finish(overlay, hits * 10));
-            }
-        }, 380);
-        activeCleanup = () => {
-            finished = true;
-            clearInterval(interval);
-            spawnedTimeouts.forEach(clearTimeout);
-        };
+        const o=overlayBase("Votá en los Awards","Compará crecimiento, impacto y consistencia. No elijas automáticamente al más grande.");
+        const b=o.querySelector("#minigameBody");
+        const candidates=shuffle([
+            {name:"Creador A",growth:92,impact:74,consistency:88,score:91},
+            {name:"Creador B",growth:76,impact:95,consistency:81,score:89},
+            {name:"Creador C",growth:88,impact:82,consistency:96,score:94}
+        ]);
+        b.innerHTML=`<div class="awards-candidate-grid">${candidates.map(c=>`<button class="award-candidate" data-score="${c.score}"><b>🏆 ${c.name}</b><span>Crecimiento <strong>${c.growth}</strong></span><span>Impacto <strong>${c.impact}</strong></span><span>Consistencia <strong>${c.consistency}</strong></span></button>`).join('')}</div>`;
+        activeCleanup=()=>{};
+        b.querySelectorAll('.award-candidate').forEach(btn=>btn.onclick=()=>resolve(finish(o,Number(btn.dataset.score)||50)));
+    });
+}
+
+// Minijuegos específicos de La Velada. Se ejecutan como preparación en T1-T3
+// y como combate en T4; no reutilizan el loop de publicación.
+function veladaDifficultyConfig(difficulty="normal") {
+    return {
+        facil:{speed:0.72,target:34,window:34,time:9},
+        normal:{speed:0.95,target:30,window:28,time:8},
+        dificil:{speed:1.22,target:25,window:22,time:7},
+        "muy-dificil":{speed:1.5,target:20,window:17,time:6}
+    }[difficulty] || {speed:0.95,target:30,window:28,time:8};
+}
+
+export function runVeladaTrainingMinigame(quarter=1,difficulty="normal") {
+    const type=((Number(quarter)||1)-1)%3;
+    return introVelada(type,difficulty,`Entrenamiento T${quarter}`);
+}
+
+export function runVeladaFightMinigame(difficulty="normal") {
+    return introVelada(3,difficulty,"Combate de La Velada");
+}
+
+function introVelada(type,difficulty,title) {
+    return new Promise(resolve=>{
+        cleanupActiveMinigame();
+        const el=document.createElement("div"); el.id="minigameIntroOverlay"; el.className="minigame-overlay";
+        const names=["Footwork y timing","Combinaciones","Reacción y defensa","Combate final"];
+        el.innerHTML=`<div class="minigame-modal minigame-intro-modal"><div class="minigame-eyebrow">LA VELADA · MINIJUEGO</div><h2>${title}</h2><p class="minigame-subtitle">${names[type]} · Dificultad ${difficulty.toUpperCase()}</p><p class="muted">Tu resultado se acumula durante el año. Una buena preparación hace más manejable el combate de T4.</p><button id="startVeladaMini" class="btn primary minigame-start-btn">COMENZAR</button></div>`;
+        document.body.appendChild(el);
+        el.querySelector("#startVeladaMini")?.addEventListener("click",()=>{el.remove(); resolve();},{once:true});
+    }).then(()=>runVeladaCore(type,difficulty));
+}
+
+function runVeladaCore(type,difficulty) {
+    if(type===0) return runVeladaFootwork(difficulty);
+    if(type===1) return runVeladaCombos(difficulty);
+    if(type===2) return runVeladaReaction(difficulty);
+    return runVeladaFightCore(difficulty);
+}
+
+function runVeladaFootwork(difficulty){
+    return new Promise(resolve=>{
+        const cfg=veladaDifficultyConfig(difficulty), o=overlayBase("Footwork y timing","Detené el cursor dentro de la zona de entrenamiento.");
+        const b=o.querySelector("#minigameBody"); b.innerHTML=`<div class="timing-track"><div class="timing-zone" style="left:${cfg.target- cfg.window/2}%;width:${cfg.window}%"></div><div id="veladaCursor"></div></div><button id="veladaHit" class="btn primary minigame-action">MARCAR COMBINACIÓN</button><p class="minigame-hint">Una oportunidad · ${cfg.time}s.</p>`;
+        const c=b.querySelector("#veladaCursor"), hit=b.querySelector("#veladaHit"); let pos=0,dir=1,done=false,raf,last=performance.now(),started=performance.now();
+        activeCleanup=()=>{done=true;if(raf)cancelAnimationFrame(raf)};
+        function tick(now){if(done)return; if(now-started>cfg.time*1000){done=true;resolve(finish(o,20));return;} const dt=Math.min(32,now-last);last=now;pos+=dir*dt*.075*cfg.speed;if(pos>=100){pos=100;dir=-1}if(pos<=0){pos=0;dir=1}c.style.left=`${pos}%`;raf=requestAnimationFrame(tick)}
+        raf=requestAnimationFrame(tick);
+        hit.onclick=()=>{if(done)return;done=true;const center=cfg.target, d=Math.abs(pos-center);resolve(finish(o,Math.max(5,100-d*4))) };
+    });
+}
+
+function runVeladaCombos(difficulty){
+    return new Promise(resolve=>{
+        const cfg=veladaDifficultyConfig(difficulty),o=overlayBase("Combinaciones","Memorizá la secuencia y repetila correctamente.");
+        const b=o.querySelector("#minigameBody"), len=difficulty==="facil"?3:difficulty==="normal"?4:5, pool=["JAB","CROSS","HOOK","UPPER","DEFENSA"];
+        const seq=shuffle(pool).slice(0,len); let input=[],stage="show";
+        b.innerHTML=`<div class="mini-sequence" id="veladaSequence">${seq.map(x=>`<span>${x}</span>`).join(" · ")}</div><div id="comboButtons" class="trend-options"></div><p class="minigame-hint">Memorizá y después repetí.</p>`;
+        setTimeout(()=>{stage="input";const box=b.querySelector("#veladaSequence");box.textContent="AHORA";const buttons=b.querySelector("#comboButtons");buttons.innerHTML=shuffle(pool).map(x=>`<button class="trend-option" data-v="${x}"><b>${x}</b></button>`).join("");buttons.querySelectorAll("button").forEach(btn=>btn.onclick=()=>{if(stage!=="input")return;input.push(btn.dataset.v); if(input.length===seq.length){const correct=input.every((v,i)=>v===seq[i]);resolve(finish(o,correct?100:Math.max(15,70-input.filter((v,i)=>v!==seq[i]).length*18)));}})},1200);
+        activeCleanup=()=>{};
+    });
+}
+
+function runVeladaReaction(difficulty){
+    return new Promise(resolve=>{
+        const cfg=veladaDifficultyConfig(difficulty),o=overlayBase("Reacción y defensa","Cuando aparezca ATAQUE, defendete. Si aparece AMAGO, no reacciones.");
+        const b=o.querySelector("#minigameBody"); b.innerHTML=`<div id="reactionWord" style="font-size:2rem;font-weight:900;min-height:80px;display:grid;place-items:center">PREPARADO</div><button id="reactionBtn" class="btn primary minigame-action">DEFENDER</button><p id="reactionCount" class="minigame-hint">5 rondas</p>`;
+        const word=b.querySelector("#reactionWord"),btn=b.querySelector("#reactionBtn"); let round=0,score=0,active=false,expected=false,timer;
+        function next(){round++; if(round>5){resolve(finish(o,score));return;} expected=Math.random()>.35; active=true; word.textContent=expected?"🥊 ATAQUE":"🎭 AMAGO"; timer=setTimeout(()=>{if(active){if(!expected)score+=20;active=false;next()}},700*cfg.mult);}
+        btn.onclick=()=>{if(!active)return; if(expected)score+=20; else score=Math.max(0,score-12); active=false;clearTimeout(timer);next();};
+        activeCleanup=()=>clearTimeout(timer); setTimeout(next,500);
+    });
+}
+
+function runVeladaFightCore(difficulty){
+    return new Promise(resolve=>{
+        const cfg=veladaDifficultyConfig(difficulty),o=overlayBase("Combate de La Velada","Elegí cuándo atacar o defenderte. Tu preparación previa afecta la dificultad.");
+        const b=o.querySelector("#minigameBody"); b.innerHTML=`<div id="fightPrompt" style="font-size:1.8rem;font-weight:900;min-height:70px;display:grid;place-items:center">ROUND 1</div><div style="display:flex;gap:10px;justify-content:center"><button id="fightAttack" class="btn primary">ATACAR</button><button id="fightDefend" class="btn ghost">DEFENDER</button></div><p id="fightScore" class="minigame-hint">Puntos: 0 · 5 intercambios</p>`;
+        const prompt=b.querySelector("#fightPrompt"), scoreEl=b.querySelector("#fightScore"), attack=b.querySelector("#fightAttack"), defend=b.querySelector("#fightDefend"); let round=0,score=50,enemyAction="",timer;
+        function next(){round++; if(round>5){resolve(finish(o,score));return;} enemyAction=Math.random()>.5?"ataque":"defensa";prompt.textContent=`INTERCAMBIO ${round}: ${enemyAction.toUpperCase()}`;}
+        function act(action){if(round>5)return; if((enemyAction==="ataque"&&action==="defend")||(enemyAction==="defensa"&&action==="attack"))score+=12; else score-=7; score=Math.max(0,Math.min(100,score));scoreEl.textContent=`Puntos: ${score} · 5 intercambios`; next();}
+        attack.onclick=()=>act("attack"); defend.onclick=()=>act("defend"); activeCleanup=()=>clearTimeout(timer); next();
     });
 }

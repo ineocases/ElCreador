@@ -8,11 +8,10 @@ const nf = n => Number(n || 0).toLocaleString();
 
 function continuarDespuesDelEvento() {
     setTimeout(() => {
-        if (gameState.pendingCollabOffer) {
-            window.location.hash = "#collabs";
-            return;
-        }
-
+        // Una decisión de "Pasan cosas" nunca abre el directorio de Colabs.
+        // Las listas, filtros e historial solo se muestran al entrar manualmente
+        // en #collabs. Si el mundo dejó una invitación pendiente, el Dashboard
+        // muestra únicamente esa invitación puntual.
         if (gameState.pendingSponsorOffer || gameState.pendingCampaignOffer) {
             window.location.hash = "#sponsors";
             return;

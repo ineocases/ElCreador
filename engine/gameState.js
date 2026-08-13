@@ -82,6 +82,17 @@ function calcularAlcanceCollab(player, creator) {
     return { dentroDeAlcance, techo, ratio, motivo, relacion, networking, fama, mismoNicho };
 }
 
+function claveTrimestre(time = {}) {
+    return `${Number(time.año || 2026)}-T${Number(time.trimestre || 1)}`;
+}
+
+function colabsRealizadasEsteTrimestre(state) {
+    const key = claveTrimestre(state.time);
+    if (!state.player.colabsPorTrimestre || typeof state.player.colabsPorTrimestre !== "object") state.player.colabsPorTrimestre = {};
+    return Number(state.player.colabsPorTrimestre[key] || 0);
+}
+
+
 function crearAtributos() {
     return {
         edicion: 10,
@@ -148,7 +159,9 @@ function crearPlayer() {
         stats: crearStats(),
         awardsStats: { clips: 0, enojos: 0, reacciones: 0 },
         relationships: {},
+        colabsPorTrimestre: {},
         pretemporada: null,
+        velada: { tier: 0, training: 0, rival: null, eligible: false, wins: 0, losses: 0, offerYear: null, offerStatus: "none", offerRerolls: 0, acceptedYear: null, trainingByQuarter: {}, completedQuarter: {}, fightCompletedYear: null },
         shopTier: 1,
         inventory: [],
 
@@ -834,6 +847,7 @@ export const gameState = {
         p.videosSubidos += bonusVideos;
 
         if (!p.stats) p.stats = crearStats();
+        if (!p.colabsPorTrimestre || typeof p.colabsPorTrimestre !== "object") p.colabsPorTrimestre = {};
         p.stats.videosPublicados = (Number(p.stats.videosPublicados) || 0) + bonusVideos;
 
         actividad.vistas += bonusVistas;
@@ -920,6 +934,7 @@ export const gameState = {
     generarOfertaColaboracionAutomatica() {
         const p = this.player;
         if (!p || this.pendingCollabOffer) return null;
+        if (colabsRealizadasEsteTrimestre(this) >= 2) return null;
 
         const subs = Number(p.suscriptores) || 0;
         const networking = Number(p.atributos?.networking) || 0;
@@ -995,6 +1010,14 @@ export const gameState = {
         return calcularAlcanceCollab(this.player, creator);
     },
 
+    colabsRestantesEsteTrimestre() {
+        return Math.max(0, 2 - colabsRealizadasEsteTrimestre(this));
+    },
+
+    puedeColaborarEsteTrimestre() {
+        return colabsRealizadasEsteTrimestre(this) < 2;
+    },
+
     puedeProponerCollab(creatorId) {
         const creator = (this.creators || []).find(c => c.id === creatorId);
         if (!creator || creator.activo === false || creator.id === "player") return false;
@@ -1006,6 +1029,7 @@ export const gameState = {
     proponerCollab(creatorId) {
         const p = this.player;
         if (!p || this.pendingCollabOffer || !this.puedeProponerCollab(creatorId)) return false;
+        if (colabsRealizadasEsteTrimestre(this) >= 2) return "limite_trimestre";
         if (this.lastCollab?.año === this.time.año && this.lastCollab?.trimestre === this.time.trimestre && this.lastCollab?.creatorId === creatorId) {
             return false;
         }
@@ -1073,6 +1097,11 @@ export const gameState = {
     aceptarCollab() {
         const oferta = this.pendingCollabOffer;
         if (!oferta) return false;
+        if (colabsRealizadasEsteTrimestre(this) >= 2) {
+            this.agregarNotificacion({ tipo: "collab", titulo: "📅 Límite de colaboraciones alcanzado", descripcion: "Ya realizaste 2 colaboraciones este trimestre. La próxima oportunidad queda para el siguiente trimestre." });
+            this.guardar();
+            return false;
+        }
         const costo = Number(oferta.costoVuelo) || 0;
         if (costo > Number(this.player.dinero || 0)) {
             this.agregarNotificacion({ tipo: "collab", titulo: "✈️ No alcanza para el viaje", descripcion: `Necesitás $${costo.toLocaleString()} para viajar a ${oferta.pais || "el exterior"}.` });
@@ -1088,6 +1117,8 @@ export const gameState = {
         this.player.suscriptores += subs;
         agregarFamaLogro(this.player, 2 + (creador ? Math.min(4, Number(creador.popularidad || 0) / 30) : 0), "colaboración");
         this.player.stats.colaboraciones = (Number(this.player.stats?.colaboraciones) || 0) + 1;
+        const quarterKey = claveTrimestre(this.time);
+        this.player.colabsPorTrimestre[quarterKey] = colabsRealizadasEsteTrimestre(this) + 1;
         this.player.relationships[oferta.creatorId] = Math.min(100, Number(this.player.relationships?.[oferta.creatorId] || 0) + 15);
         if (creador) creador.colaboraciones = (Number(creador.colaboraciones) || 0) + 1;
 
@@ -1578,6 +1609,17 @@ export const gameState = {
         this.aplicarDecliveEdad();
         if (this.player.edad >= 40) { this.player.retirado = true; }
         this.player.pretemporada = null;
+        if (this.player.velada) {
+            this.player.velada.offerYear = null;
+            this.player.velada.offerStatus = "none";
+            this.player.velada.offerRerolls = 0;
+            this.player.velada.acceptedYear = null;
+            this.player.velada.rival = null;
+            this.player.velada.training = 0;
+            this.player.velada.trainingByQuarter = {};
+            this.player.velada.completedQuarter = {};
+            this.player.velada.fightCompletedYear = null;
+        }
         this.player.videoSubidoEsteTrimestre = false;
         this.player.ingresosTrimestre = 0;
         this.player.mencionesSponsorTrimestre = 0;
@@ -1823,6 +1865,9 @@ export function normalizarGameState() {
     if (!p.relationships) p.relationships = {};
     if (!Array.isArray(p.historialAños)) p.historialAños = [];
     if (!("pretemporada" in p)) p.pretemporada = null;
+    if (!p.velada || typeof p.velada !== "object") p.velada = { tier:0, training:0, rival:null, eligible:false, wins:0, losses:0, offerYear:null, offerStatus:"none", offerRerolls:0, acceptedYear:null, trainingByQuarter:{}, completedQuarter:{}, fightCompletedYear:null };
+    p.velada.trainingByQuarter ||= {};
+    p.velada.completedQuarter ||= {};
     if (!("actividadTrimestre" in p)) p.actividadTrimestre = null;
     if (!("historialTrimestre1" in p)) p.historialTrimestre1 = null;
     if (!("historialTrimestre2" in p)) p.historialTrimestre2 = null;
