@@ -1122,3 +1122,12 @@ body{
 .event-result-effects span{padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.06);font-size:12px;font-weight:750}
 .event-result-effects .result-good{border:1px solid rgba(100,220,150,.25)}
 .event-result-effects .result-bad{border:1px solid rgba(255,100,100,.25)}
+
+/* Impactos cuantificados de eventos */
+.event-impact-list span { display:block; font-weight:700; margin:5px 0; }
+.event-impact-list.positive span { color:#59e391; }
+.event-impact-list.negative span { color:#ff6b6b; }
+.event-result-effects { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+.event-result-effects span { padding:8px 11px; border-radius:8px; background:rgba(255,255,255,.05); font-weight:800; }
+.event-result-effects .result-good { color:#59e391; border:1px solid rgba(89,227,145,.25); }
+.event-result-effects .result-bad { color:#ff6b6b; border:1px solid rgba(255,107,107,.25); }

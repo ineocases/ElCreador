@@ -356,15 +356,15 @@ function eventHasPositive(option) {
 // La escala pedida hace que 10K sea un creador conocido, 100K un referente
 // y 1M una figura masiva.
 const FAMA_HITOS_SUBS = [
-    [1000, 1],
-    [5000, 3],
-    [10000, 5],
-    [50000, 7],
-    [100000, 10],
-    [500000, 40],
-    [1000000, 100],
-    [5000000, 100],
-    [10000000, 100]
+    [1000, 0.5],
+    [5000, 1],
+    [10000, 2],
+    [50000, 3],
+    [100000, 5],
+    [500000, 10],
+    [1000000, 18],
+    [5000000, 30],
+    [10000000, 45]
 ];
 
 function famaAudienciaPorSubs(subs) {
@@ -388,7 +388,10 @@ function recalcularFama(player) {
 function agregarFamaLogro(player, cantidad, motivo = "") {
     if (!player) return 0;
     const antes = Math.round(Number(player.fama) || 0);
-    player.famaLogros = Math.max(0, Number(player.famaLogros) || 0) + Math.max(0, Number(cantidad) || 0);
+    // La fama de logros avanza lentamente: los eventos, virales y colabs
+    // suman, pero ninguno debería disparar la fama de golpe.
+    const gananciaLenta = Math.max(0, Number(cantidad) || 0) * 0.35;
+    player.famaLogros = Math.max(0, Number(player.famaLogros) || 0) + gananciaLenta;
     recalcularFama(player);
     const despues = Math.round(Number(player.fama) || 0);
     const diferencia = despues - antes;

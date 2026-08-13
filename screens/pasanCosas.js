@@ -57,31 +57,42 @@ export function renderPasanCosas(el) {
         const cierre = choice.cierre || {};
         const buenos = [];
         const malos = [];
+        const nombres = {
+            dinero: "Dinero", reputacion: "Reputación", comunidad: "Comunidad", fama: "Fama",
+            networking: "Networking", algoritmo: "Algoritmo", marketing: "Marketing", edicion: "Edición",
+            constancia: "Constancia", energia: "Energía", salud: "Bienestar"
+        };
+        const cierreNombres = { dineroPct: "Ingresos", vistasPct: "Vistas", subsPct: "Suscriptores" };
+
+        const formatear = (key, value) => {
+            const n = Number(value) || 0;
+            if (!n) return null;
+            const label = nombres[key] || cierreNombres[key] || key;
+            if (key.endsWith("Pct")) {
+                const pct = n * 100;
+                return `${pct > 0 ? "+" : ""}${pct % 1 === 0 ? pct.toFixed(0) : pct.toFixed(1)}% ${label}`;
+            }
+            if (key === "dinero") return `${n > 0 ? "+$" : "−$"}${Math.abs(Math.round(n)).toLocaleString("es-AR")} ${label}`;
+            return `${n > 0 ? "+" : "−"}${Math.abs(n % 1 === 0 ? n : n.toFixed(1))} ${label}`;
+        };
 
         for (const [key, value] of Object.entries(action)) {
             const n = Number(value) || 0;
-            const label = etiquetas[key] || key;
-            if (n > 0) buenos.push(`+ ${label}`);
-            if (n < 0) malos.push(`− ${label}`);
+            const text = formatear(key, n);
+            if (!text) continue;
+            (n > 0 ? buenos : malos).push(text);
         }
         for (const [key, value] of Object.entries(cierre)) {
             const n = Number(value) || 0;
-            const mapa = { dineroPct: "Ingresos", vistasPct: "Vistas", subsPct: "Suscriptores" };
-            const label = mapa[key] || key;
-            if (n > 0) buenos.push(`+ ${label}`);
-            if (n < 0) malos.push(`− ${label}`);
+            const text = formatear(key, n);
+            if (!text) continue;
+            (n > 0 ? buenos : malos).push(text);
         }
 
-        // Nunca mostramos una tarjeta puramente positiva o negativa.
-        if (!buenos.length) buenos.push("+ Estabilidad");
-        if (!malos.length) malos.push("− Parte de la oportunidad");
-
-        return {
-            buenos: [...new Set(buenos)].slice(0, 3),
-            malos: [...new Set(malos)].slice(0, 3)
-        };
+        if (!buenos.length) buenos.push("+ Sin beneficio directo cuantificable");
+        if (!malos.length) malos.push("− Sin costo directo cuantificable");
+        return { buenos: [...new Set(buenos)], malos: [...new Set(malos)] };
     };
-
     const impacto = opcion => impactoLabels(opcion);
     const esc = value => String(value ?? "").replace(/[&<>\"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
     const listaImpactos = (items, clase) => `<div class="event-impact-list ${clase}">${items.map(x => `<span>${esc(x)}</span>`).join("")}</div>`;
