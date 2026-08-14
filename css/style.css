@@ -1177,3 +1177,50 @@ body{
 .combo-key{transition:transform .1s,box-shadow .1s}
 .combo-key:active,.trend-option:active,.minigame-action:active{transform:scale(.96)}
 @media(max-width:600px){.thumb-builder-track{height:130px}#thumbPiece{font-size:2.8rem}.thumb-builder-zone{left:32%;width:36%}}
+
+/* V19 — navegación sin pantalla de carga.
+   Si alguna operación necesita mostrar estado de carga, el indicador queda
+   únicamente en la franja inferior y nunca tapa el HUD/encabezado. */
+.screen-loading-bottom{
+    position:fixed;
+    left:0;
+    right:0;
+    bottom:0;
+    height:4px;
+    z-index:9999;
+    pointer-events:none;
+    background:rgba(255,255,255,.06);
+    overflow:hidden;
+}
+.screen-loading-bottom::after{
+    content:"";
+    display:block;
+    width:38%;
+    height:100%;
+    background:var(--accent-red);
+    animation:screenLoadingBottom 1.05s ease-in-out infinite;
+}
+@keyframes screenLoadingBottom{
+    0%{transform:translateX(-120%)}
+    100%{transform:translateX(370%)}
+}
+.awards-continue-row{
+    display:flex;
+    justify-content:center;
+    margin:22px 0 10px;
+}
+.event-impact-list span{
+    white-space:nowrap;
+}
+
+
+/* SVG emoji / iconography */
+.emoji-svg { width: 1.12em; height: 1.12em; display: inline-block; vertical-align: -0.18em; object-fit: contain; margin: 0 .04em; }
+.product-card.owned { border-color: rgba(57,211,83,.28); }
+.product-card.locked { opacity: .72; }
+.product-card.owned .product-icon { filter: saturate(.9); }
+.collab-filter-panel { display:grid; grid-template-columns: repeat(auto-fit,minmax(170px,1fr)); gap:10px; }
+.collab-simple-row { transition: opacity .15s ease, transform .15s ease; }
+.collab-simple-row[style*="display: none"] { display:none !important; }
+.minigame-intro-icon .svg-icon, .minigame-action .svg-icon, .award-candidate .svg-icon, #reactionWord .svg-icon { vertical-align:middle; }
+#thumbPiece .svg-icon { width:28px; height:28px; }

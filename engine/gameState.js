@@ -1122,7 +1122,6 @@ export const gameState = {
         // Los más grandes requieren más audiencia; los rookies pueden descubrirte antes.
         const dinamicos = (this.creators || [])
             .filter(c => c.activo !== false && c.id !== "player")
-            .filter(c => String(c.pais || "Argentina").toLowerCase() === "argentina")
             .filter(c => !Number.isInteger(c.debutYear) || c.debutYear <= Number(this.time.año || 2026))
             .filter(c => Number(c.seguidores || 0) > 1000)
             .filter(c => !eventos.some(e => e.creatorId === c.id))
@@ -1365,7 +1364,6 @@ export const gameState = {
 
         const candidatos = (this.creators || [])
             .filter(c => c.activo !== false && c.id !== "player")
-            .filter(c => String(c.pais || "Argentina").toLowerCase() === "argentina")
             .filter(c => !Number.isInteger(c.debutYear) || c.debutYear <= Number(this.time.año || 2026))
             .filter(c => Number(c.seguidores || 0) >= 100)
             .filter(c => {

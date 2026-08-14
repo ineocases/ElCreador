@@ -60,7 +60,10 @@ export function renderStore(el) {
     if (tab === "setup") tab = "equipment";
 
     const owned = new Set(p.inventory);
-    const available = items.filter(i => Number(i.tier || 0) <= p.shopTier && !owned.has(i.id));
+    // Mostramos TODO el catálogo: comprado, desbloqueado y bloqueado.
+    // Antes la tienda ocultaba permanentemente todo lo comprado y cualquier
+    // objeto de un tier superior, dando la sensación de que faltaban cosas.
+    const catalog = [...items].sort((a,b) => Number(a.tier||0) - Number(b.tier||0) || String(a.name).localeCompare(String(b.name), "es"));
     const equippedIds = new Set(Object.values(p.equipment || {}));
 
     const equipmentHtml = `
@@ -98,11 +101,15 @@ export function renderStore(el) {
                     <span class="eyebrow">CATÁLOGO</span>
                     <h2>Equipamiento disponible</h2>
                 </div>
-                <span class="store-meta">Tier ${p.shopTier}</span>
+                <span class="store-meta">${catalog.length} objetos · Tier ${p.shopTier}</span>
             </div>
             <div class="store-product-grid">
-                ${available.length ? available.map(item => `
-                    <article class="product-card">
+                ${catalog.map(item => {
+                    const isOwned = owned.has(item.id);
+                    const locked = Number(item.tier || 0) > p.shopTier;
+                    const tooExpensive = Number(p.dinero) < Number(item.price || 0);
+                    return `
+                    <article class="product-card ${isOwned ? "owned" : ""} ${locked ? "locked" : ""}">
                         <div class="product-icon">${item.icon || "🔧"}</div>
                         <div class="product-main">
                             <div class="product-top"><span>${slotLabel(item.slot)}</span><span>Tier ${item.tier}</span></div>
@@ -110,11 +117,11 @@ export function renderStore(el) {
                             <p>${itemImpact(item)}</p>
                             <div class="product-bottom">
                                 <strong>${item.price ? money(item.price) : "GRATIS"}</strong>
-                                <button class="btn primary buy-item-btn" data-item-id="${item.id}" ${Number(p.dinero) < Number(item.price || 0) ? "disabled" : ""}>${Number(p.dinero) < Number(item.price || 0) ? "NO ALCANZA" : "COMPRAR"}</button>
+                                <button class="btn ${isOwned || locked || tooExpensive ? "ghost" : "primary"} buy-item-btn" data-item-id="${item.id}" ${isOwned || locked || tooExpensive ? "disabled" : ""}>${isOwned ? "ADQUIRIDO" : locked ? `DESBLOQUEA TIER ${item.tier}` : tooExpensive ? "NO ALCANZA" : "COMPRAR"}</button>
                             </div>
                         </div>
-                    </article>
-                `).join("") : `<div class="store-empty">No hay nuevos equipos desbloqueados. Seguí creciendo para ampliar el catálogo.</div>`}
+                    </article>`;
+                }).join("")}
             </div>
         </section>`;
 
@@ -225,7 +232,7 @@ export function renderStore(el) {
 
     c.querySelectorAll(".buy-item-btn").forEach(btn => btn.onclick = () => {
         const item = items.find(x => x.id === btn.dataset.itemId);
-        if (!item || Number(p.dinero) < Number(item.price || 0)) return;
+        if (!item || owned.has(item.id) || Number(item.tier || 0) > Number(p.shopTier || 1) || Number(p.dinero) < Number(item.price || 0)) return;
         p.dinero -= Number(item.price || 0);
         p.inventory.push(item.id);
         p.equipment ||= {};

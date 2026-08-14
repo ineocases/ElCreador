@@ -5,6 +5,45 @@ import { icon } from "../components/Icon.js";
 const nf = n => Number(n || 0).toLocaleString("es-AR");
 const money = n => `$${nf(n)}`;
 
+const officialDomains = {
+    "King of the Kongo": "kingofthekongo.com",
+    "Manaos": "manaos.com.ar",
+    "Mercado Libre": "mercadolibre.com.ar",
+    "Ualá": "uala.com.ar",
+    "Naranja X": "naranjax.com",
+    "Banco Galicia": "galicia.ar",
+    "Personal": "personal.com.ar",
+    "Flow": "flow.com.ar",
+    "YPF": "ypf.com",
+    "Quilmes": "quilmes.com.ar",
+    "Topper": "topper.com.ar",
+    "Mostaza": "mostazaweb.com.ar",
+    "Grido": "gridohelado.com",
+    "Havanna": "havanna.com.ar",
+    "Cachafaz": "cachafaz.com",
+    "Arcor": "arcor.com",
+    "La Serenísima": "laserenisima.com.ar",
+    "Guaymallén": "guaymallen.com.ar",
+    "Frávega": "fravega.com",
+    "Musimundo": "musimundo.com",
+    "Noblex": "noblex.com.ar",
+    "EXO": "exo.com.ar",
+    "Banghó": "bangho.com.ar",
+    "PCBOX": "pcbox.com.ar",
+    "Dexter": "dexter.com.ar",
+    "TyC Sports": "tycsports.com",
+    "Andreani": "andreani.com",
+    "Havanna Café": "havanna.com.ar",
+    "Pindapoy": "pindapoy.com.ar",
+    "iNeo Cases": null
+};
+
+function logoFor(brand, fallback) {
+    const domain = officialDomains[brand];
+    if (!domain) return fallback || "assets/sponsors/default.svg";
+    return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`;
+}
+
 function continuarDespuesDeMonetizacion() {
     setTimeout(() => {
         if (gameState.pendingEvent) { window.location.hash = "#pasanCosas"; return; }
@@ -41,7 +80,7 @@ export function renderSponsors(el) {
 
             ${offer ? `<section class="panel contract-card sponsor-offer-card">
                 <div class="eyebrow">📩 PROPUESTA FIJA</div>
-                <div class="sponsor-brand"><img src="${offer.logo || 'assets/sponsors/default.svg'}" alt="Logo de ${offer.name}" class="sponsor-logo"><h2>${offer.name}</h2></div>
+                <div class="sponsor-brand"><img src="${logoFor(offer.name, offer.logo)}" onerror="this.onerror=null;this.src='${offer.logo || "assets/sponsors/default.svg"}'" alt="Logo de ${offer.name}" class="sponsor-logo"><h2>${offer.name}</h2></div>
                 <p>La marca quiere contratarte por un período definido. El pago se acuerda antes de publicar.</p>
                 <div class="contract-stats">
                     <div><span>Pago</span><b>${money(offer.pago)}</b></div>
@@ -58,7 +97,7 @@ export function renderSponsors(el) {
 
             ${campaign ? `<section class="panel contract-card campaign-offer-card">
                 <div class="eyebrow">📊 PROPUESTA POR RENDIMIENTO</div>
-                <div class="sponsor-brand"><img src="${campaign.logo || 'assets/sponsors/default.svg'}" alt="Logo de ${campaign.name}" class="sponsor-logo"><h2>${campaign.name}</h2></div>
+                <div class="sponsor-brand"><img src="${logoFor(campaign.name, campaign.logo)}" onerror="this.onerror=null;this.src='${campaign.logo || "assets/sponsors/default.svg"}'" alt="Logo de ${campaign.name}" class="sponsor-logo"><h2>${campaign.name}</h2></div>
                 <p>Te pagan por cada 1.000 vistas verificadas de los contenidos incluidos en el acuerdo. No hay un pago garantizado: si rendís más, cobrás más.</p>
                 <div class="contract-stats">
                     <div><span>Pago</span><b>${money(campaign.cpm)} / 1.000 vistas</b></div>

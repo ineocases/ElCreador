@@ -90,17 +90,17 @@ function runThumbnailDesigner() {
         const o=overlayBase("Diseñá la miniatura","Encajá cada pieza en el centro. No hace falta precisión perfecta: hay margen para salirte un poco.");
         const b=o.querySelector("#minigameBody");
         const pieces=[
-            {key:"fondo",label:"FONDO",icon:"🖼️"},
-            {key:"cabeza",label:"CABEZA",icon:"😎"},
-            {key:"cuerpo",label:"CUERPO",icon:"🧍"},
-            {key:"piernas",label:"PIERNAS",icon:"👖"}
+            {key:"fondo",label:"FONDO",icon:icon("camera",28)},
+            {key:"cabeza",label:"CABEZA",icon:icon("person",28)},
+            {key:"cuerpo",label:"CUERPO",icon:icon("person",28)},
+            {key:"piernas",label:"PIERNAS",icon:icon("person",28)}
         ];
         let index=0,total=0,done=false,raf,last=performance.now(),pos=8,dir=1;
         const tolerance=15;
         b.innerHTML=`<div class="thumb-builder-progress"><div id="thumbStage">1/4 · FONDO</div><div class="thumb-builder-score" id="thumbScore">0</div></div><div class="thumb-builder"><div class="thumb-builder-track"><div class="thumb-builder-zone"></div><div id="thumbPiece">🖼️</div></div><button id="thumbPlace" class="btn primary minigame-action">ENCAJAR FONDO</button><p id="thumbHint" class="minigame-hint">Va de izquierda a derecha. Tocá cuando esté cerca del centro.</p></div>`;
         const piece=b.querySelector('#thumbPiece'),stage=b.querySelector('#thumbStage'),scoreEl=b.querySelector('#thumbScore'),btn=b.querySelector('#thumbPlace');
         function tick(now){if(done)return;const dt=Math.min(32,now-last);last=now;pos+=dir*dt*.11;if(pos>=100){pos=100;dir=-1}if(pos<=0){pos=0;dir=1}piece.style.left=`${pos}%`;raf=requestAnimationFrame(tick);}
-        function renderStage(){const x=pieces[index];stage.textContent=`${index+1}/4 · ${x.label}`;piece.textContent=x.icon;btn.textContent=`ENCAJAR ${x.label}`;piece.classList.remove('thumb-click-pop');void piece.offsetWidth;piece.classList.add('thumb-click-pop');}
+        function renderStage(){const x=pieces[index];stage.textContent=`${index+1}/4 · ${x.label}`;piece.innerHTML=x.icon;btn.textContent=`ENCAJAR ${x.label}`;piece.classList.remove('thumb-click-pop');void piece.offsetWidth;piece.classList.add('thumb-click-pop');}
         function place(){if(done)return;const distance=Math.abs(pos-50);const quality=distance<=tolerance?Math.round(100-(distance/tolerance)*28):Math.max(25,Math.round(72-(distance- tolerance)*2.2));total+=quality;piece.classList.remove('thumb-click-pop');void piece.offsetWidth;piece.classList.add('thumb-click-pop');scoreEl.textContent=`${Math.round(total/(index+1))}`;
             if(index===pieces.length-1){done=true;resolve(finish(o,total/pieces.length));return;}
             index++;renderStage();}
@@ -115,10 +115,10 @@ function runTrend() {
         const o=overlayBase("Elegí la tendencia","Tenés pocos segundos. Pensá en tu nicho, velocidad y saturación.");
         const b=o.querySelector("#minigameBody");
         const opts=shuffle([
-            {name:"🔥 Tendencia explosiva",score:94,meta:"Mucho alcance · muy saturada"},
-            {name:"🎯 Tendencia de tu nicho",score:88,meta:"Buen encaje · crecimiento estable"},
-            {name:"🌱 Tema emergente",score:78,meta:"Poca competencia · resultado incierto"},
-            {name:"🧊 Tendencia agotada",score:38,meta:"Mucho ruido · poca retención"}
+            {name:`${icon("bolt",18)} Tendencia explosiva`,score:94,meta:"Mucho alcance · muy saturada"},
+            {name:`${icon("target",18)} Tendencia de tu nicho`,score:88,meta:"Buen encaje · crecimiento estable"},
+            {name:`${icon("target",18)} Tema emergente`,score:78,meta:"Poca competencia · resultado incierto"},
+            {name:`${icon("close",18)} Tendencia agotada`,score:38,meta:"Mucho ruido · poca retención"}
         ]);
         let left=6,done=false; b.innerHTML=`<div id="trendTimer" class="quick-timer">6.0</div><div class="trend-options">${opts.map(x=>`<button class="trend-option" data-score="${x.score}"><b>${x.name}</b><small>${x.meta}</small></button>`).join('')}</div>`;
         const timer=setInterval(()=>{left-=.1;const el=b.querySelector('#trendTimer');if(el)el.textContent=Math.max(0,left).toFixed(1);if(left<=0&&!done){done=true;clearInterval(timer);resolve(finish(o,25));}},100);
@@ -143,7 +143,7 @@ function runAwardsVote() {
             consistency: 68 + Math.floor(Math.random()*29),
             score: 75 + Math.floor(Math.random()*24)
         }));
-        b.innerHTML=`<div class="awards-candidate-grid">${candidates.map(c=>`<button class="award-candidate" data-score="${c.score}"><b>🏆 ${c.name}</b><span>Crecimiento <strong>${c.growth}</strong></span><span>Impacto <strong>${c.impact}</strong></span><span>Consistencia <strong>${c.consistency}</strong></span></button>`).join('')}</div>`;
+        b.innerHTML=`<div class="awards-candidate-grid">${candidates.map(c=>`<button class="award-candidate" data-score="${c.score}"><b>${icon("trophy",16)} ${c.name}</b><span>Crecimiento <strong>${c.growth}</strong></span><span>Impacto <strong>${c.impact}</strong></span><span>Consistencia <strong>${c.consistency}</strong></span></button>`).join('')}</div>`;
         activeCleanup=()=>{};
         b.querySelectorAll('.award-candidate').forEach(btn=>btn.onclick=()=>resolve(finish(o,Number(btn.dataset.score)||50)));
     });
@@ -204,7 +204,7 @@ function runVeladaCombos(difficulty){
         const cfg=veladaDifficultyConfig(difficulty),o=overlayBase("Combinaciones","Memorizá la secuencia. No podés tocar nada hasta que termine de mostrarse.");
         const b=o.querySelector("#minigameBody"), len=difficulty==="facil"?3:difficulty==="normal"?4:5, pool=["JAB","CROSS","HOOK","UPPER","DEFENSA"];
         const seq=shuffle(pool).slice(0,len); let input=[],stage="show",showTimer;
-        b.innerHTML=`<div class="mini-sequence" id="veladaSequence">${seq.map(x=>`<span>${x}</span>`).join(" · ")}</div><div id="comboButtons" class="trend-options combo-disabled"></div><p id="comboHint" class="minigame-hint">⏳ Mirá la secuencia... todavía no podés apretar.</p>`;
+        b.innerHTML=`<div class="mini-sequence" id="veladaSequence">${seq.map(x=>`<span>${x}</span>`).join(" · ")}</div><div id="comboButtons" class="trend-options combo-disabled"></div><p id="comboHint" class="minigame-hint">${icon("refresh",14)} Mirá la secuencia... todavía no podés apretar.</p>`;
         const revealMs=1700 + len*280;
         showTimer=setTimeout(()=>{stage="input";const box=b.querySelector("#veladaSequence");box.textContent="AHORA";const hint=b.querySelector("#comboHint");hint.textContent="Elegí la secuencia en el mismo orden.";const buttons=b.querySelector("#comboButtons");buttons.classList.remove("combo-disabled");buttons.innerHTML=shuffle(pool).map(x=>`<button class="trend-option combo-key" data-v="${x}"><b>${x}</b></button>`).join("");buttons.querySelectorAll("button").forEach(btn=>btn.onclick=()=>{if(stage!=="input")return;btn.classList.remove("click-pop");void btn.offsetWidth;btn.classList.add("click-pop");input.push(btn.dataset.v); if(input.length===seq.length){const correct=input.every((v,i)=>v===seq[i]);resolve(finish(o,correct?100:Math.max(15,70-input.filter((v,i)=>v!==seq[i]).length*18)));}})},revealMs);
         activeCleanup=()=>{clearTimeout(showTimer);stage="done";};
@@ -216,7 +216,7 @@ function runVeladaReaction(difficulty){
         const cfg=veladaDifficultyConfig(difficulty),o=overlayBase("Reacción y defensa","Cuando aparezca ATAQUE, defendete. Si aparece AMAGO, no reacciones.");
         const b=o.querySelector("#minigameBody"); b.innerHTML=`<div id="reactionWord" style="font-size:2rem;font-weight:900;min-height:80px;display:grid;place-items:center">PREPARADO</div><button id="reactionBtn" class="btn primary minigame-action">DEFENDER</button><p id="reactionCount" class="minigame-hint">5 rondas</p>`;
         const word=b.querySelector("#reactionWord"),btn=b.querySelector("#reactionBtn"); let round=0,score=0,active=false,expected=false,timer;
-        function next(){round++; if(round>5){resolve(finish(o,score));return;} expected=Math.random()>.35; active=true; word.textContent=expected?"🥊 ATAQUE":"🎭 AMAGO"; timer=setTimeout(()=>{if(active){if(!expected)score+=20;active=false;next()}},700*cfg.mult);}
+        function next(){round++; if(round>5){resolve(finish(o,score));return;} expected=Math.random()>.35; active=true; word.innerHTML=expected?`${icon("sports_mma",30)} ATAQUE`:`${icon("close",30)} AMAGO`; timer=setTimeout(()=>{if(active){if(!expected)score+=20;active=false;next()}},700*cfg.mult);}
         btn.onclick=()=>{if(!active)return; if(expected)score+=20; else score=Math.max(0,score-12); active=false;clearTimeout(timer);next();};
         activeCleanup=()=>clearTimeout(timer); setTimeout(next,500);
     });

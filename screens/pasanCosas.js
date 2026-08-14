@@ -51,49 +51,77 @@ export function renderPasanCosas(el) {
         salud: "Bienestar"
     };
 
+    // El jugador no necesita ver los atributos internos del simulador para decidir.
+    // Mostramos solo consecuencias fáciles de entender: dinero, vistas, subs y fama.
+    // Los atributos secundarios (networking, reputación, constancia, algoritmo, etc.)
+    // siguen modificando la partida por detrás, pero no saturan la decisión.
     const impactoLabels = opcion => {
         const choice = event[opcion] || {};
         const action = choice.action || {};
         const cierre = choice.cierre || {};
         const buenos = [];
         const malos = [];
-        const nombres = {
-            dinero: "Dinero", reputacion: "Reputación", comunidad: "Comunidad", fama: "Fama",
-            networking: "Networking", algoritmo: "Algoritmo", marketing: "Marketing", edicion: "Edición",
-            constancia: "Constancia", energia: "Energía", salud: "Bienestar"
-        };
-        const cierreNombres = { dineroPct: "Ingresos", vistasPct: "Vistas", subsPct: "Suscriptores" };
 
-        const formatear = (key, value) => {
+        const format = (key, value) => {
             const n = Number(value) || 0;
             if (!n) return null;
-            const label = nombres[key] || cierreNombres[key] || key;
-            if (key.endsWith("Pct")) {
-                const pct = n * 100;
-                return `${pct > 0 ? "+" : ""}${pct % 1 === 0 ? pct.toFixed(0) : pct.toFixed(1)}% ${label}`;
+
+            if (key === "dinero") {
+                return `${n > 0 ? "+" : "−"}$${Math.abs(Math.round(n)).toLocaleString("es-AR")}`;
             }
-            if (key === "dinero") return `${n > 0 ? "+$" : "−$"}${Math.abs(Math.round(n)).toLocaleString("es-AR")} ${label}`;
-            return `${n > 0 ? "+" : "−"}${Math.abs(n % 1 === 0 ? n : n.toFixed(1))} ${label}`;
+            if (key === "subsPct") {
+                return `${n > 0 ? "+" : "−"}${Math.abs(Math.round(n * 100))}% suscriptores`;
+            }
+            if (key === "vistasPct") {
+                return `${n > 0 ? "+" : "−"}${Math.abs(Math.round(n * 100))}% vistas`;
+            }
+            if (key === "dineroPct") {
+                return `${n > 0 ? "+" : "−"}${Math.abs(Math.round(n * 100))}% ingresos`;
+            }
+            if (key === "fama") {
+                return `${n > 0 ? "+" : "−"}${Math.abs(Math.round(n))} fama`;
+            }
+            return null;
         };
 
-        for (const [key, value] of Object.entries(action)) {
+        // Preferimos resultados concretos del cierre del trimestre.
+        const visibles = [
+            ...Object.entries(cierre),
+            ...Object.entries(action)
+        ];
+
+        for (const [key, value] of visibles) {
             const n = Number(value) || 0;
-            const text = formatear(key, n);
-            if (!text) continue;
-            (n > 0 ? buenos : malos).push(text);
-        }
-        for (const [key, value] of Object.entries(cierre)) {
-            const n = Number(value) || 0;
-            const text = formatear(key, n);
+            const text = format(key, n);
             if (!text) continue;
             (n > 0 ? buenos : malos).push(text);
         }
 
-        if (!buenos.length) buenos.push("+ Sin beneficio directo cuantificable");
-        if (!malos.length) malos.push("− Sin costo directo cuantificable");
-        return { buenos: [...new Set(buenos)], malos: [...new Set(malos)] };
+        // Si el evento solo afecta atributos internos, no mostramos el nombre
+        // técnico. Traducimos la consecuencia a lenguaje de jugador.
+        const internalValues = Object.entries(action).filter(([key]) =>
+            ["reputacion","comunidad","networking","algoritmo","marketing","edicion","constancia","energia","salud","carisma","humor","creatividad"].includes(key)
+        );
+
+        if (!buenos.length && internalValues.some(([,v]) => Number(v) > 0)) {
+            buenos.push("Mejora tu carrera");
+        }
+        if (!malos.length && internalValues.some(([,v]) => Number(v) < 0)) {
+            malos.push("Tiene un costo");
+        }
+
+        // Cada alternativa debe explicar de forma simple que tiene una ventaja
+        // y una contrapartida, sin llenar la tarjeta de números.
+        if (!buenos.length) buenos.push("Mantiene el crecimiento");
+        if (!malos.length) malos.push("Dejás pasar otra oportunidad");
+
+        return {
+            buenos: [...new Set(buenos)].slice(0, 2),
+            malos: [...new Set(malos)].slice(0, 2)
+        };
     };
     const impacto = opcion => impactoLabels(opcion);
+
     const esc = value => String(value ?? "").replace(/[&<>\"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
     const listaImpactos = (items, clase) => `<div class="event-impact-list ${clase}">${items.map(x => `<span>${esc(x)}</span>`).join("")}</div>`;
 
@@ -117,8 +145,8 @@ export function renderPasanCosas(el) {
                     <span>OPCIÓN A</span>
                     <h2>${event.a.label}</h2>
                     <div class="decision-effects">
-                        <div><small>LO BUENO</small>${listaImpactos(impacto("a").buenos, "positive")}</div>
-                        <div><small>LO MALO</small>${listaImpactos(impacto("a").malos, "negative")}</div>
+                        <div><small>TE BENEFICIA</small>${listaImpactos(impacto("a").buenos, "positive")}</div>
+                        <div><small>TIENE UN COSTO</small>${listaImpactos(impacto("a").malos, "negative")}</div>
                     </div>
                 </button>
 
@@ -126,16 +154,16 @@ export function renderPasanCosas(el) {
                     <span>OPCIÓN B</span>
                     <h2>${event.b.label}</h2>
                     <div class="decision-effects">
-                        <div><small>LO BUENO</small>${listaImpactos(impacto("b").buenos, "positive")}</div>
-                        <div><small>LO MALO</small>${listaImpactos(impacto("b").malos, "negative")}</div>
+                        <div><small>TE BENEFICIA</small>${listaImpactos(impacto("b").buenos, "positive")}</div>
+                        <div><small>TIENE UN COSTO</small>${listaImpactos(impacto("b").malos, "negative")}</div>
                     </div>
                 </button>
                 <button class="decision-card advanced" data-option="c" ${event.c?.requires?.atributo && Number(gameState.player.atributos?.[event.c.requires.atributo]||0)<Number(event.c.requires.valor||0)?'disabled':''}>
                     <span>OPCIÓN C · ${event.c?.requires ? `REQUIERE ${event.c.requires.atributo} ${event.c.requires.valor}` : 'AVANZADA'}</span>
                     <h2>${event.c?.label || 'Opción avanzada'}</h2>
                     <div class="decision-effects">
-                        <div><small>LO BUENO</small>${listaImpactos(impacto("c").buenos, "positive")}</div>
-                        <div><small>LO MALO</small>${listaImpactos(impacto("c").malos, "negative")}</div>
+                        <div><small>TE BENEFICIA</small>${listaImpactos(impacto("c").buenos, "positive")}</div>
+                        <div><small>TIENE UN COSTO</small>${listaImpactos(impacto("c").malos, "negative")}</div>
                     </div>
                 </button>
             </div>

@@ -106,6 +106,22 @@ export function renderCollabs(el) {
                         <option value="available">Disponibles para proponer</option>
                         <option value="locked">Fuera de alcance</option>
                     </select>
+                    <select id="collabCountry" class="collab-filter">
+                        <option value="">Todos los países</option>
+                        ${[...new Set(creators.map(c => c.pais || "Argentina").filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es" )).map(p => `<option value="${p}">${p}</option>`).join("")}
+                    </select>
+                    <select id="collabFollowers" class="collab-filter">
+                        <option value="">Cualquier cantidad</option>
+                        <option value="under10k">Menos de 10K</option>
+                        <option value="10k-100k">10K – 100K</option>
+                        <option value="100k-1m">100K – 1M</option>
+                        <option value="1m-10m">1M – 10M</option>
+                        <option value="over10m">Más de 10M</option>
+                    </select>
+                    <select id="collabSort" class="collab-filter">
+                        <option value="desc">Más seguidores → menos</option>
+                        <option value="asc">Menos seguidores → más</option>
+                    </select>
                     <select id="collabDifficulty" class="collab-filter">
                         <option value="">Cualquier dificultad</option>
                         <option value="Natural">Natural</option>
@@ -123,10 +139,10 @@ export function renderCollabs(el) {
                         const difficulty = !info.dentroDeAlcance ? "Fuera de alcance" : ratio > 5 ? "Ambiciosa" : ratio > 2 ? "Difícil" : ratio > 1 ? "Posible" : "Natural";
                         const disabled = !info.dentroDeAlcance;
                         return `
-                            <div class="collab-simple-row ${disabled ? "collab-locked" : ""}" data-name="${String(c.nombre).toLowerCase()}" data-niche="${c.nicho || ""}" data-difficulty="${difficulty}" data-available="${!disabled}">
+                            <div class="collab-simple-row ${disabled ? "collab-locked" : ""}" data-name="${String(c.nombre).toLowerCase()}" data-niche="${c.nicho || ""}" data-country="${c.pais || "Argentina"}" data-followers="${Number(c.seguidores || 0)}" data-difficulty="${difficulty}" data-available="${!disabled}">
                                 <div class="collab-person">
                                     <div class="collab-name-line"><strong>${c.nombre}</strong><span class="collab-difficulty">${difficulty}</span></div>
-                                    <span>${nf(c.seguidores)} subs · ${c.nicho || "Variedad"} · Relación ${rel >= 0 ? "+" : ""}${rel}</span>
+                                    <span>${nf(c.seguidores)} subs · ${c.nicho || "Variedad"} · ${c.pais || "Argentina"} · Relación ${rel >= 0 ? "+" : ""}${rel}</span>
                                     ${disabled ? `<small class="collab-requirement">🔒 ${info.motivo}</small>` : `<small class="collab-requirement">${info.motivo}</small>`}
                                 </div>
                                 <button class="btn ${disabled ? "ghost" : "collab-red"} propose-collab" data-id="${c.id}" ${disabled ? 'disabled title="Todavía no tenés el alcance para esta colaboración"' : ""}>${disabled ? "NO DISPONIBLE" : "PROPONER COLAB"}</button>
@@ -144,6 +160,9 @@ export function renderCollabs(el) {
     const search = container.querySelector("#collabSearch");
     const niche = container.querySelector("#collabNiche");
     const availability = container.querySelector("#collabAvailability");
+    const country = container.querySelector("#collabCountry");
+    const followers = container.querySelector("#collabFollowers");
+    const sort = container.querySelector("#collabSort");
     const difficulty = container.querySelector("#collabDifficulty");
     const filterPanel = container.querySelector("#collabFilters");
     const toggleFilters = container.querySelector("#toggleCollabFilters");
@@ -154,15 +173,39 @@ export function renderCollabs(el) {
         const q = normalizarTexto(search?.value || "").trim();
         const n = niche?.value || "";
         const av = availability?.value || "";
+        const countryValue = country?.value || "";
+        const followerRange = followers?.value || "";
+        const sortValue = sort?.value || "desc";
         const d = difficulty?.value || "";
-        let visible = 0;
+        const rangeMatch = value => {
+            const amount = Number(value || 0);
+            if (followerRange === "under10k") return amount < 10000;
+            if (followerRange === "10k-100k") return amount >= 10000 && amount < 100000;
+            if (followerRange === "100k-1m") return amount >= 100000 && amount < 1000000;
+            if (followerRange === "1m-10m") return amount >= 1000000 && amount <= 10000000;
+            if (followerRange === "over10m") return amount > 10000000;
+            return true;
+        };
 
+        rows.sort((a,b) => {
+            const av = Number(a.getAttribute("data-followers") || 0);
+            const bv = Number(b.getAttribute("data-followers") || 0);
+            return sortValue === "asc" ? av - bv : bv - av;
+        }).forEach(row => container.querySelector("#collabList")?.appendChild(row));
+
+        let visible = 0;
         rows.forEach(row => {
             const name = normalizarTexto(row.getAttribute("data-name") || "");
             const nicheValue = row.getAttribute("data-niche") || "";
+            const countryRow = row.getAttribute("data-country") || "Argentina";
             const availableValue = row.getAttribute("data-available") === "true";
             const difficultyValue = row.getAttribute("data-difficulty") || "";
-            const ok = (!q || name.includes(q)) && (!n || nicheValue === n) && (!av || (av === "available" ? availableValue : !availableValue)) && (!d || difficultyValue === d);
+            const ok = (!q || name.includes(q))
+                && (!n || nicheValue === n)
+                && (!countryValue || countryRow === countryValue)
+                && rangeMatch(row.getAttribute("data-followers"))
+                && (!av || (av === "available" ? availableValue : !availableValue))
+                && (!d || difficultyValue === d);
             row.hidden = !ok;
             row.style.display = ok ? "" : "none";
             if (ok) visible++;
@@ -179,6 +222,9 @@ export function renderCollabs(el) {
     search?.addEventListener("keyup", filterRows);
     niche?.addEventListener("change", filterRows);
     availability?.addEventListener("change", filterRows);
+    country?.addEventListener("change", filterRows);
+    followers?.addEventListener("change", filterRows);
+    sort?.addEventListener("change", filterRows);
     difficulty?.addEventListener("change", filterRows);
     toggleFilters?.addEventListener("click", () => {
         if (!filterPanel) return;

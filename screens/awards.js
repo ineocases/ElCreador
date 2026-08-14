@@ -71,6 +71,11 @@ export function renderAwards(container) {
                     }).join("")}
                 </div>
             `}
+            <div class="continue-row single-next awards-continue-row">
+                <a class="btn primary big next-button" href="${gameState.lastYearSummary ? "#newYear" : "#dashboard"}">
+                    CONTINUAR ${gameState.lastYearSummary ? "→ NUEVO AÑO" : "→ DASHBOARD"}
+                </a>
+            </div>
         </div>
     `;
 
