@@ -1240,3 +1240,9 @@ body{
 .awards-annual-stage{position:relative;overflow:hidden;text-align:center;padding:28px 18px}.awards-annual-stage::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 0,rgba(245,197,24,.12),transparent 52%);pointer-events:none}.awards-annual-stage>*{position:relative}.annual-awards-categories{display:grid;gap:12px;margin-top:12px}.annual-award-card{animation:awardCardIn .45s ease both;animation-delay:var(--award-delay,0ms)}.award-winner-panel{display:flex;align-items:center;gap:12px;margin:10px 0;padding:12px;border-radius:12px;background:linear-gradient(135deg,rgba(245,197,24,.13),rgba(255,255,255,.025));border:1px solid rgba(245,197,24,.28)}.award-winner-panel.won{box-shadow:0 0 0 1px rgba(245,197,24,.12),0 10px 30px rgba(245,197,24,.08)}.award-winner-panel .winner-icon{font-size:2rem;flex:0 0 auto}.award-winner-panel small{display:block;font-size:.58rem;color:#b08b19;font-weight:900}.award-winner-panel strong{display:block;font-size:1rem}.award-winner-panel span{display:block;color:var(--text-muted);font-size:.68rem;margin-top:2px}.award-terne.player-won{border-color:rgba(245,197,24,.48)}
 @keyframes awardCardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @media(max-width:560px){.awards-annual-stage{padding:22px 12px}.awards-annual-stage h1{font-size:2rem}.award-winner-panel{padding:10px}.award-winner-panel strong{font-size:.9rem}.award-winner-panel span{font-size:.6rem}}
+
+
+/* V23 · Sponsors entregados por el usuario + impactos neutrales */
+.sponsor-logo{width:72px;height:72px;object-fit:contain;border-radius:14px;background:#fff;padding:6px;box-shadow:0 6px 20px rgba(0,0,0,.08)}
+.decision-effects.single-impact{grid-template-columns:1fr}
+.event-impact-list.neutral span{color:var(--text-color,#f3f3f3)}
