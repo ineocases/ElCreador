@@ -5,44 +5,12 @@ import { icon } from "../components/Icon.js";
 const nf = n => Number(n || 0).toLocaleString("es-AR");
 const money = n => `$${nf(n)}`;
 
-const officialDomains = {
-    "King of the Kongo": "kingofthekongo.com",
-    "Manaos": "manaos.com.ar",
-    "Mercado Libre": "mercadolibre.com.ar",
-    "Ualá": "uala.com.ar",
-    "Naranja X": "naranjax.com",
-    "Banco Galicia": "galicia.ar",
-    "Personal": "personal.com.ar",
-    "Flow": "flow.com.ar",
-    "YPF": "ypf.com",
-    "Quilmes": "quilmes.com.ar",
-    "Topper": "topper.com.ar",
-    "Mostaza": "mostazaweb.com.ar",
-    "Grido": "gridohelado.com",
-    "Havanna": "havanna.com.ar",
-    "Cachafaz": "cachafaz.com",
-    "Arcor": "arcor.com",
-    "La Serenísima": "laserenisima.com.ar",
-    "Guaymallén": "guaymallen.com.ar",
-    "Frávega": "fravega.com",
-    "Musimundo": "musimundo.com",
-    "Noblex": "noblex.com.ar",
-    "EXO": "exo.com.ar",
-    "Banghó": "bangho.com.ar",
-    "PCBOX": "pcbox.com.ar",
-    "Dexter": "dexter.com.ar",
-    "TyC Sports": "tycsports.com",
-    "Andreani": "andreani.com",
-    "Havanna Café": "havanna.com.ar",
-    "Pindapoy": "pindapoy.com.ar",
-    "iNeo Cases": null
-};
-
 function logoFor(brand, fallback) {
-    const domain = officialDomains[brand];
-    if (!domain) return fallback || "assets/sponsors/default.svg";
-    return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`;
+    // Usar primero los logos locales entregados para el juego.
+    // El segundo argumento (fallback) viene desde gameState y apunta a assets/sponsors/*.svg.
+    return fallback || "assets/sponsors/default.svg";
 }
+
 
 function continuarDespuesDeMonetizacion() {
     setTimeout(() => {

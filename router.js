@@ -131,8 +131,10 @@ async function renderScreen(el, screenModule, hash, token) {
     if (token !== navigationToken || window.location.hash !== hash) return;
 
     document.querySelectorAll(".screen").forEach(screen => {
-        screen.hidden = screen !== el;
-        screen.setAttribute("aria-hidden", screen === el ? "false" : "true");
+        const active = screen === el;
+        screen.hidden = !active;
+        screen.classList.toggle("is-active", active);
+        screen.setAttribute("aria-hidden", active ? "false" : "true");
     });
     renderOpportunityOverlay(hash);
 }
@@ -143,8 +145,10 @@ function showRouteError(el, error) {
     panel.innerHTML = "<div class=\"panel center\"><h2>Ocurrió un error en esta pantalla</h2><p>La pantalla no pudo cargarse. Probá volver al dashboard.</p><a class=\"btn primary\" href=\"#dashboard\">VOLVER</a></div>";
     el.replaceChildren(panel);
     document.querySelectorAll(".screen").forEach(screen => {
-        screen.hidden = screen !== el;
-        screen.setAttribute("aria-hidden", screen === el ? "false" : "true");
+        const active = screen === el;
+        screen.hidden = !active;
+        screen.classList.toggle("is-active", active);
+        screen.setAttribute("aria-hidden", active ? "false" : "true");
     });
     console.error(error);
 }

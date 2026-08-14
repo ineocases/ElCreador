@@ -27,14 +27,18 @@ const saveManager = {
                 pendingCampaignOffer: gameState.pendingCampaignOffer,
                 worldNews: gameState.worldNews,
                 worldYearNews: gameState.worldYearNews,
+                worldDramaHistory: gameState.worldDramaHistory,
                 pendingSponsorOffer: gameState.pendingSponsorOffer,
                 pendingEvent: gameState.pendingEvent,
                 pendingCollabOffer: gameState.pendingCollabOffer,
+                pendingVideoSelection: gameState.pendingVideoSelection,
+                boosts: gameState.boosts,
                 lastYearSummary: gameState.lastYearSummary,
                 lastQuarterResult: gameState.lastQuarterResult,
                 lastVideo: gameState.lastVideo,
                 lastVideoResult: gameState.lastVideoResult,
                 ultimoEventoResultado: gameState.ultimoEventoResultado,
+                lastAwardsResults: gameState.lastAwardsResults,
                 lastCollab: gameState.lastCollab,
                 savedAt: Date.now()
             };
@@ -116,14 +120,19 @@ const saveManager = {
 
             gameState.worldNews = Array.isArray(parsedData.worldNews) ? parsedData.worldNews : [];
             gameState.worldYearNews = Array.isArray(parsedData.worldYearNews) ? parsedData.worldYearNews : [];
+            gameState.worldDramaHistory = Array.isArray(parsedData.worldDramaHistory) ? parsedData.worldDramaHistory : [];
 
             gameState.pendingSponsorOffer = parsedData.pendingSponsorOffer || null;
             gameState.pendingEvent = parsedData.pendingEvent || null;
             gameState.pendingCollabOffer = parsedData.pendingCollabOffer || null;
+            gameState.pendingVideoSelection = parsedData.pendingVideoSelection || null;
+            gameState.boosts = parsedData.boosts || gameState.boosts || {};
             gameState.lastYearSummary = parsedData.lastYearSummary || null;
+            gameState.lastQuarterResult = parsedData.lastQuarterResult || null;
             gameState.lastVideo = parsedData.lastVideo || null;
             gameState.lastVideoResult = parsedData.lastVideoResult || null;
             gameState.ultimoEventoResultado = parsedData.ultimoEventoResultado || null;
+            gameState.lastAwardsResults = parsedData.lastAwardsResults || null;
             gameState.lastCollab = parsedData.lastCollab || null;
 
             normalizarGameState();
