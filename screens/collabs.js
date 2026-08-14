@@ -90,29 +90,13 @@ export function renderCollabs(el) {
                         <div class="eyebrow">PRIMERO: LOS QUE PODÉS CONTACTAR</div>
                         <h2>Elegí con quién querés trabajar</h2>
                     </div>
-                    <div class="directory-count">${creators.length} perfiles · ${gameState.colabsRestantesEsteTrimestre()} colabs disponibles</div>
+                    <div class="directory-count">${creators.length} perfiles</div>
                 </div>
                 <div class="collab-search-row">
                     <input id="collabSearch" class="collab-search" type="search" placeholder="Buscar creador..." autocomplete="off">
-                    <button id="toggleCollabFilters" class="btn ghost" type="button">⚙ FILTRAR</button>
-                </div>
-                <div id="collabFilters" class="collab-filter-panel" hidden>
                     <select id="collabNiche" class="collab-filter">
                         <option value="">Todos los nichos</option>
                         ${[...new Set(creators.map(c => c.nicho).filter(Boolean))].sort().map(n => `<option value="${n}">${n}</option>`).join("")}
-                    </select>
-                    <select id="collabAvailability" class="collab-filter">
-                        <option value="">Todos</option>
-                        <option value="available">Disponibles para proponer</option>
-                        <option value="locked">Fuera de alcance</option>
-                    </select>
-                    <select id="collabDifficulty" class="collab-filter">
-                        <option value="">Cualquier dificultad</option>
-                        <option value="Natural">Natural</option>
-                        <option value="Posible">Posible</option>
-                        <option value="Difícil">Difícil</option>
-                        <option value="Ambiciosa">Ambiciosa</option>
-                        <option value="Fuera de alcance">Fuera de alcance</option>
                     </select>
                 </div>
                 <div class="collab-list" id="collabList">
@@ -123,7 +107,7 @@ export function renderCollabs(el) {
                         const difficulty = !info.dentroDeAlcance ? "Fuera de alcance" : ratio > 5 ? "Ambiciosa" : ratio > 2 ? "Difícil" : ratio > 1 ? "Posible" : "Natural";
                         const disabled = !info.dentroDeAlcance;
                         return `
-                            <div class="collab-simple-row ${disabled ? "collab-locked" : ""}" data-name="${String(c.nombre).toLowerCase()}" data-niche="${c.nicho || ""}" data-difficulty="${difficulty}" data-available="${!disabled}">
+                            <div class="collab-simple-row ${disabled ? "collab-locked" : ""}" data-name="${String(c.nombre).toLowerCase()}" data-niche="${c.nicho || ""}">
                                 <div class="collab-person">
                                     <div class="collab-name-line"><strong>${c.nombre}</strong><span class="collab-difficulty">${difficulty}</span></div>
                                     <span>${nf(c.seguidores)} subs · ${c.nicho || "Variedad"} · Relación ${rel >= 0 ? "+" : ""}${rel}</span>
@@ -143,26 +127,18 @@ export function renderCollabs(el) {
 
     const search = container.querySelector("#collabSearch");
     const niche = container.querySelector("#collabNiche");
-    const availability = container.querySelector("#collabAvailability");
-    const difficulty = container.querySelector("#collabDifficulty");
-    const filterPanel = container.querySelector("#collabFilters");
-    const toggleFilters = container.querySelector("#toggleCollabFilters");
     const empty = container.querySelector("#collabEmpty");
     const rows = [...container.querySelectorAll(".collab-simple-row")];
 
     const filterRows = () => {
         const q = normalizarTexto(search?.value || "").trim();
         const n = niche?.value || "";
-        const av = availability?.value || "";
-        const d = difficulty?.value || "";
         let visible = 0;
 
         rows.forEach(row => {
             const name = normalizarTexto(row.getAttribute("data-name") || "");
             const nicheValue = row.getAttribute("data-niche") || "";
-            const availableValue = row.getAttribute("data-available") === "true";
-            const difficultyValue = row.getAttribute("data-difficulty") || "";
-            const ok = (!q || name.includes(q)) && (!n || nicheValue === n) && (!av || (av === "available" ? availableValue : !availableValue)) && (!d || difficultyValue === d);
+            const ok = (!q || name.includes(q)) && (!n || nicheValue === n);
             row.hidden = !ok;
             row.style.display = ok ? "" : "none";
             if (ok) visible++;
@@ -178,13 +154,6 @@ export function renderCollabs(el) {
     search?.addEventListener("input", filterRows);
     search?.addEventListener("keyup", filterRows);
     niche?.addEventListener("change", filterRows);
-    availability?.addEventListener("change", filterRows);
-    difficulty?.addEventListener("change", filterRows);
-    toggleFilters?.addEventListener("click", () => {
-        if (!filterPanel) return;
-        filterPanel.hidden = !filterPanel.hidden;
-        toggleFilters.textContent = filterPanel.hidden ? "⚙ FILTRAR" : "✕ OCULTAR FILTROS";
-    });
     filterRows();
 
     // Un único listener de clicks para toda la pantalla evita que los

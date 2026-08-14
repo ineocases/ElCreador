@@ -29,9 +29,3 @@ body {
   margin: 0;
   padding: 0;
 }
-
-
-/* Sponsors: marcas con identidad visual */
-.sponsor-brand{display:flex;align-items:center;gap:14px;margin:10px 0 18px}
-.sponsor-logo{width:56px;height:56px;object-fit:contain;border-radius:14px;background:#fff;padding:7px;box-shadow:0 6px 20px rgba(0,0,0,.08)}
-.sponsor-brand h2{margin:0}

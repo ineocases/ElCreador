@@ -45,20 +45,19 @@ function eventCard(container, event) {
 
 function collabCard(offer) {
     if (!offer) return "";
-    // Mientras jugás no se toma la decisión acá. Esta tarjeta funciona como
-    // aviso: la propuesta llega a tu carrera y la decisión vive únicamente
-    // dentro de la sección Colabs.
     const costo = Number(offer.costoVuelo || 0);
+    const puedePagar = costo <= Number(gameState.player.dinero || 0);
     return `<section class="career-card feed-collab-card">
-        <div class="feed-card-head"><div class="feed-icon green">${icon("group",18)}</div><div><div class="eyebrow">TE LLEGÓ UNA PROPUESTA DE COLAB</div><h2>${offer.creatorName}</h2><p class="muted">${nf(offer.creatorFollowers)} seguidores · ${offer.niche || "Variedad"} · ${offer.pais || "Argentina"}</p></div></div>
-        <div class="feed-result-strip"><span>🤝 Invitación</span><span>👥 ${nf(offer.creatorFollowers)} seguidores</span><span>${costo > 0 ? `✈️ Viaje` : `📍 Cerca`}</span></div>
-        <p class="feed-muted">${costo > 0 ? `Te propusieron juntarte para una colab. La propuesta requiere un viaje de ${money(costo)}.` : "Te propusieron juntarte para hacer una colab. La propuesta está esperando tu respuesta."}</p>
+        <div class="feed-card-head"><div class="feed-icon green">${icon("group",18)}</div><div><div class="eyebrow">${offer.direction === "outgoing" ? "COLAB ACEPTADA" : "TE LLEGÓ UNA COLAB"}</div><h2>${offer.creatorName}</h2><p class="muted">${nf(offer.creatorFollowers)} seguidores · ${offer.niche || "Variedad"} · ${offer.pais || "Argentina"}</p></div></div>
+        <div class="feed-result-strip"><span>👁️ +${nf(offer.reward?.vistas)}</span><span>👥 +${nf(offer.reward?.subs)}</span><span>❤️ +15 relación</span></div>
+        <p class="feed-muted">${costo > 0 ? `✈️ Requiere un viaje de ${money(costo)}.` : "📍 No requiere viaje."}</p>
         <div class="feed-actions">
-            <a href="#collabs" class="btn primary">VER PROPUESTA EN COLAB</a>
+            <button id="feedAcceptCollab" class="btn primary" ${puedePagar ? "" : "disabled"}>ACEPTAR</button>
+            <button id="feedRejectCollab" class="btn ghost">RECHAZAR</button>
         </div>
-        <small class="feed-hint">No podés aceptar ni rechazar desde acá. La decisión se toma en <b>Colabs</b>.</small>
     </section>`;
 }
+
 function sponsorCard(offer, campaign) {
     if (!offer && !campaign) return "";
     if (offer) return `<section class="career-card feed-sponsor-card">
@@ -144,7 +143,8 @@ export function renderDashboard(el) {
         </div>
 
         <section class="career-card feed-status-card">
-            <div class="feed-status-main"><span>ESTADO DEL CANAL</span><strong>${nf(p.suscriptores)} subs</strong><small>${fame(p.fama)}/100 fama · ${money(p.dinero)}</small></div>
+            <div class="feed-status-main"><span>ESTADO DEL CANAL</span><strong>${nf(p.suscriptores)} subs</strong><small>${fame(p.fama)}/100 fama · ${nf(p.vistasTotales)} vistas · ${money(p.dinero)}</small></div>
+            <div class="feed-mini-stats"><span>👁️ ${nf(p.vistasTotales)}</span><span>🎬 ${nf(p.videosSubidos)}</span><span>💰 ${money(p.dinero)}</span></div>
         </section>
 
         ${!event ? resultCard(res) : ""}
@@ -152,6 +152,9 @@ export function renderDashboard(el) {
         ${collab ? collabCard(collab) : ""}
         ${sponsor || campaign ? sponsorCard(sponsor, campaign) : ""}
         ${!collab && !event && !sponsor && !campaign ? collabResultCard(gameState.lastCollab) : ""}
+        ${worldCard()}
+
+        ${!p.pretemporada ? "" : `<section class="career-card feed-skills-card"><div class="feed-card-head"><div class="feed-icon">${icon("refresh",18)}</div><div><div class="eyebrow">TU ESTADO</div><h2>Lo que te hace crecer</h2></div></div><div class="feed-skill-grid">${skills.map(([label,key,tip,ico])=>`<div class="feed-skill ${improved===key?"improved":""}" title="${tip}"><span>${icon(ico,14)} ${label}</span><b>${Number(p.atributos?.[key]||0)}${improved===key?" ▲":""}</b></div>`).join("")}</div></section>`}
 
         ${nextActionCard(p, hasResult, blockedByOffer)}
 
@@ -160,6 +163,7 @@ export function renderDashboard(el) {
             <a href="#collabs" class="btn ghost">${icon("group",15)} Colabs</a>
             <a href="#sponsors" class="btn ghost">${icon("briefcase",15)} Sponsors</a>
             <a href="#awards" class="btn ghost">${icon("trophy",15)} Awards</a>
+            <a href="#palmares" class="btn ghost">${icon("trophy",15)} Palmarés</a>
             <a href="#velada" class="btn ghost">${icon("sports_mma",15)} Velada</a>
         </div></details>
     </div>`;
@@ -173,6 +177,11 @@ export function renderDashboard(el) {
         if (ok) { gameState.guardar(); renderDashboard(container); }
     }));
 
+    container.querySelector("#feedAcceptCollab")?.addEventListener("click", () => {
+        const b = container.querySelector("#feedAcceptCollab"); b.disabled = true; b.textContent = "PROCESANDO...";
+        if (gameState.aceptarCollab()) renderDashboard(container); else { b.disabled = false; b.textContent = "ACEPTAR"; }
+    });
+    container.querySelector("#feedRejectCollab")?.addEventListener("click", () => { if (gameState.rechazarCollab()) renderDashboard(container); });
     container.querySelector("#feedNegotiateSponsor")?.addEventListener("click", () => { if (gameState.negociarSponsor(Math.round(Number(gameState.pendingSponsorOffer?.pago||0)*0.20))) renderDashboard(container); else alert("La marca rechazó la negociación."); });
     container.querySelector("#feedAcceptSponsor")?.addEventListener("click", () => { if (gameState.aceptarSponsor()) renderDashboard(container); });
     container.querySelector("#feedRejectSponsor")?.addEventListener("click", () => { if (gameState.rechazarSponsor()) renderDashboard(container); });

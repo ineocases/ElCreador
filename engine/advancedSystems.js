@@ -10,9 +10,7 @@ export function ensureAdvancedState(game) {
   p.staff.trainer = p.staff.trainer || { level: 0, cost: 0 };
   p.patrimonio ||= { etapa: 0, nombre: "Casa de tus viejos", activos: [] };
   p.awardsHistory ||= [];
-  p.velada ||= { tier: 0, training: 0, rival: null, eligible: false, wins: 0, losses: 0, offerYear: null, offerStatus: "none", offerRerolls: 0, acceptedYear: null, trainingByQuarter: {}, completedQuarter: {}, fightCompletedYear: null };
-  p.velada.trainingByQuarter ||= {};
-  p.velada.completedQuarter ||= {};
+  p.velada ||= { tier: 0, training: 0, rival: null, eligible: false, wins: 0, losses: 0 };
   p.nicheModifiers ||= {};
   p.negocios ||= {};
   p.ingresosDesglose ||= { publicidad: 0, sponsors: 0, negocios: 0, afiliados: 0, donaciones: 0 };
@@ -85,88 +83,9 @@ export function nicheProfile(game){
  return profiles[n]||profiles.Gaming;
 }
 
-export function canEnterVelada(game){
-  return Number(game.player.suscriptores)>=1000000 && Number(game.player.fama)>=35;
-}
-
-function veladaRivals(game){
-  const subs=Number(game.player.suscriptores)||0;
-  return game.creators.filter(c=>c.pais==="Argentina"&&c.activo!==false&&c.id!=="player"&&Number(c.seguidores)>=Math.max(50000,subs*.55)&&Number(c.seguidores)<=Math.max(60000,subs*1.8));
-}
-
-export function offerVeladaPreseason(game){
-  ensureAdvancedState(game);
-  const p=game.player, year=Number(game.time.año);
-  if(!canEnterVelada(game) || p.velada.offerYear===year || p.velada.acceptedYear===year || p.velada.offerStatus==="declined") return false;
-  const rivals=veladaRivals(game);
-  if(!rivals.length) return false;
-  const rival=rivals[Math.floor(Math.random()*rivals.length)];
-  p.velada.offerYear=year; p.velada.offerStatus="offered"; p.velada.offerRerolls=0; p.velada.rival=rival.id; p.velada.training=0; p.velada.trainingByQuarter={}; p.velada.completedQuarter={}; p.velada.fightCompletedYear=null;
-  game.guardar();
-  return rival;
-}
-
-export function requestAnotherVeladaRival(game){
-  ensureAdvancedState(game);
-  const p=game.player, year=Number(game.time.año);
-  if(p.velada.offerYear!==year || p.velada.offerStatus!=="offered") return null;
-  const rivals=veladaRivals(game).filter(c=>c.id!==p.velada.rival);
-  if(!rivals.length) return null;
-  const rival=rivals[Math.floor(Math.random()*rivals.length)];
-  p.velada.rival=rival.id; p.velada.offerRerolls=(Number(p.velada.offerRerolls)||0)+1;
-  game.guardar(); return rival;
-}
-
-export function decideVelada(game, decision){
-  ensureAdvancedState(game);
-  const p=game.player, year=Number(game.time.año);
-  if(p.velada.offerYear!==year || p.velada.offerStatus!=="offered") return false;
-  if(decision==="accept"){
-    p.velada.offerStatus="accepted"; p.velada.acceptedYear=year; p.velada.training=0; p.velada.trainingByQuarter={}; p.velada.completedQuarter={};
-  } else if(decision==="reject"){
-    p.velada.offerStatus="declined"; p.velada.acceptedYear=null; p.velada.rival=null;
-  } else return false;
-  game.guardar(); return true;
-}
-
-export function veladaTrainingDifficulty(game, quarter){
-  const p=game.player;
-  const total=Number(p.velada?.training||0);
-  const prep=total + Number(p.atributos?.constancia||0)*0.7 + Number(p.atributos?.carisma||0)*0.25;
-  if(prep>=75) return {key:"facil",label:"FÁCIL",mult:0.8};
-  if(prep>=45) return {key:"normal",label:"NORMAL",mult:1};
-  if(prep>=25) return {key:"dificil",label:"DIFÍCIL",mult:1.2};
-  return {key:"muy-dificil",label:"MUY DIFÍCIL",mult:1.45};
-}
-
-export function completeVeladaTraining(game, quarter, score){
-  ensureAdvancedState(game);
-  const p=game.player, q=Number(quarter);
-  if(p.velada?.acceptedYear!==Number(game.time.año) || q<1 || q>3 || Number(game.time.trimestre)!==q) return false;
-  if(p.velada.completedQuarter?.[q]) return false;
-  const value=Math.max(0,Math.min(100,Number(score)||0));
-  p.velada.trainingByQuarter[q]=value; p.velada.completedQuarter[q]=true;
-  p.velada.training=Object.values(p.velada.trainingByQuarter).reduce((a,b)=>a+Number(b||0),0);
-  game.guardar(); return true;
-}
-
-export function fightVelada(game, score){
-  ensureAdvancedState(game);
-  const p=game.player, year=Number(game.time.año);
-  if(Number(game.time.trimestre)!==4 || p.velada?.acceptedYear!==year || p.velada?.fightCompletedYear===year) return null;
-  const s=Math.max(0,Math.min(100,Number(score)||0));
-  const rival=game.creators.find(c=>c.id===p.velada.rival);
-  const trainingAvg=Object.values(p.velada.trainingByQuarter||{}).reduce((a,b)=>a+Number(b||0),0)/3;
-  const difficulty=veladaTrainingDifficulty(game,4);
-  const rivalBase=52 + difficulty.mult*10 - trainingAvg*0.16 + Math.random()*18;
-  const rivalScore=Math.max(35,Math.min(92,Math.round(rivalBase)));
-  const win=s>=rivalScore;
-  if(win){p.velada.wins=(Number(p.velada.wins)||0)+1;p.fama=Math.min(100,p.fama+12);p.suscriptores+=Math.max(500,Math.round(p.suscriptores*.08));}
-  else{p.velada.losses=(Number(p.velada.losses)||0)+1;p.fama=Math.min(100,p.fama+3);p.suscriptores+=Math.max(100,Math.round(p.suscriptores*.02));}
-  p.velada.fightCompletedYear=year; p.velada.eligible=false;
-  game.guardar();
-  return {win,rival:rival?.nombre||"Rival",score:s,rivalScore,difficulty:difficulty.label,trainingAvg:Math.round(trainingAvg)};
-}
+export function canEnterVelada(game){return Number(game.player.suscriptores)>=1000000 && Number(game.player.fama)>=35;}
+export function prepareVelada(game){ensureAdvancedState(game); if(!canEnterVelada(game)) return false; const rivals=game.creators.filter(c=>c.pais==="Argentina"&&c.activo!==false&&Number(c.seguidores)>game.player.suscriptores*.5&&Number(c.seguidores)<game.player.suscriptores*2); if(!rivals.length)return false; const rival=rivals[Math.floor(Math.random()*rivals.length)]; game.player.velada={tier:3,training:0,rival:rival.id,eligible:true,wins:game.player.velada.wins||0,losses:game.player.velada.losses||0}; return true;}
+export function fightVelada(game, score){ensureAdvancedState(game); const p=game.player; if(!p.velada?.eligible)return null; const s=Number(score)||0; const rival=game.creators.find(c=>c.id===p.velada.rival); const rivalScore=45+Math.random()*45; const win=s>=rivalScore; if(win){p.velada.wins++;p.fama=Math.min(100,p.fama+12);p.suscriptores+=Math.max(500,Math.round(p.suscriptores*.08));}else{p.velada.losses++;p.fama=Math.min(100,p.fama+3);p.suscriptores+=Math.max(100,Math.round(p.suscriptores*.02));} p.velada.eligible=false; return {win,rival:rival?.nombre||"Rival",score:s,rivalScore:Math.round(rivalScore)};}
 
 export function buildAwardsCandidates(game){
  const p=game.player, year=p.año; const creators=game.creators.filter(c=>c.pais==="Argentina"&&c.activo!==false&&Number(c.debutYear||2020)<=year);
