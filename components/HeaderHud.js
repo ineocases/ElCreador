@@ -18,6 +18,7 @@ function currentStep() {
     if (h === "#pretemporada" || h === "#newYear") return "pre";
     if (h === "#publish" || h === "#videoResult" || h === "#pasanCosas") return gameState.time.trimestre === 1 ? `t${gameState.time.trimestre}` : `t${gameState.time.trimestre}`;
     if (h === "#yearSummary" || h === "#awards") return "awards";
+    if (h === "#palmares") return "fin";
     if (h === "#careerEnd") return "fin";
     return gameState.time.trimestre === 1 ? `t${gameState.time.trimestre}` : `t${gameState.time.trimestre}`;
 }
@@ -35,7 +36,7 @@ export function renderHeaderHud() {
     const step = currentStep();
     const progress = level.next === 100 ? fama : Math.round(((fama - level.min) / Math.max(1, level.next - level.min)) * 100);
     const canVelada = subs >= 1000000 && fama >= 40;
-    const awardAccess = fama >= 20 || subs >= 25000;
+    const awardAccess = true;
 
     return `
         <header class="game-hud-compact">
@@ -51,7 +52,7 @@ export function renderHeaderHud() {
                 <a href="#store" class="hud-menu-btn">${icon("store",16)} <span>Tienda</span></a>
                 <a href="#collabs" class="hud-menu-btn">${icon("group",16)} <span>Colabs</span></a>
                 <a href="#sponsors" class="hud-menu-btn">${icon("briefcase",16)} <span>Sponsors</span></a>
-                <a href="#awards" class="hud-menu-btn ${awardAccess ? "" : "locked"}">${icon("trophy",16)} <span>Awards</span>${awardAccess ? "" : " 🔒"}</a>
+                <a href="#awards" class="hud-menu-btn ${awardAccess ? "" : "locked"}">${icon("trophy",16)} <span>Premios</span>${awardAccess ? "" : " 🔒"}</a>
                 <a href="#palmares" class="hud-menu-btn">${icon("trophy",16)} <span>Palmarés</span></a>
                 <a href="#velada" class="hud-menu-btn ${canVelada ? "" : "locked"}">${icon("sports_mma",16)} <span>Velada</span>${canVelada ? "" : " 🔒"}</a>
                 <button type="button" class="hud-menu-btn hud-career-btn" id="retireCareerBtn" aria-label="Menú de carrera">${icon("settings",16)} <span>MENÚ</span></button>
@@ -65,7 +66,7 @@ export function renderHeaderHud() {
                 <div><small>$</small><b>$${nf(dinero)}</b></div>
             </div>
             <div class="career-timeline" aria-label="Timeline del año">
-                ${[["pre","Pretemporada"],["t1","T1"],["t2","T2"],["t3","T3"],["t4","T4"],["awards","Awards"],["fin","Fin"]].map(([id,label])=>`<span class="timeline-step ${step===id?"active":""}">${label}</span>`).join('<b>→</b>')}
+                ${[["pre","Pretemporada"],["t1","T1"],["t2","T2"],["t3","T3"],["t4","T4"],["awards","Premios"],["fin","Fin"]].map(([id,label])=>`<span class="timeline-step ${step===id?"active":""}">${label}</span>`).join('<b>→</b>')}
             </div>
         </header>
         <div class="saved-indicator" aria-live="polite">✓ Partida guardada</div>
@@ -94,8 +95,9 @@ if (typeof document !== "undefined" && !window.__elCreadorCareerMenuInstalled) {
                 <div class="eyebrow">MENÚ DE CARRERA</div>
                 <h2>Tu partida</h2>
                 <p>Acá podés volver al inicio o reiniciar la carrera actual.</p>
-                <div class="career-menu-actions">
+                <div class="career-menu-actions career-menu-actions-stack">
                     <button class="btn ghost" data-career-close>VOLVER</button>
+                    <button class="btn secondary" data-career-retire>${icon("sports_mma",15)} RETIRARSE</button>
                     <button class="btn danger" data-career-reset-start>${icon("trash",15)} BORRAR CARRERA</button>
                 </div>
             </div>`;
@@ -103,6 +105,16 @@ if (typeof document !== "undefined" && !window.__elCreadorCareerMenuInstalled) {
 
         const close = () => overlay.remove();
         overlay.addEventListener("click", e => { if (e.target === overlay || e.target.closest("[data-career-close]")) close(); });
+
+        overlay.querySelector("[data-career-retire]")?.addEventListener("click", () => {
+            if (!gameState.puedeRetirarse()) {
+                alert("El retiro voluntario se desbloquea desde el año 8. A los 40 años es obligatorio.");
+                return;
+            }
+            if (!confirm("¿Querés retirarte de tu carrera? Vas a cerrar esta partida y conservarás tu resumen final.")) return;
+            gameState.retirarse();
+            close();
+        });
 
         overlay.querySelector("[data-career-reset-start]")?.addEventListener("click", () => {
             overlay.querySelector(".career-menu-modal").innerHTML = `

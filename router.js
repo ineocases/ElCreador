@@ -1,30 +1,56 @@
 // router.js - Router único de El Creador
+// V21: carga diferida de pantallas para reducir el JS inicial y evitar renders innecesarios.
 import saveManager from "./engine/saveManager.js";
-import * as createChannelScreen from "./screens/createChannel.js";
-import * as dashboardScreen from "./screens/dashboard.js";
-import * as pretemporadaScreen from "./screens/pretemporada.js";
-import * as publishVideoScreen from "./screens/publishVideo.js";
-import * as videoResultScreen from "./screens/videoResult.js";
-import * as yearSummaryScreen from "./screens/yearSummary.js";
-import * as newYearScreen from "./screens/newYear.js";
-import * as careerEndScreen from "./screens/careerEnd.js";
-import * as veladaScreen from "./screens/velada.js";
-import * as storeScreen from "./screens/store.js";
-import * as awardsScreen from "./screens/awards.js";
-import * as palmaresScreen from "./screens/palmares.js";
-import * as collabsScreen from "./screens/collabs.js";
-import * as sponsorsScreen from "./screens/sponsors.js";
-import * as pasanCosasScreen from "./screens/pasanCosas.js";
-import * as adminDashboardScreen from "./screens/admin/AdminDashboard.js";
 import { renderOpportunityOverlay } from "./components/OpportunityOverlay.js";
 
 let initialized = false;
+let navigationToken = 0;
+const moduleCache = new Map();
+
+const routeLoaders = {
+    "#createChannel": () => import("./screens/createChannel.js"),
+    "#dashboard": () => import("./screens/dashboard.js"),
+    "#pretemporada": () => import("./screens/pretemporada.js"),
+    "#publish": () => import("./screens/publishVideo.js"),
+    "#videoResult": () => import("./screens/videoResult.js"),
+    "#yearSummary": () => import("./screens/yearSummary.js"),
+    "#newYear": () => import("./screens/newYear.js"),
+    "#careerEnd": () => import("./screens/careerEnd.js"),
+    "#velada": () => import("./screens/velada.js"),
+    "#pasanCosas": () => import("./screens/pasanCosas.js"),
+    "#store": () => import("./screens/store.js"),
+    "#awards": () => import("./screens/awards.js"),
+    "#palmares": () => import("./screens/palmares.js"),
+    "#collabs": () => import("./screens/collabs.js"),
+    "#sponsors": () => import("./screens/sponsors.js"),
+    "#admin": () => import("./screens/admin/AdminDashboard.js")
+};
+
+const routeElements = {
+    "#createChannel": "createChannelScreen",
+    "#dashboard": "dashboardScreen",
+    "#pretemporada": "pretemporadaScreen",
+    "#publish": "publishScreen",
+    "#videoResult": "resultScreen",
+    "#yearSummary": "yearSummaryScreen",
+    "#newYear": "newYearScreen",
+    "#careerEnd": "careerEndScreen",
+    "#velada": "veladaScreen",
+    "#pasanCosas": "pasanCosasScreen",
+    "#store": "storeScreen",
+    "#awards": "awardsScreen",
+    "#palmares": "palmaresScreen",
+    "#collabs": "collabsScreen",
+    "#sponsors": "sponsorsScreen",
+    "#admin": "adminContainer"
+};
 
 export function initRouter() {
     if (initialized) return;
     initialized = true;
 
-    window.addEventListener("hashchange", handleRoute);
+    window.addEventListener("hashchange", handleRoute, { passive: true });
+    window.addEventListener("mouseover", prefetchRoute, { passive: true });
 
     const hasSave = saveManager.hasSave();
     if (hasSave) saveManager.loadLocal();
@@ -42,78 +68,91 @@ function hasSave() {
     catch { return false; }
 }
 
-function handleRoute() {
+function prefetchRoute(event) {
+    const anchor = event.target?.closest?.("a[href^='#']");
+    if (!anchor) return;
+    const hash = anchor.getAttribute("href");
+    const loader = routeLoaders[hash];
+    if (!loader || moduleCache.has(hash)) return;
+    // Prefetch solo después de una interacción real con el enlace.
+    moduleCache.set(hash, loader().catch(error => {
+        moduleCache.delete(hash);
+        throw error;
+    }));
+}
+
+async function getScreenModule(hash) {
+    if (!moduleCache.has(hash)) moduleCache.set(hash, routeLoaders[hash]());
+    return moduleCache.get(hash);
+}
+
+async function handleRoute() {
+    const token = ++navigationToken;
     const hash = window.location.hash || "#createChannel";
-    const protectedRoutes = [
-        "#dashboard", "#pretemporada", "#publish", "#videoResult",
-        "#yearSummary", "#newYear", "#careerEnd", "#velada", "#pasanCosas", "#store", "#awards",
-        "#collabs", "#sponsors", "#palmares", "#admin"
-    ];
+    const protectedRoutes = Object.keys(routeLoaders).filter(route => route !== "#createChannel");
 
     if (protectedRoutes.includes(hash) && !hasSave()) {
         if (hash !== "#createChannel") window.location.hash = "#createChannel";
         return;
     }
 
-    document.querySelectorAll(".screen").forEach(screen => {
-        screen.style.display = "none";
-    });
-
-    const routes = {
-        "#createChannel": ["createChannelScreen", createChannelScreen],
-        "#dashboard": ["dashboardScreen", dashboardScreen],
-        "#pretemporada": ["pretemporadaScreen", pretemporadaScreen],
-        "#publish": ["publishScreen", publishVideoScreen],
-        "#videoResult": ["resultScreen", videoResultScreen],
-        "#yearSummary": ["yearSummaryScreen", yearSummaryScreen],
-        "#newYear": ["newYearScreen", newYearScreen],
-        "#careerEnd": ["careerEndScreen", careerEndScreen],
-        "#velada": ["veladaScreen", veladaScreen],
-        "#pasanCosas": ["pasanCosasScreen", pasanCosasScreen],
-        "#store": ["storeScreen", storeScreen],
-        "#awards": ["awardsScreen", awardsScreen],
-        "#palmares": ["palmaresScreen", palmaresScreen],
-        "#collabs": ["collabsScreen", collabsScreen],
-        "#sponsors": ["sponsorsScreen", sponsorsScreen],
-        "#admin": ["adminContainer", adminDashboardScreen]
-    };
-
-    const route = routes[hash];
-    if (!route) {
+    if (!routeLoaders[hash]) {
         window.location.hash = hasSave() ? "#dashboard" : "#createChannel";
         return;
     }
 
-    renderScreen(route[0], route[1]);
-}
-
-function renderScreen(elementId, screenModule) {
+    const elementId = routeElements[hash];
     const el = document.getElementById(elementId);
-    if (!el) {
-        console.error(`❌ No existe #${elementId} en index.html`);
-        return;
-    }
-    el.style.display = "block";
-    el.innerHTML = "";
+    if (!el) return;
 
     try {
-        let result;
-        if (typeof screenModule.default === "function") result = screenModule.default(el);
-        else if (screenModule.default && typeof screenModule.default.render === "function") result = screenModule.default.render(el);
-        else if (typeof screenModule.render === "function") result = screenModule.render(el);
-        else {
-            const key = Object.keys(screenModule).find(k => k.startsWith("render") && typeof screenModule[k] === "function");
-            if (key) result = screenModule[key](el);
-        }
-        if (result instanceof HTMLElement && result !== el && !el.contains(result)) {
-            el.innerHTML = "";
-            el.appendChild(result);
-        }
-        renderOpportunityOverlay(window.location.hash);
+        const screenModule = await getScreenModule(hash);
+        if (token !== navigationToken || window.location.hash !== hash) return;
+        await renderScreen(el, screenModule, hash, token);
     } catch (error) {
-        console.error(`❌ Error renderizando ${hashSafe(elementId)}:`, error);
-        el.innerHTML = `<div class="error-panel"><h2>Ocurrió un error en esta pantalla</h2><p>${error.message}</p><a href="#dashboard">Volver</a></div>`;
+        if (token !== navigationToken) return;
+        console.error(`❌ Error cargando ${hashSafe(elementId)}:`, error);
+        showRouteError(el, error);
     }
+}
+
+async function renderScreen(el, screenModule, hash, token) {
+    let result;
+    if (typeof screenModule.default === "function") result = screenModule.default(el);
+    else if (screenModule.default && typeof screenModule.default.render === "function") result = screenModule.default.render(el);
+    else if (typeof screenModule.render === "function") result = screenModule.render(el);
+    else {
+        const key = Object.keys(screenModule).find(k => k.startsWith("render") && typeof screenModule[k] === "function");
+        if (key) result = screenModule[key](el);
+    }
+
+    if (result instanceof HTMLElement && result !== el && !el.contains(result)) {
+        el.replaceChildren(result);
+    }
+
+    if (token !== navigationToken || window.location.hash !== hash) return;
+
+    document.querySelectorAll(".screen").forEach(screen => {
+        const active = screen === el;
+        screen.hidden = !active;
+        screen.classList.toggle("is-active", active);
+        screen.setAttribute("aria-hidden", active ? "false" : "true");
+    });
+    renderOpportunityOverlay(hash);
+}
+
+function showRouteError(el, error) {
+    const panel = document.createElement("div");
+    panel.className = "error-panel page-shell";
+    panel.innerHTML = "<div class=\"panel center\"><h2>Ocurrió un error en esta pantalla</h2><p>La pantalla no pudo cargarse. Probá volver al dashboard.</p><a class=\"btn primary\" href=\"#dashboard\">VOLVER</a></div>";
+    el.replaceChildren(panel);
+    document.querySelectorAll(".screen").forEach(screen => {
+        const active = screen === el;
+        screen.hidden = !active;
+        screen.classList.toggle("is-active", active);
+        screen.setAttribute("aria-hidden", active ? "false" : "true");
+    });
+    console.error(error);
 }
 
 function hashSafe(id) { return `#${id}`; }

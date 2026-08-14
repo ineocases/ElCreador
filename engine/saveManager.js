@@ -2,6 +2,7 @@
 // USA LA MISMA KEY que gameState.guardar(): "elCreador_saveData"
 
 import { gameState, normalizarGameState } from './gameState.js';
+import { validateLocalSave } from '../security.js';
 
 const saveManager = {
 
@@ -26,14 +27,18 @@ const saveManager = {
                 pendingCampaignOffer: gameState.pendingCampaignOffer,
                 worldNews: gameState.worldNews,
                 worldYearNews: gameState.worldYearNews,
+                worldDramaHistory: gameState.worldDramaHistory,
                 pendingSponsorOffer: gameState.pendingSponsorOffer,
                 pendingEvent: gameState.pendingEvent,
                 pendingCollabOffer: gameState.pendingCollabOffer,
+                pendingVideoSelection: gameState.pendingVideoSelection,
+                boosts: gameState.boosts,
                 lastYearSummary: gameState.lastYearSummary,
                 lastQuarterResult: gameState.lastQuarterResult,
                 lastVideo: gameState.lastVideo,
                 lastVideoResult: gameState.lastVideoResult,
                 ultimoEventoResultado: gameState.ultimoEventoResultado,
+                lastAwardsResults: gameState.lastAwardsResults,
                 lastCollab: gameState.lastCollab,
                 savedAt: Date.now()
             };
@@ -62,6 +67,11 @@ const saveManager = {
             const savedData = localStorage.getItem(this.SAVE_KEY);
 
             if (!savedData) {
+                return false;
+            }
+
+            if (!validateLocalSave(savedData)) {
+                console.warn("⚠️ Save inválido o demasiado grande; se ignora.");
                 return false;
             }
 
@@ -110,14 +120,19 @@ const saveManager = {
 
             gameState.worldNews = Array.isArray(parsedData.worldNews) ? parsedData.worldNews : [];
             gameState.worldYearNews = Array.isArray(parsedData.worldYearNews) ? parsedData.worldYearNews : [];
+            gameState.worldDramaHistory = Array.isArray(parsedData.worldDramaHistory) ? parsedData.worldDramaHistory : [];
 
             gameState.pendingSponsorOffer = parsedData.pendingSponsorOffer || null;
             gameState.pendingEvent = parsedData.pendingEvent || null;
             gameState.pendingCollabOffer = parsedData.pendingCollabOffer || null;
+            gameState.pendingVideoSelection = parsedData.pendingVideoSelection || null;
+            gameState.boosts = parsedData.boosts || gameState.boosts || {};
             gameState.lastYearSummary = parsedData.lastYearSummary || null;
+            gameState.lastQuarterResult = parsedData.lastQuarterResult || null;
             gameState.lastVideo = parsedData.lastVideo || null;
             gameState.lastVideoResult = parsedData.lastVideoResult || null;
             gameState.ultimoEventoResultado = parsedData.ultimoEventoResultado || null;
+            gameState.lastAwardsResults = parsedData.lastAwardsResults || null;
             gameState.lastCollab = parsedData.lastCollab || null;
 
             normalizarGameState();
@@ -147,6 +162,8 @@ const saveManager = {
         if (!raw) {
             return false;
         }
+
+        if (!validateLocalSave(raw)) return false;
 
         const data =
             JSON.parse(raw);

@@ -1102,3 +1102,147 @@ body{
 @keyframes miniIntroIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
 
 @media(max-width:760px){.create-page{padding:8px 8px 28px}.create-topbar{padding-bottom:12px}.create-version{display:none}.create-hero{padding:18px 4px 20px}.create-hero h1{font-size:3.7rem}.create-steps{gap:6px;font-size:.52rem}.create-steps i{display:none}.create-steps span{flex:1}.create-input-grid,.niche-grid{grid-template-columns:1fr}.create-panel{padding:15px;border-radius:14px}.create-panel-head h2{font-size:.9rem}.create-live-dot{display:none}.create-preview-card{padding:12px}.create-start-btn{position:sticky;bottom:8px;z-index:5}.career-menu-actions{flex-direction:column}.hud-career-btn span{display:none}.hud-career-btn{min-width:38px!important}}
+
+/* Minijuegos nuevos */
+.mini-thumb-grid,.trend-options,.awards-candidate-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}.trend-options{grid-template-columns:repeat(2,minmax(0,1fr))}.mini-thumb,.trend-option,.award-candidate{border:1px solid var(--border-color,#2b2f3a);background:var(--bg-card,#151820);color:inherit;border-radius:14px;padding:14px;text-align:left;cursor:pointer;transition:.16s}.mini-thumb:hover,.trend-option:hover,.award-candidate:hover{transform:translateY(-2px);border-color:var(--accent-red,#ff3b3b)}.mini-thumb-art{display:block;font-size:2.4rem;height:80px;display:grid;place-items:center;background:rgba(255,255,255,.04);border-radius:10px;margin-bottom:10px}.mini-thumb b,.trend-option b,.award-candidate b{display:block}.mini-thumb small,.trend-option small,.award-candidate span{display:block;color:var(--text-muted,#8f96a3);margin-top:6px}.award-candidate{display:grid;gap:4px}.collab-filter-panel{display:flex;gap:10px;flex-wrap:wrap;padding:10px 0}.collab-filter-panel[hidden]{display:none!important}@media(max-width:700px){.mini-thumb-grid,.trend-options,.awards-candidate-grid{grid-template-columns:1fr}.collab-search-row{flex-wrap:wrap}}
+
+
+/* Impactos visibles de cada decisión: cada opción tiene beneficio y costo. */
+.decision-effects{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;text-align:left}
+.decision-effects>div{padding:9px 10px;border:1px solid var(--border-color,rgba(255,255,255,.08));border-radius:10px;background:rgba(0,0,0,.12)}
+.decision-effects small{display:block;font-size:10px;font-weight:800;letter-spacing:.08em;margin-bottom:6px;opacity:.72}
+.event-impact-list{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:650}
+.event-impact-list.positive span{color:#8ee6b1}
+.event-impact-list.negative span{color:#ff9c9c}
+@media(max-width:700px){.decision-effects{grid-template-columns:1fr}}
+
+.event-result-panel{margin-top:18px;text-align:center;animation:fadeIn .25s ease}
+.event-result-panel h2{margin:.35rem 0 .5rem}
+.event-result-effects{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:14px}
+.event-result-effects span{padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.06);font-size:12px;font-weight:750}
+.event-result-effects .result-good{border:1px solid rgba(100,220,150,.25)}
+.event-result-effects .result-bad{border:1px solid rgba(255,100,100,.25)}
+
+/* Impactos cuantificados de eventos */
+.event-impact-list span { display:block; font-weight:700; margin:5px 0; }
+.event-impact-list.positive span { color:#59e391; }
+.event-impact-list.negative span { color:#ff6b6b; }
+.event-result-effects { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+.event-result-effects span { padding:8px 11px; border-radius:8px; background:rgba(255,255,255,.05); font-weight:800; }
+.event-result-effects .result-good { color:#59e391; border:1px solid rgba(89,227,145,.25); }
+.event-result-effects .result-bad { color:#ff6b6b; border:1px solid rgba(255,107,107,.25); }
+
+/* V8 UI simplification: less visual noise, clearer hierarchy. */
+.career-feed-page .feed-status-card { padding: 14px 18px; }
+.career-feed-page .feed-status-main small { opacity:.72; }
+.career-feed-page .feed-world-card, .career-feed-page .feed-skills-card { display:none !important; }
+.career-more { margin-top: 14px; }
+.career-menu-actions-stack { display:grid !important; grid-template-columns:1fr !important; gap:8px !important; }
+.career-menu-actions-stack .btn { width:100%; }
+.career-menu-actions-stack .btn.secondary { border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06); color:#fff; }
+.monetization-page .contract-card { max-width:760px; margin-inline:auto; }
+.monetization-page .dashboard-top { max-width:760px; margin-inline:auto; }
+
+
+/* Sponsors: marcas con identidad visual */
+.sponsor-brand{display:flex;align-items:center;gap:14px;margin:10px 0 18px}
+.sponsor-logo{width:56px;height:56px;object-fit:contain;border-radius:14px;background:#fff;padding:7px;box-shadow:0 6px 20px rgba(0,0,0,.08)}
+.sponsor-brand h2{margin:0}
+
+/* V15 · PALMARÉS + MENÚ MOBILE LEGIBLE */
+.awards-cabinet-hero{padding:18px;margin-bottom:12px}.cabinet-title-row{display:flex;align-items:center;justify-content:space-between;gap:16px}.cabinet-title-row h1{font-family:var(--font-heading);font-size:clamp(2rem,6vw,3rem);margin:4px 0}.cabinet-title-row p{margin:0;color:var(--text-muted);max-width:620px}.trophy-count{min-width:88px;padding:12px;border:1px solid rgba(245,197,24,.28);background:rgba(245,197,24,.07);border-radius:12px;text-align:center}.trophy-count span{display:block;font-size:1.4rem}.trophy-count strong{display:block;font-size:1.8rem;color:#ffd84d;line-height:1}.trophy-count small{display:block;color:var(--text-muted);font-size:.62rem;text-transform:uppercase;font-weight:800}.empty-trophy-state{text-align:center;padding:45px 20px}.empty-trophy-icon{font-size:3.5rem;filter:grayscale(.2);margin-bottom:8px}.empty-trophy-state h2{margin:4px 0 7px}.empty-trophy-state p{max-width:500px;margin:auto}.trophy-years{display:grid;gap:12px}.trophy-year{padding:14px}.trophy-year-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}.trophy-year-head h2{margin:2px 0;font-family:var(--font-heading);font-size:1.35rem}.trophy-year-head>span{font-size:.65rem;color:var(--text-muted);white-space:nowrap}.trophy-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.trophy-card{position:relative;display:flex;align-items:center;gap:10px;min-width:0;padding:12px;border-radius:10px;background:linear-gradient(135deg,rgba(245,197,24,.11),rgba(255,255,255,.025));border:1px solid rgba(245,197,24,.24);overflow:hidden}.trophy-card-icon{font-size:1.65rem;flex:0 0 auto}.trophy-card-copy{min-width:0}.trophy-card-copy small{display:block;color:#b08b19;font-size:.55rem;font-weight:900}.trophy-card-copy strong{display:block;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.trophy-card-copy span{display:block;color:var(--text-muted);font-size:.6rem;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.trophy-card-shine{margin-left:auto;opacity:.3;font-size:1rem}.hud-menu-btn span{display:inline!important}
+@media(max-width:700px){
+  .game-hud-compact{grid-template-columns:1fr auto;gap:7px;padding:8px}
+  .game-hud-compact .hud-menu{grid-column:1/-1;grid-row:2;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;overflow:visible;width:100%;padding:0}
+  .game-hud-compact .hud-menu-btn{justify-content:center;min-width:0;width:100%;padding:8px 4px;font-size:.64rem;line-height:1;gap:4px}
+  .game-hud-compact .hud-menu-btn svg{width:15px;height:15px}
+  .game-hud-compact .hud-menu-btn span{display:inline!important;overflow:hidden;text-overflow:ellipsis}
+  .game-hud-compact .hud-menu-btn.locked span{display:inline!important}
+  .game-hud-compact .hud-fame-level{grid-column:1;grid-row:1}.game-hud-compact .hud-season{grid-column:2;grid-row:1}.game-hud-compact .hud-numbers{grid-column:1/-1;grid-row:3}
+  .career-timeline{grid-row:4}
+  .cabinet-title-row{align-items:flex-start}.trophy-count{min-width:72px;padding:9px}.trophy-count strong{font-size:1.45rem}.trophy-grid{grid-template-columns:1fr}.trophy-card{padding:11px}.awards-cabinet-hero{padding:14px}.cabinet-title-row h1{font-size:2rem}
+}
+@media(max-width:360px){.game-hud-compact .hud-menu-btn{font-size:.57rem;padding:7px 2px}.game-hud-compact .hud-menu-btn svg{width:14px;height:14px}}
+
+/* V16 · Minijuegos más rápidos + feedback táctil */
+.thumb-builder-progress{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:8px 0 12px;font-weight:800;font-size:.78rem}
+.thumb-builder-score{min-width:38px;padding:5px 9px;border-radius:999px;background:rgba(255,255,255,.07)}
+.thumb-builder-track{position:relative;height:150px;border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.018));border:1px solid rgba(255,255,255,.08);overflow:hidden;margin:8px 0 14px}
+.thumb-builder-track:before{content:"";position:absolute;left:50%;top:10px;bottom:10px;width:2px;background:rgba(255,255,255,.12);transform:translateX(-50%)}
+.thumb-builder-zone{position:absolute;left:35%;width:30%;top:12px;bottom:12px;border:2px dashed rgba(89,227,145,.45);background:rgba(89,227,145,.07);border-radius:12px}
+#thumbPiece{position:absolute;top:50%;left:8%;transform:translate(-50%,-50%);width:86px;height:86px;display:grid;place-items:center;font-size:3.3rem;filter:drop-shadow(0 10px 18px rgba(0,0,0,.28));user-select:none;will-change:left}
+.thumb-click-pop,.click-pop{animation:miniClickPop .16s ease-out}
+@keyframes miniClickPop{0%{transform:translate(-50%,-50%) scale(1)}45%{transform:translate(-50%,-50%) scale(1.18)}100%{transform:translate(-50%,-50%) scale(1)}}
+.combo-disabled{opacity:.55;pointer-events:none;filter:grayscale(.35)}
+.combo-key{transition:transform .1s,box-shadow .1s}
+.combo-key:active,.trend-option:active,.minigame-action:active{transform:scale(.96)}
+@media(max-width:600px){.thumb-builder-track{height:130px}#thumbPiece{font-size:2.8rem}.thumb-builder-zone{left:32%;width:36%}}
+
+/* V19 — navegación sin pantalla de carga.
+   Si alguna operación necesita mostrar estado de carga, el indicador queda
+   únicamente en la franja inferior y nunca tapa el HUD/encabezado. */
+.screen-loading-bottom{
+    position:fixed;
+    left:0;
+    right:0;
+    bottom:0;
+    height:4px;
+    z-index:9999;
+    pointer-events:none;
+    background:rgba(255,255,255,.06);
+    overflow:hidden;
+}
+.screen-loading-bottom::after{
+    content:"";
+    display:block;
+    width:38%;
+    height:100%;
+    background:var(--accent-red);
+    animation:screenLoadingBottom 1.05s ease-in-out infinite;
+}
+@keyframes screenLoadingBottom{
+    0%{transform:translateX(-120%)}
+    100%{transform:translateX(370%)}
+}
+.awards-continue-row{
+    display:flex;
+    justify-content:center;
+    margin:22px 0 10px;
+}
+.event-impact-list span{
+    white-space:nowrap;
+}
+
+/* V21: indicador de operación no invasivo; nunca cubre HUD/contenido. */
+.app-progress {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    z-index: 9999;
+    pointer-events: none;
+    overflow: hidden;
+    background: transparent;
+}
+.app-progress::after {
+    content: "";
+    display: block;
+    width: 38%;
+    height: 100%;
+    background: currentColor;
+    transform: translateX(-110%);
+    animation: appProgress 1s ease-in-out infinite;
+}
+@keyframes appProgress { 0% { transform: translateX(-110%); } 100% { transform: translateX(310%); } }
+
+/* V23: ceremonia anual de premios */
+.awards-annual-stage{position:relative;overflow:hidden;text-align:center;padding:28px 18px}.awards-annual-stage::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 0,rgba(245,197,24,.12),transparent 52%);pointer-events:none}.awards-annual-stage>*{position:relative}.annual-awards-categories{display:grid;gap:12px;margin-top:12px}.annual-award-card{animation:awardCardIn .45s ease both;animation-delay:var(--award-delay,0ms)}.award-winner-panel{display:flex;align-items:center;gap:12px;margin:10px 0;padding:12px;border-radius:12px;background:linear-gradient(135deg,rgba(245,197,24,.13),rgba(255,255,255,.025));border:1px solid rgba(245,197,24,.28)}.award-winner-panel.won{box-shadow:0 0 0 1px rgba(245,197,24,.12),0 10px 30px rgba(245,197,24,.08)}.award-winner-panel .winner-icon{font-size:2rem;flex:0 0 auto}.award-winner-panel small{display:block;font-size:.58rem;color:#b08b19;font-weight:900}.award-winner-panel strong{display:block;font-size:1rem}.award-winner-panel span{display:block;color:var(--text-muted);font-size:.68rem;margin-top:2px}.award-terne.player-won{border-color:rgba(245,197,24,.48)}
+@keyframes awardCardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media(max-width:560px){.awards-annual-stage{padding:22px 12px}.awards-annual-stage h1{font-size:2rem}.award-winner-panel{padding:10px}.award-winner-panel strong{font-size:.9rem}.award-winner-panel span{font-size:.6rem}}
+
+
+/* V23 · Sponsors entregados por el usuario + impactos neutrales */
+.sponsor-logo{width:72px;height:72px;object-fit:contain;border-radius:14px;background:#fff;padding:6px;box-shadow:0 6px 20px rgba(0,0,0,.08)}
+.decision-effects.single-impact{grid-template-columns:1fr}
+.event-impact-list.neutral span{color:var(--text-color,#f3f3f3)}

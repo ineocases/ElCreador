@@ -1,6 +1,7 @@
 // screens/pretemporada.js
 import { renderHeaderHud } from "../components/HeaderHud.js";
 import { gameState } from "../engine/gameState.js";
+import { offerVeladaPreseason, requestAnotherVeladaRival, decideVelada } from "../engine/advancedSystems.js";
 
 const bancoCartas = [
     { titulo:"CURSO RÁPIDO DE PREMIERE", tipo:"RARA", attr:"edicion", pts:4, efecto:"edicion", efectoTexto:"+8% vistas por calidad de producción", desc:"Aprendés a cortar silencios, mejorar ritmo y hacer que cada segundo cuente.", color:"var(--accent-yellow)" },
@@ -23,15 +24,36 @@ export function renderPretemporada(el) {
         return container;
     }
 
+    if (gameState.player.velada?.offerYear !== año && gameState.player.velada?.acceptedYear !== año && gameState.player.velada?.offerStatus !== "declined") {
+        offerVeladaPreseason(gameState);
+    }
+    const velada = gameState.player.velada;
+    const veladaRival = velada?.rival ? gameState.creators.find(c => c.id === velada.rival) : null;
+    const mostrarOferta = velada?.offerYear === año && velada?.offerStatus === "offered" && veladaRival;
     const opciones = [...bancoCartas].sort(() => Math.random() - .5).slice(0, 3);
     container.innerHTML = `
         <div class="page-shell">
             ${renderHeaderHud()}
             <div class="year-cover"><div class="eyebrow">⚡ PRETEMPORADA · ${año}</div><h1>Prepará tu carrera.</h1><p>Antes de jugar el año, elegí una sola ventaja. Después vas a tener 4 trimestres de tres meses y una decisión de video importante en cada uno.</p></div>
+            ${mostrarOferta ? `<section class="panel" style="margin:20px 0;border:1px solid var(--accent-yellow);">
+                <div class="eyebrow">🥊 OFERTA ESPECIAL · LA VELADA</div>
+                <h2>Te invitaron a La Velada</h2>
+                <p class="muted">Tu rival propuesto es <b>${veladaRival.nombre}</b>, con ${Number(veladaRival.seguidores||0).toLocaleString("es-AR")} seguidores. Solo podés competir en T4, pero desde T1 vas a poder entrenar.</p>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;">
+                    <button id="acceptVeladaOffer" class="btn primary">ACEPTAR RIVAL</button>
+                    <button id="otherVeladaRival" class="btn ghost">PEDIR OTRO RIVAL</button>
+                    <button id="rejectVeladaOffer" class="btn ghost">RECHAZAR INVITACIÓN</button>
+                </div>
+                <small class="muted" style="display:block;margin-top:10px;">Podés pedir otro rival antes de decidir. No se consume una colaboración.</small>
+            </section>` : velada?.acceptedYear === año ? `<section class="panel" style="margin:20px 0;border:1px solid var(--accent-green);"><div class="eyebrow">🥊 LA VELADA · ${año}</div><h2>Estás oficialmente en el evento</h2><p class="muted">Entrená en T1, T2 y T3. El combate solamente se juega en T4.</p><a href="#velada" class="btn primary">VER ENTRENAMIENTO</a></section>` : ""}
             <div class="cards-grid">
                 ${opciones.map((carta,index)=>`<div class="preseason-card panel" style="border-top:3px solid ${carta.color};margin:0;min-height:330px;display:flex;flex-direction:column;justify-content:space-between;"><div><span class="card-type" style="background:${carta.color};color:#000;padding:4px 8px;border-radius:5px;font-size:.68rem;font-weight:900;display:inline-block;">${carta.tipo}</span><h2>${carta.titulo}</h2><p class="muted">${carta.desc}</p></div><div><div class="card-bonus" style="text-align:center;color:var(--accent-green);font-weight:900;margin:12px 0 6px;">+${carta.pts} ${nombres[carta.attr]}</div><div style="font-size:.78rem;color:var(--text-muted);text-align:center;min-height:34px;">${carta.efectoTexto}</div><button class="btn primary select-card-button" data-index="${index}" style="width:100%;">ELEGIR MEJORA</button></div></div>`).join("")}
             </div>
         </div>`;
+
+    container.querySelector("#acceptVeladaOffer")?.addEventListener("click", () => { decideVelada(gameState, "accept"); renderPretemporada(container); });
+    container.querySelector("#rejectVeladaOffer")?.addEventListener("click", () => { decideVelada(gameState, "reject"); renderPretemporada(container); });
+    container.querySelector("#otherVeladaRival")?.addEventListener("click", () => { requestAnotherVeladaRival(gameState); renderPretemporada(container); });
 
     container.querySelectorAll(".select-card-button").forEach(button => button.addEventListener("click", () => {
         const carta = opciones[Number(button.dataset.index)];
