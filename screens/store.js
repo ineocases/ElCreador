@@ -27,6 +27,10 @@ function itemImpact(item) {
     if (item.quality) parts.push(`Calidad +${item.quality}`);
     if (item.editing) parts.push(`Edición +${item.editing}`);
     if (item.audio) parts.push(`Audio +${item.audio}`);
+    const labels = { algoritmo:"Algoritmo", marketing:"Marketing", creatividad:"Creatividad", constancia:"Constancia", carisma:"Carisma", networking:"Networking", comunidad:"Comunidad", edicion:"Edición" };
+    Object.entries(item.effects || {}).forEach(([key, value]) => {
+        if (value) parts.push(`${labels[key] || key} +${value}`);
+    });
     return parts.join(" · ") || "Mejora general";
 }
 
@@ -60,7 +64,12 @@ export function renderStore(el) {
     if (tab === "setup") tab = "equipment";
 
     const owned = new Set(p.inventory);
-    const available = items.filter(i => Number(i.tier || 0) <= p.shopTier && !owned.has(i.id));
+    let catalogFilter = sessionStorage.getItem("elcreador_store_catalog_filter") || "all";
+    const available = items.filter(i => {
+        if (catalogFilter !== "all" && String(i.slot || "general") !== catalogFilter) return false;
+        return true;
+    });
+    const catalogSlots = ["all", ...new Set(items.map(i => String(i.slot || "general")))];
     const equippedIds = new Set(Object.values(p.equipment || {}));
 
     const equipmentHtml = `
@@ -100,17 +109,27 @@ export function renderStore(el) {
                 </div>
                 <span class="store-meta">Tier ${p.shopTier}</span>
             </div>
+            <div class="store-catalog-tools">
+                ${catalogSlots.map(slot => `<button class="store-filter ${catalogFilter === slot ? "active" : ""}" data-catalog-filter="${slot}">${slot === "all" ? "TODO" : slotLabel(slot)}</button>`).join("")}
+            </div>
             <div class="store-product-grid">
-                ${available.length ? available.map(item => `
-                    <article class="product-card">
+                ${available.length ? available.map(item => {
+                    const locked = Number(item.tier || 0) > Number(p.shopTier || 1);
+                    const isOwned = owned.has(item.id);
+                    const canBuy = !locked && !isOwned && Number(p.dinero) >= Number(item.price || 0);
+                    return `
+                    <article class="product-card ${locked ? "locked" : ""} ${isOwned ? "owned" : ""}">
                         <div class="product-icon">${item.icon || "🔧"}</div>
                         <div class="product-main">
                             <div class="product-top"><span>${slotLabel(item.slot)}</span><span>Tier ${item.tier}</span></div>
                             <h3>${item.name}</h3>
                             <p>${itemImpact(item)}</p>
+                            <div class="product-functions">
+                                ${(item.effects && Object.keys(item.effects).length) ? Object.entries(item.effects).map(([k,v]) => `<span class="product-function">${k} +${v}</span>`).join("") : `<span class="product-function">Efecto en producción</span>`}
+                            </div>
                             <div class="product-bottom">
                                 <strong>${item.price ? money(item.price) : "GRATIS"}</strong>
-                                <button class="btn primary buy-item-btn" data-item-id="${item.id}" ${Number(p.dinero) < Number(item.price || 0) ? "disabled" : ""}>${Number(p.dinero) < Number(item.price || 0) ? "NO ALCANZA" : "COMPRAR"}</button>
+                                <button class="btn ${locked || isOwned ? "ghost" : "primary"} buy-item-btn" data-item-id="${item.id}" ${locked || isOwned || !canBuy ? "disabled" : ""}>${isOwned ? "ADQUIRIDO" : locked ? `REQUIERE TIER ${item.tier}` : Number(p.dinero) < Number(item.price || 0) ? "NO ALCANZA" : "COMPRAR"}</button>
                             </div>
                         </div>
                     </article>
@@ -223,6 +242,11 @@ export function renderStore(el) {
         renderStore(c);
     });
 
+    c.querySelectorAll("[data-catalog-filter]").forEach(btn => btn.onclick = () => {
+        sessionStorage.setItem("elcreador_store_catalog_filter", btn.dataset.catalogFilter);
+        renderStore(c);
+    });
+
     c.querySelectorAll(".buy-item-btn").forEach(btn => btn.onclick = () => {
         const item = items.find(x => x.id === btn.dataset.itemId);
         if (!item || Number(p.dinero) < Number(item.price || 0)) return;
@@ -233,6 +257,12 @@ export function renderStore(el) {
         p.atributos ||= {};
         if (item.editing) p.atributos.edicion = Number(p.atributos.edicion || 0) + Number(item.editing);
         if (item.audio) p.atributos.edicion = Number(p.atributos.edicion || 0) + Math.floor(Number(item.audio) / 3);
+        if (item.quality) p.atributos.edicion = Number(p.atributos.edicion || 0) + Math.max(1, Math.floor(Number(item.quality) / 8));
+        Object.entries(item.effects || {}).forEach(([key, value]) => {
+            if (typeof value !== "number") return;
+            if (key === "comunidad") p.comunidad = Number(p.comunidad || 0) + value;
+            else p.atributos[key] = Number(p.atributos[key] || 0) + value;
+        });
         gameState.guardar();
         renderStore(c);
     });

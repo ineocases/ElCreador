@@ -31,7 +31,8 @@ export async function renderTwemoji(root = document.body) {
         twemoji.parse(root, {
             folder: 'svg',
             ext: '.svg',
-            base: 'https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.2/assets/'
+            base: 'https://cdn.jsdelivr.net/gh/jdecked/twemoji@17.0.2/assets/',
+            className: 'emoji'
         });
     } catch (error) {
         console.warn('Twemoji no pudo procesar la pantalla:', error);

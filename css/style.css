@@ -806,6 +806,24 @@ body{
   .season-total-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
 }
 .channel-menu,.dashboard-primary-action{display:none!important;}
+/* Twemoji: nunca permitir que un SVG de emoji ocupe todo el viewport. */
+img.emoji, .emoji {
+  width: 1em !important;
+  height: 1em !important;
+  max-width: 1em !important;
+  max-height: 1em !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  display: inline-block !important;
+  vertical-align: -0.15em !important;
+  object-fit: contain !important;
+  flex: 0 0 auto !important;
+}
+.product-icon img.emoji, .staff-icon img.emoji, .business-icon img.emoji, .store-nav-btn img.emoji {
+  width: 1.35em !important; height: 1.35em !important; max-width: 1.35em !important; max-height: 1.35em !important;
+}
+.player-figurita img.emoji { width: 2.2rem !important; height: 2.2rem !important; max-width: 2.2rem !important; max-height: 2.2rem !important; }
+
 .svg-icon{display:inline-block;flex:0 0 auto;fill:currentColor;vertical-align:-.18em}.icon-btn{display:inline-flex;align-items:center;gap:7px}
 .bottle-wrap{position:relative;width:min(100%,520px);margin:20px auto}.bottle-canvas{display:block;width:100%;height:auto;background:linear-gradient(#111820,#0d1117);border:1px solid rgba(255,255,255,.08);border-radius:18px;touch-action:none}.bottle-hud{display:flex;justify-content:space-between;gap:10px;margin:12px 0}.bottle-meter{height:8px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden}.bottle-meter i{display:block;height:100%;width:0;background:var(--accent-green);transition:width .15s}.bottle-controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}.bottle-status{text-align:center;min-height:24px;color:var(--text-muted)}
 @media(max-width:600px){.bottle-wrap{margin:12px auto}.bottle-canvas{border-radius:14px}.bottle-controls .btn{width:100%}}
@@ -1317,3 +1335,13 @@ input, select, textarea { font-size: 16px; }
 @supports (padding: max(0px)) {
     .game-hud-compact, .page-shell { padding-left: max(10px, env(safe-area-inset-left)); padding-right: max(10px, env(safe-area-inset-right)); }
 }
+
+/* Tienda ampliada */
+.store-catalog-tools{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
+.store-filter{min-height:44px;padding:9px 12px;border:1px solid rgba(255,255,255,.1);border-radius:10px;background:#111419;color:#ddd}
+.product-card.locked{opacity:.72}
+.product-card.owned{border-color:rgba(55,211,83,.25);background:rgba(55,211,83,.035)}
+.product-status{font-size:.62rem;font-weight:800;letter-spacing:.08em;color:#777}
+.product-functions{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0}.product-function{padding:5px 7px;border-radius:7px;background:#171a1f;color:#bfc3ca;font-size:.62rem}
+.product-card .product-icon{overflow:hidden}.product-card .product-icon img.emoji{width:1.6em!important;height:1.6em!important;max-width:1.6em!important;max-height:1.6em!important}
+@media(max-width:600px){.store-catalog-tools{display:grid;grid-template-columns:1fr 1fr}.store-filter{width:100%}}
