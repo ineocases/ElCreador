@@ -32,8 +32,8 @@ function finish(overlay, score) {
 
 function info(type) {
     return [
-        { title: "Timing de publicación", desc: "Esperá el momento justo y publicá cuando el marcador entre en la zona ideal.", goal: "Precisión = mejor rendimiento del video." },
-        { title: "Miniatura perfecta", desc: "Elegí la miniatura que mejor combine claridad, curiosidad y fidelidad al contenido.", goal: "Una buena miniatura mejora el CTR sin caer en clickbait barato." },
+        { title: "Timing de publicación", desc: "El punto verde va rápido. Tocá cuando el cursor entre en la zona ideal.", goal: "Precisión = mejor rendimiento del video." },
+        { title: "Diseñá la miniatura", desc: "Armá la miniatura por capas: fondo, cabeza, cuerpo y piernas. Encajá cada parte en el centro; podés salirte un poco.", goal: "Cuanto mejor encajes cada pieza, mejor queda la miniatura y más CTR conseguís." },
         { title: "Aprovechá la tendencia", desc: "Elegí qué tendencia aprovechar para tu próximo contenido antes de que pierda fuerza.", goal: "Importan la velocidad, el encaje con tu nicho y la saturación." },
         { title: "Votación de Awards", desc: "Analizá tres candidatos y elegí quién merece ganar según rendimiento e impacto.", goal: "No siempre gana el más grande: evaluá la temporada completa." }
     ][type % 4];
@@ -54,7 +54,7 @@ export async function runMinigame(type) {
     const t = ((Number(type)||0)%4+4)%4;
     await intro(t);
     cleanupActiveMinigame();
-    const runners = [runTiming, runThumbnail, runTrend, runAwardsVote];
+    const runners = [runTiming, runThumbnailDesigner, runTrend, runAwardsVote];
     let timeout;
     let timedOut = false;
     const game = Promise.resolve().then(() => runners[t]()).catch(error => { console.error("Error en minijuego:", error); cleanupActiveMinigame(); return 0; });
@@ -80,23 +80,33 @@ function runTiming() {
         const b=o.querySelector("#minigameBody"); b.innerHTML=`<div class="timing-track"><div class="timing-zone"></div><div id="timingCursor"></div></div><button id="timingHit" class="btn primary minigame-action">¡PUBLICAR!</button><p class="minigame-hint">Una sola oportunidad.</p>`;
         const c=b.querySelector("#timingCursor"), hit=b.querySelector("#timingHit"); let pos=0,dir=1,done=false,raf,last=performance.now(); const a=42,z=58;
         activeCleanup=()=>{done=true;if(raf)cancelAnimationFrame(raf);};
-        function tick(now){if(done)return;const dt=Math.min(32,now-last);last=now;pos+=dir*dt*.075;if(pos>=100){pos=100;dir=-1}if(pos<=0){pos=0;dir=1}c.style.left=`${pos}%`;raf=requestAnimationFrame(tick)}
+        function tick(now){if(done)return;const dt=Math.min(32,now-last);last=now;pos+=dir*dt*.135;if(pos>=100){pos=100;dir=-1}if(pos<=0){pos=0;dir=1}c.style.left=`${pos}%`;raf=requestAnimationFrame(tick)}
         raf=requestAnimationFrame(tick); hit.onclick=()=>{if(done)return;done=true;const d=pos<a?a-pos:pos>z?pos-z:0;resolve(finish(o,d===0?100:clamp(100-d*5,15,95)));};
     });
 }
 
-function runThumbnail() {
+function runThumbnailDesigner() {
     return new Promise(resolve => {
-        const o=overlayBase("Elegí la miniatura","Una miniatura clara gana; el clickbait exagerado puede perjudicar la confianza.");
+        const o=overlayBase("Diseñá la miniatura","Encajá cada pieza en el centro. No hace falta precisión perfecta: hay margen para salirte un poco.");
         const b=o.querySelector("#minigameBody");
-        const cards=shuffle([
-            {score:96,tag:"CLARA",title:"La actualización cambió TODO",desc:"Imagen limpia + protagonista + contexto"},
-            {score:72,tag:"CURIOSIDAD",title:"NO PUEDO CREER LO QUE PASÓ",desc:"Más impacto, pero menos contexto"},
-            {score:48,tag:"CLICKBAIT",title:"ESTO ES ILEGAL",desc:"Promesa exagerada que no coincide con el video"}
-        ]);
-        b.innerHTML=`<div class="mini-thumb-grid">${cards.map((x,i)=>`<button class="mini-thumb" data-score="${x.score}"><span class="mini-thumb-art">${i===0?'🎮':i===1?'😱':'🚨'}</span><b>${x.title}</b><small>${x.tag} · ${x.desc}</small></button>`).join('')}</div>`;
-        activeCleanup=()=>{};
-        b.querySelectorAll('.mini-thumb').forEach(btn=>btn.onclick=()=>resolve(finish(o,Number(btn.dataset.score)||50)));
+        const pieces=[
+            {key:"fondo",label:"FONDO",icon:"🖼️"},
+            {key:"cabeza",label:"CABEZA",icon:"😎"},
+            {key:"cuerpo",label:"CUERPO",icon:"🧍"},
+            {key:"piernas",label:"PIERNAS",icon:"👖"}
+        ];
+        let index=0,total=0,done=false,raf,last=performance.now(),pos=8,dir=1;
+        const tolerance=15;
+        b.innerHTML=`<div class="thumb-builder-progress"><div id="thumbStage">1/4 · FONDO</div><div class="thumb-builder-score" id="thumbScore">0</div></div><div class="thumb-builder"><div class="thumb-builder-track"><div class="thumb-builder-zone"></div><div id="thumbPiece">🖼️</div></div><button id="thumbPlace" class="btn primary minigame-action">ENCAJAR FONDO</button><p id="thumbHint" class="minigame-hint">Va de izquierda a derecha. Tocá cuando esté cerca del centro.</p></div>`;
+        const piece=b.querySelector('#thumbPiece'),stage=b.querySelector('#thumbStage'),scoreEl=b.querySelector('#thumbScore'),btn=b.querySelector('#thumbPlace');
+        function tick(now){if(done)return;const dt=Math.min(32,now-last);last=now;pos+=dir*dt*.11;if(pos>=100){pos=100;dir=-1}if(pos<=0){pos=0;dir=1}piece.style.left=`${pos}%`;raf=requestAnimationFrame(tick);}
+        function renderStage(){const x=pieces[index];stage.textContent=`${index+1}/4 · ${x.label}`;piece.textContent=x.icon;btn.textContent=`ENCAJAR ${x.label}`;piece.classList.remove('thumb-click-pop');void piece.offsetWidth;piece.classList.add('thumb-click-pop');}
+        function place(){if(done)return;const distance=Math.abs(pos-50);const quality=distance<=tolerance?Math.round(100-(distance/tolerance)*28):Math.max(25,Math.round(72-(distance- tolerance)*2.2));total+=quality;piece.classList.remove('thumb-click-pop');void piece.offsetWidth;piece.classList.add('thumb-click-pop');scoreEl.textContent=`${Math.round(total/(index+1))}`;
+            if(index===pieces.length-1){done=true;resolve(finish(o,total/pieces.length));return;}
+            index++;renderStage();}
+        btn.onclick=place;
+        activeCleanup=()=>{done=true;if(raf)cancelAnimationFrame(raf);};
+        renderStage();raf=requestAnimationFrame(tick);
     });
 }
 
@@ -191,12 +201,13 @@ function runVeladaFootwork(difficulty){
 
 function runVeladaCombos(difficulty){
     return new Promise(resolve=>{
-        const cfg=veladaDifficultyConfig(difficulty),o=overlayBase("Combinaciones","Memorizá la secuencia y repetila correctamente.");
+        const cfg=veladaDifficultyConfig(difficulty),o=overlayBase("Combinaciones","Memorizá la secuencia. No podés tocar nada hasta que termine de mostrarse.");
         const b=o.querySelector("#minigameBody"), len=difficulty==="facil"?3:difficulty==="normal"?4:5, pool=["JAB","CROSS","HOOK","UPPER","DEFENSA"];
-        const seq=shuffle(pool).slice(0,len); let input=[],stage="show";
-        b.innerHTML=`<div class="mini-sequence" id="veladaSequence">${seq.map(x=>`<span>${x}</span>`).join(" · ")}</div><div id="comboButtons" class="trend-options"></div><p class="minigame-hint">Memorizá y después repetí.</p>`;
-        setTimeout(()=>{stage="input";const box=b.querySelector("#veladaSequence");box.textContent="AHORA";const buttons=b.querySelector("#comboButtons");buttons.innerHTML=shuffle(pool).map(x=>`<button class="trend-option" data-v="${x}"><b>${x}</b></button>`).join("");buttons.querySelectorAll("button").forEach(btn=>btn.onclick=()=>{if(stage!=="input")return;input.push(btn.dataset.v); if(input.length===seq.length){const correct=input.every((v,i)=>v===seq[i]);resolve(finish(o,correct?100:Math.max(15,70-input.filter((v,i)=>v!==seq[i]).length*18)));}})},1200);
-        activeCleanup=()=>{};
+        const seq=shuffle(pool).slice(0,len); let input=[],stage="show",showTimer;
+        b.innerHTML=`<div class="mini-sequence" id="veladaSequence">${seq.map(x=>`<span>${x}</span>`).join(" · ")}</div><div id="comboButtons" class="trend-options combo-disabled"></div><p id="comboHint" class="minigame-hint">⏳ Mirá la secuencia... todavía no podés apretar.</p>`;
+        const revealMs=1700 + len*280;
+        showTimer=setTimeout(()=>{stage="input";const box=b.querySelector("#veladaSequence");box.textContent="AHORA";const hint=b.querySelector("#comboHint");hint.textContent="Elegí la secuencia en el mismo orden.";const buttons=b.querySelector("#comboButtons");buttons.classList.remove("combo-disabled");buttons.innerHTML=shuffle(pool).map(x=>`<button class="trend-option combo-key" data-v="${x}"><b>${x}</b></button>`).join("");buttons.querySelectorAll("button").forEach(btn=>btn.onclick=()=>{if(stage!=="input")return;btn.classList.remove("click-pop");void btn.offsetWidth;btn.classList.add("click-pop");input.push(btn.dataset.v); if(input.length===seq.length){const correct=input.every((v,i)=>v===seq[i]);resolve(finish(o,correct?100:Math.max(15,70-input.filter((v,i)=>v!==seq[i]).length*18)));}})},revealMs);
+        activeCleanup=()=>{clearTimeout(showTimer);stage="done";};
     });
 }
 

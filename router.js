@@ -18,6 +18,43 @@ import * as adminDashboardScreen from "./screens/admin/AdminDashboard.js";
 import { renderOpportunityOverlay } from "./components/OpportunityOverlay.js";
 
 let initialized = false;
+let loaderTimer = null;
+let loaderToken = 0;
+
+function getScreenLoader() {
+    let loader = document.getElementById("screenTransitionLoader");
+    if (!loader) {
+        loader = document.createElement("div");
+        loader.id = "screenTransitionLoader";
+        loader.className = "screen-transition-loader";
+        loader.setAttribute("aria-live", "polite");
+        loader.setAttribute("aria-label", "Cargando pantalla");
+        loader.innerHTML = `
+            <div class="screen-transition-loader__box">
+                <span class="screen-transition-loader__spinner" aria-hidden="true"></span>
+                <span class="screen-transition-loader__text">Cargando...</span>
+            </div>
+        `;
+        document.body.appendChild(loader);
+    }
+    return loader;
+}
+
+function showScreenLoader() {
+    const loader = getScreenLoader();
+    loader.classList.remove("is-hidden");
+    document.body.classList.add("screen-is-loading");
+    void loader.offsetWidth;
+    loader.classList.add("is-visible");
+}
+
+function hideScreenLoader() {
+    const loader = document.getElementById("screenTransitionLoader");
+    if (!loader) return;
+    loader.classList.remove("is-visible");
+    loader.classList.add("is-hidden");
+    document.body.classList.remove("screen-is-loading");
+}
 
 export function initRouter() {
     if (initialized) return;
@@ -86,32 +123,57 @@ function handleRoute() {
 }
 
 function renderScreen(elementId, screenModule) {
-    const el = document.getElementById(elementId);
-    if (!el) {
-        console.error(`❌ No existe #${elementId} en index.html`);
-        return;
-    }
-    el.style.display = "block";
-    el.innerHTML = "";
+    const token = ++loaderToken;
+    if (loaderTimer) clearTimeout(loaderTimer);
 
-    try {
-        let result;
-        if (typeof screenModule.default === "function") result = screenModule.default(el);
-        else if (screenModule.default && typeof screenModule.default.render === "function") result = screenModule.default.render(el);
-        else if (typeof screenModule.render === "function") result = screenModule.render(el);
-        else {
-            const key = Object.keys(screenModule).find(k => k.startsWith("render") && typeof screenModule[k] === "function");
-            if (key) result = screenModule[key](el);
+    showScreenLoader();
+
+    // Dejamos un pequeño tiempo visible al indicador para que cada cambio de pantalla
+    // se perciba como una transición intencional y no como un salto o pantalla vacía.
+    loaderTimer = setTimeout(() => {
+        if (token !== loaderToken) return;
+
+        const el = document.getElementById(elementId);
+        if (!el) {
+            hideScreenLoader();
+            console.error(`❌ No existe #${elementId} en index.html`);
+            return;
         }
-        if (result instanceof HTMLElement && result !== el && !el.contains(result)) {
-            el.innerHTML = "";
-            el.appendChild(result);
+
+        document.querySelectorAll(".screen").forEach(screen => {
+            screen.style.display = "none";
+        });
+
+        el.style.display = "block";
+        el.innerHTML = "";
+
+        try {
+            let result;
+            if (typeof screenModule.default === "function") result = screenModule.default(el);
+            else if (screenModule.default && typeof screenModule.default.render === "function") result = screenModule.default.render(el);
+            else if (typeof screenModule.render === "function") result = screenModule.render(el);
+            else {
+                const key = Object.keys(screenModule).find(k => k.startsWith("render") && typeof screenModule[k] === "function");
+                if (key) result = screenModule[key](el);
+            }
+            if (result instanceof HTMLElement && result !== el && !el.contains(result)) {
+                el.innerHTML = "";
+                el.appendChild(result);
+            }
+            renderOpportunityOverlay(window.location.hash);
+
+            // Dejamos que el navegador pinte la pantalla antes de retirar el loader.
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    if (token === loaderToken) hideScreenLoader();
+                });
+            });
+        } catch (error) {
+            console.error(`❌ Error renderizando ${hashSafe(elementId)}:`, error);
+            el.innerHTML = `<div class="error-panel"><h2>Ocurrió un error en esta pantalla</h2><p>${error.message}</p><a href="#dashboard">Volver</a></div>`;
+            requestAnimationFrame(hideScreenLoader);
         }
-        renderOpportunityOverlay(window.location.hash);
-    } catch (error) {
-        console.error(`❌ Error renderizando ${hashSafe(elementId)}:`, error);
-        el.innerHTML = `<div class="error-panel"><h2>Ocurrió un error en esta pantalla</h2><p>${error.message}</p><a href="#dashboard">Volver</a></div>`;
-    }
+    }, 320);
 }
 
 function hashSafe(id) { return `#${id}`; }

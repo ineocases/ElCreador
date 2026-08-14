@@ -41,7 +41,7 @@ export function renderSponsors(el) {
 
             ${offer ? `<section class="panel contract-card sponsor-offer-card">
                 <div class="eyebrow">📩 PROPUESTA FIJA</div>
-                <h2>${offer.name}</h2>
+                <div class="sponsor-brand"><img src="${offer.logo || 'assets/sponsors/default.svg'}" alt="Logo de ${offer.name}" class="sponsor-logo"><h2>${offer.name}</h2></div>
                 <p>La marca quiere contratarte por un período definido. El pago se acuerda antes de publicar.</p>
                 <div class="contract-stats">
                     <div><span>Pago</span><b>${money(offer.pago)}</b></div>
@@ -58,7 +58,7 @@ export function renderSponsors(el) {
 
             ${campaign ? `<section class="panel contract-card campaign-offer-card">
                 <div class="eyebrow">📊 PROPUESTA POR RENDIMIENTO</div>
-                <h2>${campaign.name}</h2>
+                <div class="sponsor-brand"><img src="${campaign.logo || 'assets/sponsors/default.svg'}" alt="Logo de ${campaign.name}" class="sponsor-logo"><h2>${campaign.name}</h2></div>
                 <p>Te pagan por cada 1.000 vistas verificadas de los contenidos incluidos en el acuerdo. No hay un pago garantizado: si rendís más, cobrás más.</p>
                 <div class="contract-stats">
                     <div><span>Pago</span><b>${money(campaign.cpm)} / 1.000 vistas</b></div>

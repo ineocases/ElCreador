@@ -45,19 +45,20 @@ function eventCard(container, event) {
 
 function collabCard(offer) {
     if (!offer) return "";
+    // Mientras jugás no se toma la decisión acá. Esta tarjeta funciona como
+    // aviso: la propuesta llega a tu carrera y la decisión vive únicamente
+    // dentro de la sección Colabs.
     const costo = Number(offer.costoVuelo || 0);
-    const puedePagar = costo <= Number(gameState.player.dinero || 0);
     return `<section class="career-card feed-collab-card">
-        <div class="feed-card-head"><div class="feed-icon green">${icon("group",18)}</div><div><div class="eyebrow">${offer.direction === "outgoing" ? "COLAB ACEPTADA" : "TE LLEGÓ UNA COLAB"}</div><h2>${offer.creatorName}</h2><p class="muted">${nf(offer.creatorFollowers)} seguidores · ${offer.niche || "Variedad"} · ${offer.pais || "Argentina"}</p></div></div>
-        <div class="feed-result-strip"><span>👁️ +${nf(offer.reward?.vistas)}</span><span>👥 +${nf(offer.reward?.subs)}</span><span>❤️ +15 relación</span></div>
-        <p class="feed-muted">${costo > 0 ? `✈️ Requiere un viaje de ${money(costo)}.` : "📍 No requiere viaje."}</p>
+        <div class="feed-card-head"><div class="feed-icon green">${icon("group",18)}</div><div><div class="eyebrow">TE LLEGÓ UNA PROPUESTA DE COLAB</div><h2>${offer.creatorName}</h2><p class="muted">${nf(offer.creatorFollowers)} seguidores · ${offer.niche || "Variedad"} · ${offer.pais || "Argentina"}</p></div></div>
+        <div class="feed-result-strip"><span>🤝 Invitación</span><span>👥 ${nf(offer.creatorFollowers)} seguidores</span><span>${costo > 0 ? `✈️ Viaje` : `📍 Cerca`}</span></div>
+        <p class="feed-muted">${costo > 0 ? `Te propusieron juntarte para una colab. La propuesta requiere un viaje de ${money(costo)}.` : "Te propusieron juntarte para hacer una colab. La propuesta está esperando tu respuesta."}</p>
         <div class="feed-actions">
-            <button id="feedAcceptCollab" class="btn primary" ${puedePagar ? "" : "disabled"}>ACEPTAR</button>
-            <button id="feedRejectCollab" class="btn ghost">RECHAZAR</button>
+            <a href="#collabs" class="btn primary">VER PROPUESTA EN COLAB</a>
         </div>
+        <small class="feed-hint">No podés aceptar ni rechazar desde acá. La decisión se toma en <b>Colabs</b>.</small>
     </section>`;
 }
-
 function sponsorCard(offer, campaign) {
     if (!offer && !campaign) return "";
     if (offer) return `<section class="career-card feed-sponsor-card">
@@ -172,11 +173,6 @@ export function renderDashboard(el) {
         if (ok) { gameState.guardar(); renderDashboard(container); }
     }));
 
-    container.querySelector("#feedAcceptCollab")?.addEventListener("click", () => {
-        const b = container.querySelector("#feedAcceptCollab"); b.disabled = true; b.textContent = "PROCESANDO...";
-        if (gameState.aceptarCollab()) renderDashboard(container); else { b.disabled = false; b.textContent = "ACEPTAR"; }
-    });
-    container.querySelector("#feedRejectCollab")?.addEventListener("click", () => { if (gameState.rechazarCollab()) renderDashboard(container); });
     container.querySelector("#feedNegotiateSponsor")?.addEventListener("click", () => { if (gameState.negociarSponsor(Math.round(Number(gameState.pendingSponsorOffer?.pago||0)*0.20))) renderDashboard(container); else alert("La marca rechazó la negociación."); });
     container.querySelector("#feedAcceptSponsor")?.addEventListener("click", () => { if (gameState.aceptarSponsor()) renderDashboard(container); });
     container.querySelector("#feedRejectSponsor")?.addEventListener("click", () => { if (gameState.rechazarSponsor()) renderDashboard(container); });

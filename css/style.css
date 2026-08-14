@@ -1142,3 +1142,38 @@ body{
 .career-menu-actions-stack .btn.secondary { border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06); color:#fff; }
 .monetization-page .contract-card { max-width:760px; margin-inline:auto; }
 .monetization-page .dashboard-top { max-width:760px; margin-inline:auto; }
+
+
+/* Sponsors: marcas con identidad visual */
+.sponsor-brand{display:flex;align-items:center;gap:14px;margin:10px 0 18px}
+.sponsor-logo{width:56px;height:56px;object-fit:contain;border-radius:14px;background:#fff;padding:7px;box-shadow:0 6px 20px rgba(0,0,0,.08)}
+.sponsor-brand h2{margin:0}
+
+/* V15 · PALMARÉS + MENÚ MOBILE LEGIBLE */
+.awards-cabinet-hero{padding:18px;margin-bottom:12px}.cabinet-title-row{display:flex;align-items:center;justify-content:space-between;gap:16px}.cabinet-title-row h1{font-family:var(--font-heading);font-size:clamp(2rem,6vw,3rem);margin:4px 0}.cabinet-title-row p{margin:0;color:var(--text-muted);max-width:620px}.trophy-count{min-width:88px;padding:12px;border:1px solid rgba(245,197,24,.28);background:rgba(245,197,24,.07);border-radius:12px;text-align:center}.trophy-count span{display:block;font-size:1.4rem}.trophy-count strong{display:block;font-size:1.8rem;color:#ffd84d;line-height:1}.trophy-count small{display:block;color:var(--text-muted);font-size:.62rem;text-transform:uppercase;font-weight:800}.empty-trophy-state{text-align:center;padding:45px 20px}.empty-trophy-icon{font-size:3.5rem;filter:grayscale(.2);margin-bottom:8px}.empty-trophy-state h2{margin:4px 0 7px}.empty-trophy-state p{max-width:500px;margin:auto}.trophy-years{display:grid;gap:12px}.trophy-year{padding:14px}.trophy-year-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}.trophy-year-head h2{margin:2px 0;font-family:var(--font-heading);font-size:1.35rem}.trophy-year-head>span{font-size:.65rem;color:var(--text-muted);white-space:nowrap}.trophy-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.trophy-card{position:relative;display:flex;align-items:center;gap:10px;min-width:0;padding:12px;border-radius:10px;background:linear-gradient(135deg,rgba(245,197,24,.11),rgba(255,255,255,.025));border:1px solid rgba(245,197,24,.24);overflow:hidden}.trophy-card-icon{font-size:1.65rem;flex:0 0 auto}.trophy-card-copy{min-width:0}.trophy-card-copy small{display:block;color:#b08b19;font-size:.55rem;font-weight:900}.trophy-card-copy strong{display:block;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.trophy-card-copy span{display:block;color:var(--text-muted);font-size:.6rem;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.trophy-card-shine{margin-left:auto;opacity:.3;font-size:1rem}.hud-menu-btn span{display:inline!important}
+@media(max-width:700px){
+  .game-hud-compact{grid-template-columns:1fr auto;gap:7px;padding:8px}
+  .game-hud-compact .hud-menu{grid-column:1/-1;grid-row:2;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;overflow:visible;width:100%;padding:0}
+  .game-hud-compact .hud-menu-btn{justify-content:center;min-width:0;width:100%;padding:8px 4px;font-size:.64rem;line-height:1;gap:4px}
+  .game-hud-compact .hud-menu-btn svg{width:15px;height:15px}
+  .game-hud-compact .hud-menu-btn span{display:inline!important;overflow:hidden;text-overflow:ellipsis}
+  .game-hud-compact .hud-menu-btn.locked span{display:inline!important}
+  .game-hud-compact .hud-fame-level{grid-column:1;grid-row:1}.game-hud-compact .hud-season{grid-column:2;grid-row:1}.game-hud-compact .hud-numbers{grid-column:1/-1;grid-row:3}
+  .career-timeline{grid-row:4}
+  .cabinet-title-row{align-items:flex-start}.trophy-count{min-width:72px;padding:9px}.trophy-count strong{font-size:1.45rem}.trophy-grid{grid-template-columns:1fr}.trophy-card{padding:11px}.awards-cabinet-hero{padding:14px}.cabinet-title-row h1{font-size:2rem}
+}
+@media(max-width:360px){.game-hud-compact .hud-menu-btn{font-size:.57rem;padding:7px 2px}.game-hud-compact .hud-menu-btn svg{width:14px;height:14px}}
+
+/* V16 · Minijuegos más rápidos + feedback táctil */
+.thumb-builder-progress{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:8px 0 12px;font-weight:800;font-size:.78rem}
+.thumb-builder-score{min-width:38px;padding:5px 9px;border-radius:999px;background:rgba(255,255,255,.07)}
+.thumb-builder-track{position:relative;height:150px;border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.018));border:1px solid rgba(255,255,255,.08);overflow:hidden;margin:8px 0 14px}
+.thumb-builder-track:before{content:"";position:absolute;left:50%;top:10px;bottom:10px;width:2px;background:rgba(255,255,255,.12);transform:translateX(-50%)}
+.thumb-builder-zone{position:absolute;left:35%;width:30%;top:12px;bottom:12px;border:2px dashed rgba(89,227,145,.45);background:rgba(89,227,145,.07);border-radius:12px}
+#thumbPiece{position:absolute;top:50%;left:8%;transform:translate(-50%,-50%);width:86px;height:86px;display:grid;place-items:center;font-size:3.3rem;filter:drop-shadow(0 10px 18px rgba(0,0,0,.28));user-select:none;will-change:left}
+.thumb-click-pop,.click-pop{animation:miniClickPop .16s ease-out}
+@keyframes miniClickPop{0%{transform:translate(-50%,-50%) scale(1)}45%{transform:translate(-50%,-50%) scale(1.18)}100%{transform:translate(-50%,-50%) scale(1)}}
+.combo-disabled{opacity:.55;pointer-events:none;filter:grayscale(.35)}
+.combo-key{transition:transform .1s,box-shadow .1s}
+.combo-key:active,.trend-option:active,.minigame-action:active{transform:scale(.96)}
+@media(max-width:600px){.thumb-builder-track{height:130px}#thumbPiece{font-size:2.8rem}.thumb-builder-zone{left:32%;width:36%}}
