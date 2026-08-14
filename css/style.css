@@ -1246,3 +1246,74 @@ body{
 .sponsor-logo{width:72px;height:72px;object-fit:contain;border-radius:14px;background:#fff;padding:6px;box-shadow:0 6px 20px rgba(0,0,0,.08)}
 .decision-effects.single-impact{grid-template-columns:1fr}
 .event-impact-list.neutral span{color:var(--text-color,#f3f3f3)}
+
+/* =========================================================
+   DEV MODE + MOBILE HARDENING
+   ========================================================= */
+html, body { overflow-x: hidden; }
+body { min-height: 100vh; min-height: 100dvh; }
+.screen { min-height: 100vh; min-height: 100dvh; }
+button, .btn, input, select, textarea { touch-action: manipulation; }
+.btn, button { min-height: 44px; }
+input, select, textarea { font-size: 16px; }
+
+.dev-mode-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    display: grid;
+    place-items: center;
+    padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    background: rgba(0,0,0,.78);
+    backdrop-filter: blur(10px);
+}
+.dev-mode-overlay[hidden] { display: none; }
+.dev-mode-panel {
+    width: min(560px, 100%);
+    max-height: min(760px, 90dvh);
+    overflow: auto;
+    padding: 20px;
+    border: 1px solid rgba(255,255,255,.16);
+    border-radius: 18px;
+    background: #111;
+    box-shadow: 0 24px 80px rgba(0,0,0,.55);
+}
+.dev-mode-head { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; }
+.dev-mode-kicker { color: var(--accent-red); font-size:.72rem; font-weight:1000; letter-spacing:.18em; }
+.dev-mode-panel h2 { margin:5px 0 0; font-size:1.25rem; }
+.dev-close { width:44px; min-width:44px; height:44px; border-radius:12px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.05); color:#fff; font-size:1.7rem; line-height:1; }
+.dev-mode-state { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:18px 0; }
+.dev-mode-state > div { padding:12px; border:1px solid rgba(255,255,255,.08); border-radius:12px; background:rgba(255,255,255,.035); min-width:0; }
+.dev-mode-state span { display:block; color:var(--text-muted); font-size:.62rem; font-weight:900; letter-spacing:.08em; }
+.dev-mode-state b { display:block; margin-top:4px; overflow-wrap:anywhere; }
+.dev-mode-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.dev-mode-actions .btn { width:100%; }
+.dev-mode-note { color:var(--text-muted); font-size:.75rem; line-height:1.45; margin:16px 0 0; }
+
+@media (hover: none), (pointer: coarse) {
+    .btn:hover, .action-card:hover, .interactive-card:hover, .preseason-card:hover,
+    .video-option-card:hover, .product-card:hover, .feed-choice:hover:not(:disabled),
+    .hud-menu-btn:hover, .store-nav-btn:hover, .decision-card:hover, .trend-option:hover,
+    .award-candidate:hover { transform:none; filter:none; }
+}
+
+@media (max-width: 520px) {
+    .dev-mode-panel { padding:16px; border-radius:15px; }
+    .dev-mode-actions { grid-template-columns:1fr; }
+    .dev-mode-state { grid-template-columns:1fr 1fr; }
+    .dev-mode-state > div:last-child { grid-column:1 / -1; }
+}
+
+@media (max-width: 360px) {
+    .dev-mode-panel { padding:13px; }
+    .dev-mode-state { gap:6px; }
+    .dev-mode-state > div { padding:10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dev-mode-overlay, .dev-mode-panel { scroll-behavior:auto; }
+}
+
+@supports (padding: max(0px)) {
+    .game-hud-compact, .page-shell { padding-left: max(10px, env(safe-area-inset-left)); padding-right: max(10px, env(safe-area-inset-right)); }
+}

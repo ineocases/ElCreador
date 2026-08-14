@@ -18,8 +18,9 @@ export function renderAwards(container) {
     if (!container) return null;
 
     const summary = gameState.lastYearSummary;
+    const allowed = new Set(["creador_del_año", "clip_del_año", "streamer_revelacion", "enojo_del_año"]);
     const resultados = Array.isArray(gameState.lastAwardsResults?.resultados)
-        ? gameState.lastAwardsResults.resultados.map(normalizeResult)
+        ? gameState.lastAwardsResults.resultados.map(normalizeResult).filter(r => allowed.has(r?.id))
         : [];
 
     if (!summary || !resultados.length) {

@@ -2,6 +2,7 @@
 // V21: carga diferida de pantallas para reducir el JS inicial y evitar renders innecesarios.
 import saveManager from "./engine/saveManager.js";
 import { renderOpportunityOverlay } from "./components/OpportunityOverlay.js";
+import { renderTwemoji } from "./components/emojiRenderer.js";
 
 let initialized = false;
 let navigationToken = 0;
@@ -139,6 +140,9 @@ async function renderScreen(el, screenModule, hash, token) {
         screen.setAttribute("aria-hidden", active ? "false" : "true");
     });
     renderOpportunityOverlay(hash);
+    // Conversión visual de emojis a SVG Twemoji; si la CDN falla, se mantiene
+    // el emoji nativo y la navegación no se bloquea.
+    renderTwemoji(el).catch(() => {});
 }
 
 function showRouteError(el, error) {

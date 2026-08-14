@@ -41,7 +41,7 @@ export function renderHeaderHud() {
     return `
         <header class="game-hud-compact">
             <div class="hud-channel">
-                <strong>${p.canal || "Mi Canal"}</strong>
+                <strong data-dev-hud-trigger title="DEV MODE: 7 toques rápidos">${p.canal || "Mi Canal"}</strong>
                 <span>${p.niche || "Gaming"} · ${edad} años</span>
             </div>
             <div class="hud-season">

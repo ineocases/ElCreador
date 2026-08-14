@@ -2,6 +2,7 @@
 
 import { initRouter } from './router.js';
 import { installSecurityGuards } from './security.js';
+import { installDevMode } from './components/DevMode.js';
 
 window.addEventListener('error', (event) => {
     console.error('El Creador: error de ejecución', event.error || event.message);
@@ -12,6 +13,7 @@ window.addEventListener('unhandledrejection', (event) => {
 
 document.addEventListener('DOMContentLoaded', () => {
     installSecurityGuards();
+    installDevMode();
     try {
         initRouter();
     } catch (error) {

@@ -177,6 +177,7 @@ function crearPlayer() {
         historialTrimestre4: null,
         historialAños: [],
         awardsHistory: [],
+        devTestPublish: false,
         yearStartSnapshot: null
     };
 }
@@ -187,7 +188,8 @@ function crearCreadores() {
         relacion: Number(creator.relacion) || 0,
         respeto: Number(creator.respeto) || 0,
         rivalidad: Number(creator.rivalidad) || 0,
-        colaboraciones: Number(creator.colaboraciones) || 0
+        colaboraciones: Number(creator.colaboraciones) || 0,
+        revelacionGanada: Boolean(creator.revelacionGanada)
     }));
 }
 
@@ -558,7 +560,111 @@ export const gameState = {
     },
 
     puedeSubirVideo() {
-        return !this.player.videoSubidoEsteTrimestre;
+        return !this.player.videoSubidoEsteTrimestre || this.player.devTestPublish === true;
+    },
+
+    devAdvanceYear() {
+        if (!this.player?.partidaIniciada) return false;
+        // El modo desarrollador salta el loop de T1-T4 sin inventar un cierre
+        // de temporada. Si estamos en T4, reutilizamos el cierre normal; en
+        // cualquier otro trimestre avanzamos directamente al siguiente año.
+        if (Number(this.time.trimestre) === TRIMESTRES_POR_AÑO) {
+            this.finalizarAño();
+        }
+        const year = Number(this.time.año) || 2026;
+        this.time = { año: year + 1, trimestre: 1 };
+        this.generarCreadoresNuevos(year + 1);
+        this.player.año = year + 1;
+        this.player.trimestre = 1;
+        this.player.edad = 18 + (year + 1 - 2026);
+        this.player.carreraAño = Math.max(1, year + 1 - 2025);
+        this.player.pretemporada = null;
+        this.player.videoSubidoEsteTrimestre = false;
+        this.player.actividadTrimestre = null;
+        this.player.historialTrimestre1 = null;
+        this.player.historialTrimestre2 = null;
+        this.player.historialTrimestre3 = null;
+        this.player.historialTrimestre4 = null;
+        this.player.awardsStats = { clips: 0, enojos: 0, reacciones: 0 };
+        this.player.yearStartSnapshot = snapshotAño(this.player);
+        this.lastQuarterResult = null;
+        this.lastYearSummary = null;
+        this.lastAwardsResults = null;
+        this.pendingEvent = null;
+        this.pendingSponsorOffer = null;
+        this.pendingCollabOffer = null;
+        this.ultimoEventoResultado = null;
+        this.guardar();
+        return true;
+    },
+
+    devAddSubscribers() {
+        if (!this.player?.partidaIniciada) return false;
+        this.player.suscriptores = Math.max(0, Number(this.player.suscriptores) || 0) + 1000000;
+        this.player.vistasTotales = Math.max(0, Number(this.player.vistasTotales) || 0) + 10000000;
+        recalcularFama(this.player);
+        this.guardar();
+        return true;
+    },
+
+    devAddMoney() {
+        if (!this.player?.partidaIniciada) return false;
+        this.player.dinero = Math.max(0, Number(this.player.dinero) || 0) + 100000;
+        this.guardar();
+        return true;
+    },
+
+    devTriggerEvent() {
+        if (!this.player?.partidaIniciada) return false;
+        this.pendingEvent = null;
+        const event = this.generarEventoPendiente();
+        if (!event) return false;
+        this.guardar();
+        return true;
+    },
+
+    devTestAward() {
+        if (!this.player?.partidaIniciada) return false;
+        const year = Number(this.time.año) || 2026;
+        const test = {
+            id: 'dev_test_award',
+            nombre: 'CREADOR DEL AÑO · PRUEBA DEV',
+            icono: '🏆',
+            descripcion: 'Premio generado desde DEV MODE.',
+            ganador: { id: 'player', nombre: this.player.canal || 'Tu canal', seguidores: Number(this.player.suscriptores) || 0, crecimiento: 0, pais: 'Argentina' },
+            nominados: [{ id: 'player', nombre: this.player.canal || 'Tu canal', seguidores: Number(this.player.suscriptores) || 0, crecimiento: 0, pais: 'Argentina', ganador: true }],
+            jugadorGano: true,
+            esPruebaDev: true
+        };
+        this.lastAwardsResults = { año: year, resultados: [test], jugadorPremios: [{ año: year, nombre: test.nombre, categoria: test.nombre, icono: test.icono, esPruebaDev: true }] };
+        this.lastYearSummary ||= { año: year, premiosGanadosCount: 0, premiosGanados: [] };
+        this.lastYearSummary.premiosGanadosCount = Number(this.lastYearSummary.premiosGanadosCount || 0) + 1;
+        this.lastYearSummary.premiosGanados = [...(this.lastYearSummary.premiosGanados || []), this.lastAwardsResults.jugadorPremios[0]];
+        this.player.awardsHistory ||= [];
+        this.player.awardsHistory.push(this.lastAwardsResults.jugadorPremios[0]);
+        this.guardar();
+        return true;
+    },
+
+    devTestCollab() {
+        if (!this.player?.partidaIniciada) return false;
+        const candidates = (this.creators || []).filter(c => c.activo !== false && c.id !== 'player');
+        if (!candidates.length) return false;
+        const creador = candidates.slice().sort((a,b) => Number(a.seguidores || 0) - Number(b.seguidores || 0))[0];
+        const creatorSubs = Math.max(1000, Number(creador.seguidores) || 1000);
+        this.pendingCollabOffer = {
+            id: `dev_collab_${Date.now()}`, creatorId: creador.id, creatorName: creador.nombre,
+            creatorFollowers: creatorSubs, año: this.time.año, trimestre: this.time.trimestre,
+            niche: creador.nicho || 'Variedad', pais: creador.pais || 'Argentina', costoVuelo: 0,
+            direction: 'incoming', reward: { vistas: Math.max(500, Math.round(creatorSubs * 0.2)), subs: Math.max(50, Math.round(creatorSubs * 0.01)) }, estado: 'pendiente', esPruebaDev: true
+        };
+        this.guardar();
+        return true;
+    },
+
+    devReset() {
+        this.resetPlayer();
+        return true;
     },
 
     registrarVideoPublicado() {
@@ -2138,8 +2244,8 @@ export const gameState = {
                 id: c.id, nombre: c.nombre, pais: c.pais || "Argentina", nicho: c.nicho || "Variedad",
                 seguidores: Number(c.seguidores) || 0, crecimiento: Math.max(0, nuevos),
                 crecimientoPct: Math.max(0, nuevos / inicioSubs), vistas: Number(mundo.vistas) || 0,
-                virales: Number(mundo.virales) || 0, clips: Number(mundo.clips) || 0,
-                popularidad: Number(c.popularidad) || 0, debutYear: Number(c.debutYear) || 0
+                virales: Number(mundo.virales) || 0, clips: Number(mundo.clips) || 0, enojos: Number(mundo.enojos) || 0,
+                perdidos: Number(mundo.perdidos) || 0, popularidad: Number(c.popularidad) || 0, debutYear: Number(c.debutYear) || 0
             };
         };
 
@@ -2153,7 +2259,7 @@ export const gameState = {
             pais: "Argentina", nicho: this.player.niche || "Gaming",
             seguidores: Number(fin.suscriptores) || 0, crecimiento: playerGrowth,
             crecimientoPct: playerGrowthPct, vistas: playerViews, virales: playerVirales,
-            clips: playerClips, popularidad: Number(fin.fama) || 0, debutYear: Number(this.player.debutYear) || 2026
+            clips: playerClips + Math.floor(playerVirales * 1.5), popularidad: Number(fin.fama) || 0, debutYear: Number(this.player.debutYear) || 2026
         };
         const pool = [playerCandidate, ...candidatos];
 
@@ -2163,47 +2269,94 @@ export const gameState = {
             .slice(0, limit)
             .map(x => x.c);
 
+        // COSCU ARMY AWARDS: solo existen estas cuatro ternas.
+        // Las reglas de elegibilidad evitan que un canal diminuto gane por
+        // accidente premios dominados por escala. Revelación es la excepción:
+        // premia a cuentas nuevas y el jugador conserva una ventana especial
+        // de hasta 5 años de carrera, pero una sola vez.
+        const playerCareerYear = Math.max(1, Number(this.player.carreraAño) || (añoPremios - 2025));
+        const playerRevelacionEligible = playerCareerYear <= 5 && !this.player.revelacionGanada;
+
+        const creatorScale = c => Math.log10(Math.max(1000, Number(c.seguidores) || 0));
+        const playerEligibleFor = (id) => {
+            if (id === "creador_del_año") return Number(fin.suscriptores) >= 100000;
+            if (id === "clip_del_año") return Number(fin.suscriptores) >= 25000;
+            if (id === "streamer_revelacion") return playerRevelacionEligible;
+            if (id === "enojo_del_año") return true;
+            return false;
+        };
+
+        const buildCandidates = (id, score, includePlayer = true) => {
+            const base = includePlayer ? [...candidatos, playerCandidate] : [...candidatos];
+            const filtered = base.filter(c => {
+                if (c.id === "player") return playerEligibleFor(id);
+                if (id === "streamer_revelacion") {
+                    const edadCuenta = Math.max(0, añoPremios - Number(c.debutYear || añoPremios));
+                    return edadCuenta <= 1 && c.revelacionGanada !== true;
+                }
+                return true;
+            });
+            return [...filtered]
+                .map(c => ({ c, score: Math.max(0, Number(score(c)) || 0) }))
+                .sort((a,b) => b.score - a.score)
+                .slice(0, 3)
+                .map(x => x.c);
+        };
+
         const categorias = [
             {
                 id: "creador_del_año", nombre: "CREADOR DEL AÑO", icono: "🏆",
-                descripcion: "El mejor rendimiento general de la temporada.",
-                score: c => c.crecimientoPct * 45 + Math.log10(Math.max(10, c.seguidores)) * 3 + c.popularidad * 0.22 + Math.min(12, c.vistas / 50000000)
-            },
-            {
-                id: "mas_visto", nombre: "MÁS VISTO DEL AÑO", icono: "👁️",
-                descripcion: "El canal que más vistas acumuló durante el año.",
-                score: c => c.vistas
-            },
-            {
-                id: "revelacion", nombre: "REVELACIÓN DEL AÑO", icono: "🌟",
-                descripcion: "El crecimiento más destacado entre creadores en ascenso.",
+                descripcion: "El creador con la mejor combinación de escala, crecimiento e impacto.",
                 score: c => {
-                    const debut = c.debutYear === añoPremios ? 1.6 : 1;
-                    return c.crecimientoPct * 1000 * debut + Math.min(25, c.crecimiento / 50000) + (c.virales * 4);
+                    // La escala pesa de verdad: un canal de 5K no compite en igualdad
+                    // de condiciones contra cuentas de cientos de miles o millones.
+                    const scale = creatorScale(c);
+                    return scale * 32 + Math.log10(Math.max(1, c.crecimiento + 1)) * 16 + c.popularidad * 0.20 + Math.min(12, c.vistas / 50000000);
                 }
             },
             {
-                id: "viral", nombre: "MOMENTO VIRAL DEL AÑO", icono: "🔥",
-                descripcion: "El creador que más momentos virales generó.",
-                score: c => c.virales * 100 + c.vistas / 1000000
+                id: "clip_del_año", nombre: "CLIP DEL AÑO", icono: "🔥",
+                descripcion: "El creador cuyo contenido generó los momentos de clip más fuertes del año.",
+                score: c => c.clips * 30 + Math.min(24, c.virales * 8) + Math.min(24, c.vistas / 10000000) + creatorScale(c) * 2
             },
             {
-                id: "comunidad", nombre: "FAVORITO DE LA COMUNIDAD", icono: "❤️",
-                descripcion: "La combinación de crecimiento, alcance y conexión con la audiencia.",
-                score: c => c.crecimientoPct * 500 + c.clips * 3 + c.popularidad * 0.5
+                id: "streamer_revelacion", nombre: "STREAMER REVELACIÓN", icono: "🌟",
+                descripcion: "Solo para streamers nuevos. Los NPC deben tener como máximo un año de carrera; vos tenés una ventana especial de 5 años y solo podés ganarlo una vez.",
+                score: c => {
+                    if (c.id !== "player") {
+                        const edadCuenta = Math.max(0, añoPremios - Number(c.debutYear || añoPremios));
+                        if (edadCuenta > 1) return -1;
+                    }
+                    return c.crecimientoPct * 1000 + Math.min(35, c.crecimiento / 25000) + c.virales * 7 + c.popularidad * 0.08;
+                }
+            },
+            {
+                id: "enojo_del_año", nombre: "ENOJO DEL AÑO", icono: "😡",
+                descripcion: "El creador que acumuló más polémicas y momentos de enojo durante la temporada.",
+                score: c => c.enojos * 100 + Math.min(30, c.perdidos / 25000) + creatorScale(c) * 2
             }
         ];
 
         const resultados = categorias.map(cat => {
-            const nominados = top(cat.score, 3);
-            const ganador = nominados[0] || playerCandidate;
+            const nominados = buildCandidates(cat.id, cat.score, true);
+            const ganador = nominados[0] || null;
             return {
                 id: cat.id, nombre: cat.nombre, icono: cat.icono, descripcion: cat.descripcion,
-                ganador: { ...ganador },
-                nominados: nominados.map((c, i) => ({ ...c, posicion: i + 1, ganador: c.id === ganador.id })),
-                jugadorGano: ganador.id === "player"
+                ganador: ganador ? { ...ganador } : null,
+                nominados: nominados.map((c, i) => ({ ...c, posicion: i + 1, ganador: ganador ? c.id === ganador.id : false })),
+                jugadorGano: ganador?.id === "player"
             };
         });
+
+        // Revelación solo puede ser ganada una vez. La marca queda persistida
+        // en el perfil para que nunca vuelva a aparecer como elegible.
+        const revelacionResult = resultados.find(r => r.id === "streamer_revelacion");
+        if (revelacionResult?.ganador?.id === "player") {
+            this.player.revelacionGanada = true;
+        } else if (revelacionResult?.ganador?.id) {
+            const npcGanador = this.creators.find(c => c.id === revelacionResult.ganador.id);
+            if (npcGanador) npcGanador.revelacionGanada = true;
+        }
 
         const premiosJugador = resultados.filter(r => r.jugadorGano).map(r => ({
             año: añoPremios, nombre: r.nombre, categoria: r.nombre, icono: r.icono
@@ -2322,6 +2475,7 @@ export function normalizarGameState() {
     if (typeof p.carreraAño !== "number") p.carreraAño = Math.max(1,(Number(p.año)||2026)-2025);
     if (typeof p.retirado !== "boolean") p.retirado = false;
     if (!Array.isArray(p.awardsHistory)) p.awardsHistory=[];
+    if (typeof p.devTestPublish !== "boolean") p.devTestPublish = false;
     if (typeof p.fama !== "number") p.fama = 0;
     if (typeof p.famaAudiencia !== "number") p.famaAudiencia = famaAudienciaPorSubs(p.suscriptores);
     if (typeof p.famaLogros !== "number") p.famaLogros = Math.max(0, Number(p.fama) - Number(p.famaAudiencia));

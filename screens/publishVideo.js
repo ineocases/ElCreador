@@ -102,6 +102,7 @@ export function renderPublishVideo(el) {
                 }
 
                 gameState.registrarVideoPublicado();
+                if (gameState.player.devTestPublish) gameState.player.devTestPublish = false;
                 gameState.guardar();
 
                 // Una sola navegación después de terminar TODO el cálculo.

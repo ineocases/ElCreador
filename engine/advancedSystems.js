@@ -169,9 +169,16 @@ export function fightVelada(game, score){
 }
 
 export function buildAwardsCandidates(game){
- const p=game.player, year=p.año; const creators=game.creators.filter(c=>c.pais==="Argentina"&&c.activo!==false&&Number(c.debutYear||2020)<=year);
- const metrics=c=>({name:c.nombre,subs:Number(c.seguidores)||0,views:Number(c.mundo?.vistas)||0,debut:Number(c.debutYear||2020),creator:c});
- const all=creators.map(metrics); const rookie=all.filter(x=>x.debut>=year-4 && !x.creator.revelacionGanada);
- const top=(arr,key)=>arr.sort((a,b)=>b[key]-a[key]).slice(0,4);
- return {streamerDelAño:top([...all],"subs"),revelacion:top(rookie,"subs"),trayectoria:top([...all],"views"),mejorClip:top([...all],"views")};
+ const p=game.player, year=Number(p.año)||2026;
+ const creators=(game.creators||[]).filter(c=>c.activo!==false&&Number(c.debutYear||year)<=year);
+ const metrics=c=>({name:c.nombre,subs:Number(c.seguidores)||0,views:Number(c.mundo?.vistas)||0,clips:Number(c.mundo?.clips)||0,enojos:Number(c.mundo?.enojos)||0,debut:Number(c.debutYear||year),creator:c});
+ const all=creators.map(metrics);
+ const rookie=all.filter(x=>Math.max(0,year-x.debut)<=1&&!x.creator.revelacionGanada);
+ const top=(arr,score)=>arr.map(x=>({x,s:Number(score(x))||0})).sort((a,b)=>b.s-a.s).slice(0,3).map(x=>x.x);
+ return {
+   creadorDelAño:top([...all],x=>Math.log10(Math.max(1000,x.subs))*32+Math.log10(Math.max(1,(Number(x.creator.mundo?.nuevosSeguidores)||0)+1))*16),
+   clipDelAño:top([...all],x=>x.clips*30+x.views/10000000),
+   streamerRevelacion:top(rookie,x=>x.subs),
+   enojoDelAño:top([...all],x=>x.enojos*100+x.creator.mundo?.perdidos/25000)
+ };
 }
