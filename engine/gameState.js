@@ -1309,7 +1309,9 @@ export const gameState = {
                 }
                 creator.colaboraciones = (Number(creator.colaboraciones) || 0) + (opcion === "a" && evento.category !== "rivalidad" ? 1 : 0);
             }
-        }\n\n        if (evento.groupId && Array.isArray(evento.creatorIds)) {
+        }
+
+        if (evento.groupId && Array.isArray(evento.creatorIds)) {
             const delta = opcion === "a" ? 10 : 2;
             for (const id of evento.creatorIds) {
                 const creator = this.creators.find(c => c.id === id);
